@@ -363,6 +363,8 @@
 		43BE5820278BE68100491291 /* RustMozillaAppServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43BE578A278BA4D900491291 /* RustMozillaAppServices.framework */; };
 		43BE5825278BE7EF00491291 /* RustMozillaAppServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43BE578A278BA4D900491291 /* RustMozillaAppServices.framework */; };
 		43BE5827278BE81500491291 /* RustMozillaAppServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43BE578A278BA4D900491291 /* RustMozillaAppServices.framework */; };
+		43C07382282A1E930063A377 /* CreditCardAutofillScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C07381282A1E930063A377 /* CreditCardAutofillScript.swift */; };
+		43C07384282A209D0063A377 /* CCAutoFill.js in Resources */ = {isa = PBXBuildFile; fileRef = 43C07383282A209C0063A377 /* CCAutoFill.js */; };
 		43C5A09B2555DF8100BA37AD /* BottomSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C5A0992555DF8100BA37AD /* BottomSheetViewController.swift */; };
 		43C6A46E279B8A0800C79856 /* Sentry.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4368F828279665220013419B /* Sentry.framework */; };
 		43C6A46F279B8A3300C79856 /* XCGLogger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43AFC0D9279678920039DDF4 /* XCGLogger.framework */; };
@@ -2227,6 +2229,8 @@
 		43BDBBFD2752FA8600254DE4 /* TabCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabCell.swift; sourceTree = "<group>"; };
 		43BE578A278BA4D900491291 /* RustMozillaAppServices.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RustMozillaAppServices.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		43BE578B278BA4D900491291 /* RustMozillaAppServices-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "RustMozillaAppServices-Info.plist"; sourceTree = "<group>"; };
+		43C07381282A1E930063A377 /* CreditCardAutofillScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditCardAutofillScript.swift; sourceTree = "<group>"; };
+		43C07383282A209C0063A377 /* CCAutoFill.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = CCAutoFill.js; sourceTree = "<group>"; };
 		43C5A0992555DF8100BA37AD /* BottomSheetViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BottomSheetViewController.swift; sourceTree = "<group>"; };
 		43CA482EA439A9C486CCA01D /* kk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = kk; path = kk.lproj/Shared.strings; sourceTree = "<group>"; };
 		43D6D6A127E535EE00F47485 /* FxALoginRegistrationTelemetryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FxALoginRegistrationTelemetryTests.swift; sourceTree = "<group>"; };
@@ -5400,6 +5404,14 @@
 			path = Update;
 			sourceTree = "<group>";
 		};
+		43C07380282A1E700063A377 /* CreditCardAutofill */ = {
+			isa = PBXGroup;
+			children = (
+				43C07381282A1E930063A377 /* CreditCardAutofillScript.swift */,
+			);
+			path = CreditCardAutofill;
+			sourceTree = "<group>";
+		};
 		43C5A0972555DF7300BA37AD /* BottomSheet */ = {
 			isa = PBXGroup;
 			children = (
@@ -6003,6 +6015,7 @@
 				D03F8F24200EACD8003C2224 /* ContextMenu.js */,
 				39F4C0F92045D87400746155 /* FocusHelper.js */,
 				D0FCF7F61FE45E5D004A7995 /* PrintHandler.js */,
+				43C07383282A209C0063A377 /* CCAutoFill.js */,
 				43175DB526B8774D00C41C31 /* Ads.js */,
 			);
 			path = AtDocumentEnd;
@@ -6938,6 +6951,7 @@
 		F84B21F11A0910F600AAB793 /* Frontend */ = {
 			isa = PBXGroup;
 			children = (
+				43C07380282A1E700063A377 /* CreditCardAutofill */,
 				8AD40FB827BAD1DD00672675 /* TabContentsScripts */,
 				8AD40FB727BAD1D600672675 /* Toolbar+URLBar */,
 				8AED23C327AC1F8700DE7E97 /* Components */,
@@ -8100,6 +8114,7 @@
 				C8399D9522DE5E6200EFA5CA /* disconnect-block-social.json in Resources */,
 				E4CD9F541A71506400318571 /* Reader.html in Resources */,
 				23BEA76A251A99ED00A014BF /* NewYorkMedium-RegularItalic.otf in Resources */,
+				43C07384282A209D0063A377 /* CCAutoFill.js in Resources */,
 				7B2142FE1E5E055000CDD3FC /* InfoPlist.strings in Resources */,
 				E69922171B94E3EF007C480D /* Licenses.html in Resources */,
 				E4CD9F5B1A71506C00318571 /* Reader.css in Resources */,
@@ -9025,6 +9040,7 @@
 				C4E3983D1D21F1E7004E89BA /* TopTabsViews.swift in Sources */,
 				FA9293D41D6580E100AC8D33 /* QRCodeViewController.swift in Sources */,
 				39F4C10A2045DB2E00746155 /* FocusHelper.swift in Sources */,
+				43C07382282A1E930063A377 /* CreditCardAutofillScript.swift in Sources */,
 				E4CD9F2D1A6DC91200318571 /* TabLocationView.swift in Sources */,
 				0BB5B2881AC0A2B90052877D /* SnackBar.swift in Sources */,
 				8AB8572C27D945FA0075C173 /* FxHomeTopSitesManager.swift in Sources */,
