@@ -475,13 +475,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     fileprivate func setUserAgent() {
         let firefoxUA = UserAgent.getUserAgent()
 
-        // Set the UA for WKWebView (via defaults), the favicon fetcher, and the image loader.
-        // This only needs to be done once per runtime. Note that we use defaults here that are
-        // readable from extensions, so they can just use the cached identifier.
-//        SDWebImageDownloader.shared.setValue(firefoxUA, forHTTPHeaderField: "User-Agent")
-//        // SDWebImage is setting accept headers that report we support webp. We don't
-//        SDWebImageDownloader.shared.setValue("image/*;q=0.8", forHTTPHeaderField: "Accept")
-
         // Record the user agent for use by search suggestion clients.
         SearchViewController.userAgent = firefoxUA
 
@@ -580,16 +573,6 @@ extension AppDelegate: UINavigationControllerDelegate {
         default:
             return nil
         }
-    }
-    
-    func applicationDidReceiveMemoryWarning(_ application: UIApplication) {
-        print("WARNING!!!!")
-//        SDImageCache.shared.clear(with: .all) {
-//            print("Disk & memory data cleared")
-//        }
-        // Clear image cache
-//        SDImageCache.shared.clearDisk()
-//        SDImageCache.shared.clearMemory()
     }
 }
 
