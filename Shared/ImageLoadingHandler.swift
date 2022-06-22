@@ -44,6 +44,11 @@ protocol ImageFetcher {
 
 public class ImageLoadingHandler: ImageFetcher {
 
+    public var disposition: URLSession.AuthChallengeDisposition = .useCredential
+    public var credential: URLCredential?
+
+    public init() {}
+
     public static func getImageFromCacheOrDownload(with url: URL, limit maxSize: Int,
                                                    completion:
                                                    @escaping (UIImage?, ImageLoadingError?) -> Void) {
@@ -102,6 +107,21 @@ public class ImageLoadingHandler: ImageFetcher {
         }
     }
     
+    public func downloadAndCacheImageWithAuthentication(with url: URL, completion:
+                                             @escaping (UIImage?, ImageLoadingError?) -> Void) {
+        let imageDownloader = ImageDownloader.default
+        imageDownloader.authenticationChallengeResponder = self
+        imageDownloader.downloadImage(with: url, options: nil) { result in
+            switch result {
+            case .success(let value):
+                ImageLoadingHandler.saveImageToCache(img: value.image, key: url.absoluteString)
+                completion(value.image, nil)
+            case .failure(_):
+                completion(nil, ImageLoadingError.unableToFetchImage)
+            }
+        }
+    }
+    
     public static func downloadImageOnly(with url: URL,
                                          limit maxSize: Int,
                                          completion:
@@ -145,5 +165,22 @@ public class ImageLoadingHandler: ImageFetcher {
                 completion(nil, nil, ImageLoadingError.unableToFetchImage)
             }
         }
+    }
+}
+
+extension ImageLoadingHandler: AuthenticationChallengeResponsible {
+
+    public func downloader( _ downloader: ImageDownloader,
+                            didReceive challenge: URLAuthenticationChallenge,
+                            completionHandler: (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        // Provide `AuthChallengeDisposition` and `URLCredential`
+        completionHandler(disposition, credential)
+    }
+
+    public func downloader( _ downloader: ImageDownloader, task: URLSessionTask,
+                            didReceive challenge: URLAuthenticationChallenge,
+                            completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        // Provide `AuthChallengeDisposition` and `URLCredential`
+        completionHandler(disposition, credential)
     }
 }
