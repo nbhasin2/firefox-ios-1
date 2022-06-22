@@ -26,6 +26,10 @@ class HomePageSettingViewController: SettingsTableViewController, FeatureFlaggab
         return featureFlags.isFeatureEnabled(.wallpapers, checking: .buildOnly)
     }
 
+    var isPocketSectionEnabled: Bool {
+        return featureFlags.isFeatureEnabled(.pocket, checking: .buildOnly)
+    }
+
     var isHistoryHighlightsSectionEnabled: Bool {
         return featureFlags.isFeatureEnabled(.historyHighlights, checking: .buildOnly)
     }
@@ -99,8 +103,17 @@ class HomePageSettingViewController: SettingsTableViewController, FeatureFlaggab
         // Setup
         var sectionItems = [Setting]()
 
-        let pocketSetting = BoolSetting(with: .pocket,
-                                        titleText: NSAttributedString(string: .Settings.Homepage.CustomizeFirefoxHome.Pocket))
+        let pocketSponsoredSetting = BoolSetting(with: .sponsoredPocket,
+                                        titleText: NSAttributedString(string: .Settings.Homepage.CustomizeFirefoxHome.SponsoredPocket))
+        pocketSponsoredSetting.enabled = featureFlags.isFeatureEnabled(.pocket, checking: .buildAndUser)
+
+        let pocketSetting = BoolSetting(
+            with: .pocket,
+            titleText: NSAttributedString(string: .Settings.Homepage.CustomizeFirefoxHome.Pocket)) { [weak self] in
+                // Disable sponsored option if pocket stories are disabled
+                pocketSponsoredSetting.enabled = $0
+                self?.tableView.reloadData()
+            }
 
         let jumpBackInSetting = BoolSetting(with: .jumpBackIn,
                                             titleText: NSAttributedString(string: .Settings.Homepage.CustomizeFirefoxHome.JumpBackIn))
@@ -128,7 +141,10 @@ class HomePageSettingViewController: SettingsTableViewController, FeatureFlaggab
             sectionItems.append(historyHighlightsSetting)
         }
 
-        sectionItems.append(pocketSetting)
+        if isPocketSectionEnabled {
+            sectionItems.append(pocketSetting)
+            sectionItems.append(pocketSponsoredSetting)
+        }
 
         if isWallpaperSectionEnabled {
             sectionItems.append(wallpaperSetting)

@@ -32,13 +32,13 @@ class FxHomeTopSitesManagerTests: XCTestCase, FeatureFlaggable {
     }
 
     func testEmptyData_whenNotLoaded() {
-        let manager = FxHomeTopSitesManager(profile: profile)
+        let manager = TopSitesManager(profile: profile)
         XCTAssertFalse(manager.hasData)
         XCTAssertEqual(manager.siteCount, 0)
     }
 
     func testEmptyData_getSites() {
-        let manager = FxHomeTopSitesManager(profile: profile)
+        let manager = TopSitesManager(profile: profile)
         XCTAssertNil(manager.getSite(index: 0))
         XCTAssertNil(manager.getSite(index: -1))
         XCTAssertNil(manager.getSite(index: 10))
@@ -48,13 +48,13 @@ class FxHomeTopSitesManagerTests: XCTestCase, FeatureFlaggable {
     }
 
     func testNumberOfRows_default() {
-        let manager = FxHomeTopSitesManager(profile: profile)
+        let manager = TopSitesManager(profile: profile)
         XCTAssertEqual(manager.numberOfRows, 2)
     }
 
     func testNumberOfRows_userChangedDefault() {
         profile.prefs.setInt(3, forKey: PrefsKeys.NumberOfTopSiteRows)
-        let manager = FxHomeTopSitesManager(profile: profile)
+        let manager = TopSitesManager(profile: profile)
         XCTAssertEqual(manager.numberOfRows, 3)
     }
 
@@ -281,6 +281,79 @@ class FxHomeTopSitesManagerTests: XCTestCase, FeatureFlaggable {
         }
     }
 
+    func testSponsoredTileOrder_emptySites_addsAllContiles() {
+        featureFlags.set(feature: .sponsoredTiles, to: true)
+        let expectedContileResult = ContileResult.success(ContileProviderMock.defaultSuccessData)
+        let manager = createManager(expectedContileResult: expectedContileResult)
+        testLoadData(manager: manager, numberOfTilesPerRow: nil) {
+            var sites: [Site] = []
+            manager.addSponsoredTiles(sites: &sites, availableSpacesCount: 10)
+
+            XCTAssertEqual(sites.count, 2, "Added two contiles")
+            XCTAssertEqual(sites[0].title, "Firefox")
+            XCTAssertEqual(sites[1].title, "Mozilla")
+        }
+    }
+
+    func testSponsoredTileOrder_emptySites_addsOneIfGoogleIsThere() {
+        featureFlags.set(feature: .sponsoredTiles, to: true)
+        let expectedContileResult = ContileResult.success(ContileProviderMock.defaultSuccessData)
+        let manager = createManager(expectedContileResult: expectedContileResult)
+        testLoadData(manager: manager, numberOfTilesPerRow: nil) {
+            var sites: [Site] = []
+            manager.addSponsoredTiles(sites: &sites, availableSpacesCount: 2)
+
+            XCTAssertEqual(sites.count, 1, "Added one contile")
+            XCTAssertEqual(sites[0].title, "Firefox")
+        }
+    }
+
+    func testSponsoredTileOrder_withSites_addsAllContiles() {
+        featureFlags.set(feature: .sponsoredTiles, to: true)
+        let expectedContileResult = ContileResult.success(ContileProviderMock.defaultSuccessData)
+        let manager = createManager(expectedContileResult: expectedContileResult)
+        testLoadData(manager: manager, numberOfTilesPerRow: nil) {
+            var sites: [Site] = [Site(url: "www.test.com", title: "A test"),
+                                 Site(url: "www.test2.com", title: "A test2")]
+            manager.addSponsoredTiles(sites: &sites, availableSpacesCount: 10)
+
+            XCTAssertEqual(sites.count, 4, "Added two contiles and two sites")
+            XCTAssertEqual(sites[0].title, "Firefox")
+            XCTAssertEqual(sites[1].title, "Mozilla")
+        }
+    }
+
+    func testSponsoredTile_GoogleTopSiteDoesntCountInSponsoredTilesCount_IfHidden() {
+        featureFlags.set(feature: .sponsoredTiles, to: true)
+        profile.prefs.setBool(true, forKey: PrefsKeys.GoogleTopSiteAddedKey)
+        profile.prefs.setBool(true, forKey: PrefsKeys.GoogleTopSiteHideKey)
+
+        let expectedContileResult = ContileResult.success(ContileProviderMock.defaultSuccessData)
+        let manager = createManager(expectedContileResult: expectedContileResult)
+        testLoadData(manager: manager, numberOfTilesPerRow: nil) {
+            var sites: [Site] = []
+            manager.addSponsoredTiles(sites: &sites, availableSpacesCount: 2)
+
+            XCTAssertEqual(sites.count, 2, "Added two contiles, no Google spot taken")
+            XCTAssertEqual(sites[0].title, "Firefox")
+            XCTAssertEqual(sites[1].title, "Mozilla")
+        }
+    }
+
+    func testSponsoredTile_GoogleTopSiteDoesntCountInSponsoredTilesCount_IfNotHidden() {
+        featureFlags.set(feature: .sponsoredTiles, to: true)
+
+        let expectedContileResult = ContileResult.success(ContileProviderMock.defaultSuccessData)
+        let manager = createManager(expectedContileResult: expectedContileResult)
+        testLoadData(manager: manager, numberOfTilesPerRow: nil) {
+            var sites: [Site] = []
+            manager.addSponsoredTiles(sites: &sites, availableSpacesCount: 2)
+
+            XCTAssertEqual(sites.count, 1, "Added only one contile, Google tile count is taken into account")
+            XCTAssertEqual(sites[0].title, "Firefox")
+        }
+    }
+
     // MARK: Duplicates
 
     // Sponsored > Frequency
@@ -361,7 +434,7 @@ class FxHomeTopSitesManagerTests: XCTestCase, FeatureFlaggable {
     }
 
     func testTopSiteManager_hasNoLeaks() {
-        let topSitesManager = FxHomeTopSitesManager(profile: profile)
+        let topSitesManager = TopSitesManager(profile: profile)
         let historyStub = TopSiteHistoryManagerStub(profile: profile)
         historyStub.addPinnedSiteCount = 0
         topSitesManager.topSiteHistoryManager = historyStub
@@ -465,9 +538,9 @@ extension FxHomeTopSitesManagerTests {
                        duplicatePinnedSiteURL: Bool = false,
                        expectedContileResult: ContileResult = .success([]),
                        file: StaticString = #file,
-                       line: UInt = #line) -> FxHomeTopSitesManager {
+                       line: UInt = #line) -> TopSitesManager {
 
-        let topSitesManager = FxHomeTopSitesManager(profile: profile)
+        let topSitesManager = TopSitesManager(profile: profile)
 
         let historyStub = TopSiteHistoryManagerStub(profile: profile)
         historyStub.siteCount = siteCount
@@ -485,7 +558,7 @@ extension FxHomeTopSitesManagerTests {
         return topSitesManager
     }
 
-    func testLoadData(manager: FxHomeTopSitesManager, numberOfTilesPerRow: Int?, completion: @escaping () -> Void) {
+    func testLoadData(manager: TopSitesManager, numberOfTilesPerRow: Int?, completion: @escaping () -> Void) {
         let expectation = expectation(description: "Top sites data should be loaded")
 
         manager.loadTopSitesData {

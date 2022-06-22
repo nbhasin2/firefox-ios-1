@@ -23,16 +23,25 @@ public struct Strings {
 
 // Used as a helper enum to keep track of what app version strings were last updated in. Updates
 // are considered .unknown unless the string's Key is updated, or of course a new string is introduced.
-fileprivate enum StringLastUpdatedAppVersion {
-    case v39, v96, v97, v98, v99, v100, v101, v102
+private enum StringLastUpdatedAppVersion {
+    case v39, v96, v97, v98, v99, v100, v101, v102, v103
 
     // Used for all cases before version 39.
     case unknown
 }
 
 // MARK: - Localization helper function
-fileprivate func MZLocalizedString(_ key: String, tableName: String? = nil, value: String = "", comment: String, lastUpdated: StringLastUpdatedAppVersion) -> String {
-    return NSLocalizedString(key, tableName: tableName, bundle: Strings.bundle, value: value, comment: comment)
+private func MZLocalizedString(_ key: String,
+                                   tableName: String? = nil,
+                                   value: String = "",
+                                   comment: String,
+                                   lastUpdated: StringLastUpdatedAppVersion
+) -> String {
+    return NSLocalizedString(key,
+                             tableName: tableName,
+                             bundle: Strings.bundle,
+                             value: value,
+                             comment: comment)
 }
 
 /// This file contains all strings for Firefox iOS.
@@ -340,6 +349,7 @@ extension String {
                 public static let RecentlySaved = MZLocalizedString("Settings.Home.Option.RecentlySaved", value: "Recently Saved", comment: "In the settings menu, in the Firefox homepage customization section, this is the title for the option that allows users to toggle Recently Saved section on the Firefox homepage on or off", lastUpdated: .v39)
                 public static let Shortcuts = MZLocalizedString("Settings.Home.Option.Shortcuts", value: "Shortcuts", comment: "In the settings menu, in the Firefox homepage customization section, this is the title for the option that allows users to toggle Shortcuts section on the Firefox homepage on or off", lastUpdated: .v39)
                 public static let Pocket = MZLocalizedString("Settings.Home.Option.Pocket", value: "Recommended by Pocket", comment: "In the settings menu, in the Firefox homepage customization section, this is the title for the option that allows users to turn the Pocket Recommendations section on the Firefox homepage on or off", lastUpdated: .v39)
+                public static let SponsoredPocket = MZLocalizedString("Settings.Home.Option.SponsoredPocket", value: "Sponsored stories", comment: "In the settings menu, in the Firefox homepage customization section, this is the title for the option that allows users to turn the Pocket Sponsored Stories on the Firefox homepage on or off", lastUpdated: .v102)
                 public static let Title = MZLocalizedString("Settings.Home.Option.Title.v101", value: "Include on Homepage", comment: "In the settings menu, this is the title of the Firefox Homepage customization settings section", lastUpdated: .v101)
                 public static let Description = MZLocalizedString("Settings.Home.Option.Description.v101", value: "Choose what’s included on the Firefox homepage.", comment: "In the settings menu, on the Firefox homepage customization section, this is the description below the section, describing what the options in the section are for.", lastUpdated: .v101)
                 public static let Wallpaper = MZLocalizedString("Settings.Home.Option.Wallpaper", value: "Wallpaper", comment: "In the settings menu, on the Firefox homepage customization section, this is the title for the option that allows users to access the wallpaper settings for the application.", lastUpdated: .v98)
@@ -433,6 +443,8 @@ extension String {
         public static let OtherTabsLabelTitle = MZLocalizedString("TabTray.OtherTabs.Title", value: "Other tabs", comment: "In the Tabs Tray, summoned from the homepage, the title for the section containing non-grouped tabs, which will appear below grouped tabs", lastUpdated: .v39)
 
         public struct InactiveTabs {
+            public static let TabsTrayInactiveTabsSectionClosedAccessibilityTitle = MZLocalizedString("TabsTray.InactiveTabs.SectionTitle.Closed.Accessibility.v103", value: "View Inactive Tabs", comment: "Accessibility title for the inactive tabs section button when section is closed. This section groups all tabs that haven't been used in a while.", lastUpdated: .v103)
+            public static let TabsTrayInactiveTabsSectionOpenedAccessibilityTitle = MZLocalizedString("TabsTray.InactiveTabs.SectionTitle.Opened.Accessibility.v103", value: "Hide Inactive Tabs", comment: "Accessibility title for the inactive tabs section button when section is open. This section groups all tabs that haven't been used in a while.", lastUpdated: .v103)
             public static let CloseAllInactiveTabsButton = MZLocalizedString("InactiveTabs.TabTray.CloseButtonTitle", value: "Close All Inactive Tabs", comment: "In the Tabs Tray, in the Inactive Tabs section, this is the button the user must tap in order to close all inactive tabs.", lastUpdated: .v39)
 
             public struct AutoClose {
@@ -516,7 +528,7 @@ extension String {
     public static let RemovePinTopsiteActionTitle = MZLocalizedString("ActivityStream.ContextMenu.RemovePinTopsite", value: "Remove Pinned Site", comment: "The title for removing a pinned topsite action", lastUpdated: .unknown)
 }
 
-//  MARK: - PhotonActionSheet String
+// MARK: - PhotonActionSheet String
 extension String {
     public static let CloseButtonTitle = MZLocalizedString("PhotonMenu.close", value: "Close", comment: "Button for closing the menu action sheet", lastUpdated: .unknown)
 }

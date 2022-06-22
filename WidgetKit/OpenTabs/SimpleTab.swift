@@ -4,7 +4,7 @@
 
 import Shared
 
-fileprivate let userDefaults = UserDefaults(suiteName: AppInfo.sharedContainerIdentifier)!
+private let userDefaults = UserDefaults(suiteName: AppInfo.sharedContainerIdentifier)!
 
 struct SimpleTab: Hashable, Codable {
     var title: String?
@@ -25,8 +25,7 @@ extension SimpleTab {
                 let jsonDecoder = JSONDecoder()
                 let tabs = try jsonDecoder.decode([String: SimpleTab].self, from: tbs)
                 return tabs
-            }
-            catch {
+            } catch {
                 print("Error occured")
             }
         }

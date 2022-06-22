@@ -9,7 +9,7 @@ import Shared
 
 import XCTest
 
-fileprivate class MockFailure<T: CleartextPayloadJSON>: MaybeErrorType {
+private class MockFailure<T: CleartextPayloadJSON>: MaybeErrorType {
     let record: Record<T>
 
     var description: String {
@@ -47,7 +47,7 @@ extension SyncTelemetryTests {
 
         let remoteRecords = [A, B]
 
-        let _ = synchronizer.applyIncomingRecords(remoteRecords) { record in
+        _ = synchronizer.applyIncomingRecords(remoteRecords) { record in
             return record.id == "B" ? deferMaybe(MockFailure(record: record)) : succeed()
         }.value
 
@@ -72,7 +72,7 @@ extension SyncTelemetryTests {
 
         let records = [A, B]
 
-        let _ = synchronizer.applyIncomingToStorage(records, fetched: Date.now()) { record in
+        _ = synchronizer.applyIncomingToStorage(records, fetched: Date.now()) { record in
             return record.id == "B" ? deferMaybe(MockFailure(record: record)) : succeed()
         }.value
 
@@ -107,7 +107,7 @@ extension SyncTelemetryTests {
 
         let miniConfig = InfoConfiguration(maxRequestBytes: 1_048_576, maxPostRecords: 2, maxPostBytes: 1_048_576, maxTotalRecords: 10, maxTotalBytes: 104_857_600)
         let collectionClient = MockSyncCollectionClient(uploader: uploader, infoConfig: miniConfig, collection: "mockdata", encrypter: getEncrypter())
-        let _ = synchronizer.uploadRecords(records, lastTimestamp: now, storageClient: collectionClient) { _, _ in
+        _ = synchronizer.uploadRecords(records, lastTimestamp: now, storageClient: collectionClient) { _, _ in
             return deferMaybe(now)
         }.value
 

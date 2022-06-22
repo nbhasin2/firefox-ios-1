@@ -34,15 +34,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var tabManager: TabManager!
     var applicationCleanlyBackgrounded = true
     var receivedURLs = [URL]()
-
+    var orientationLock = UIInterfaceOrientationMask.all
     weak var profile: Profile?
     weak var application: UIApplication?
-
     private var shutdownWebServer: DispatchSourceTimer?
-    private var orientationLock = UIInterfaceOrientationMask.all
     private var launchOptions: [AnyHashable: Any]?
     private var telemetry: TelemetryWrapper?
     private var adjustHelper: AdjustHelper?
+    private var webServerUtil: WebServerUtil?
 
     func application(_ application: UIApplication, willFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         //
@@ -111,6 +110,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         FeatureFlagsManager.shared.initializeDeveloperFeatures(with: profile)
         FeatureFlagUserPrefsMigrationUtility(with: profile).attemptMigration()
 
+        // Migrate wallpaper folder
+        WallpaperMigrationUtility(with: profile).attemptMigration()
+
         // Start intialzing the Nimbus SDK. This should be done after Glean
         // has been started.
         initializeExperiments()
@@ -118,7 +120,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         ThemeManager.shared.updateProfile(with: profile)
 
         // Set up a web server that serves us static content. Do this early so that it is ready when the UI is presented.
-        setUpWebServer(profile)
+        webServerUtil = WebServerUtil(profile: profile)
+        webServerUtil?.setUpWebServer()
 
         let imageStore = DiskImageStore(files: profile.files, namespace: "TabManagerScreenshots", quality: UIConstants.ScreenshotQuality)
 
@@ -131,9 +134,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         setupRootViewController()
 
-        // Add restoration class, the factory that will return the ViewController we
-        // will restore with.
-
         NotificationCenter.default.addObserver(forName: .FSReadingListAddReadingListItem, object: nil, queue: nil) { (notification) -> Void in
             if let userInfo = notification.userInfo, let url = userInfo["URL"] as? URL {
                 let title = (userInfo["Title"] as? String) ?? ""
@@ -141,13 +141,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
 
-        NotificationCenter.default.addObserver(forName: .DisplayThemeChanged, object: nil, queue: .main) { (notification) -> Void in
-            if !LegacyThemeManager.instance.systemThemeIsOn {
-                self.window?.overrideUserInterfaceStyle = LegacyThemeManager.instance.userInterfaceStyle
-            } else {
-                self.window?.overrideUserInterfaceStyle = .unspecified
-            }
-        }
+        startListeningForThemeUpdates()
 
         adjustHelper = AdjustHelper(profile: profile)
         SystemUtils.onFirstRun()
@@ -169,13 +163,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         browserViewController.edgesForExtendedLayout = []
 
         let navigationController = UINavigationController(rootViewController: browserViewController)
-        navigationController.delegate = self
         navigationController.isNavigationBarHidden = true
         navigationController.edgesForExtendedLayout = UIRectEdge(rawValue: 0)
         rootViewController = navigationController
 
         self.window!.rootViewController = rootViewController
-        browserViewController.updateState = .coldStart
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
@@ -209,9 +201,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
-        var shouldPerformAdditionalDelegateHandling = true
-
         UIScrollView.doBadSwizzleStuff()
 
         window!.makeKeyAndVisible()
@@ -220,14 +209,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         DispatchQueue.global(qos: DispatchQoS.background.qosClass).async {
             Logger.syncLogger.deleteOldLogsDownToSizeLimit()
             Logger.browserLogger.deleteOldLogsDownToSizeLimit()
-        }
-
-        // If a shortcut was launched, display its information and take the appropriate action
-        if let shortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
-
-            QuickActions.sharedInstance.launchedShortcutItem = shortcutItem
-            // This will block "performActionForShortcutItem:completionHandler" from being called.
-            shouldPerformAdditionalDelegateHandling = false
         }
 
         pushNotificationSetup()
@@ -289,7 +270,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         updateSessionCount()
         adjustHelper?.setupAdjust()
 
-        return shouldPerformAdditionalDelegateHandling
+        return true
     }
 
     private func updateSessionCount() {
@@ -318,7 +299,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
 
         DispatchQueue.main.async {
-            NavigationPath.handle(nav: routerpath, with: BrowserViewController.foregroundBVC())
+            NavigationPath.handle(nav: routerpath, with: self.browserViewController)
         }
         return true
     }
@@ -345,24 +326,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
 
             profile.syncManager.applicationDidBecomeActive()
-
-            setUpWebServer(profile)
+            webServerUtil?.setUpWebServer()
         }
 
-        BrowserViewController.foregroundBVC().firefoxHomeViewController?.reloadAll()
+        browserViewController.firefoxHomeViewController?.reloadAll()
 
-        // Resume file downloads.
-        // TODO: iOS 13 needs to iterate all the BVCs.
-        BrowserViewController.foregroundBVC().downloadQueue.resumeAll()
-
-        // handle quick actions is available
-        let quickActions = QuickActions.sharedInstance
-        if let shortcut = quickActions.launchedShortcutItem {
-            // dispatch asynchronously so that BVC is all set up for handling new tabs
-            // when we try and open them
-            quickActions.handleShortCutItem(shortcut, withBrowserViewController: BrowserViewController.foregroundBVC())
-            quickActions.launchedShortcutItem = nil
-        }
+        /// When transitioning to scenes, each scene's BVC needs to resume its file download queue.
+        browserViewController.downloadQueue.resumeAll()
 
         TelemetryWrapper.recordEvent(category: .action, method: .foreground, object: .app)
 
@@ -371,7 +341,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             // We could load these here, but then we have to futz with the tab counter
             // and making NSURLRequests.
-            BrowserViewController.foregroundBVC().loadQueuedTabs(receivedURLs: self.receivedURLs)
+            self.browserViewController.loadQueuedTabs(receivedURLs: self.receivedURLs)
             self.receivedURLs.removeAll()
             application.applicationIconBadgeNumber = 0
         }
@@ -404,7 +374,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         // Pause file downloads.
         // TODO: iOS 13 needs to iterate all the BVCs.
-        BrowserViewController.foregroundBVC().downloadQueue.pauseAll()
+        browserViewController.downloadQueue.pauseAll()
 
         TelemetryWrapper.recordEvent(category: .action, method: .background, object: .app)
         TabsQuantityTelemetry.trackTabsQuantity(tabManager: tabManager)
@@ -442,36 +412,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         profile?._shutdown()
     }
 
-    fileprivate func setUpWebServer(_ profile: Profile) {
-        let server = WebServer.sharedInstance
-        guard !server.server.isRunning else { return }
-
-        ReaderModeHandlers.register(server, profile: profile)
-
-        let responders: [(String, InternalSchemeResponse)] =
-            [ (AboutHomeHandler.path, AboutHomeHandler()),
-              (AboutLicenseHandler.path, AboutLicenseHandler()),
-              (SessionRestoreHandler.path, SessionRestoreHandler()),
-              (ErrorPageHandler.path, ErrorPageHandler())]
-        responders.forEach { (path, responder) in
-            InternalSchemeHandler.responders[path] = responder
-        }
-
-        if AppConstants.IsRunningTest || AppConstants.IsRunningPerfTest {
-            registerHandlersForTestMethods(server: server.server)
-        }
-
-        // Bug 1223009 was an issue whereby CGDWebserver crashed when moving to a background task
-        // catching and handling the error seemed to fix things, but we're not sure why.
-        // Either way, not implicitly unwrapping a try is not a great way of doing things
-        // so this is better anyway.
-        do {
-            try server.start()
-        } catch let err as NSError {
-            print("Error: Unable to start WebServer \(err)")
-        }
-    }
-
     fileprivate func setUserAgent() {
         let firefoxUA = UserAgent.getUserAgent()
 
@@ -483,52 +423,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         FaviconFetcher.userAgent = UserAgent.desktopUserAgent()
     }
 
-    func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
-        let bvc = BrowserViewController.foregroundBVC()
-        if userActivity.activityType == SiriShortcuts.activityType.openURL.rawValue {
-            bvc.openBlankNewTab(focusLocationField: false)
-            return true
-        }
-
-        // If the `NSUserActivity` has a `webpageURL`, it is either a deep link or an old history item
-        // reached via a "Spotlight" search before we began indexing visited pages via CoreSpotlight.
-        if let url = userActivity.webpageURL {
-            let query = url.getQuery()
-
-            // Check for fxa sign-in code and launch the login screen directly
-            if query["signin"] != nil {
-                // bvc.launchFxAFromDeeplinkURL(url) // Was using Adjust. Consider hooking up again when replacement system in-place.
-                return true
-            }
-
-            // Per Adjust documenation, https://docs.adjust.com/en/universal-links/#running-campaigns-through-universal-links,
-            // it is recommended that links contain the `deep_link` query parameter. This link will also
-            // be url encoded.
-            if let deepLink = query["deep_link"]?.removingPercentEncoding, let url = URL(string: deepLink) {
-                bvc.switchToTabForURLOrOpen(url)
-                return true
-            }
-
-            bvc.switchToTabForURLOrOpen(url)
-            return true
-        }
-
-        // Otherwise, check if the `NSUserActivity` is a CoreSpotlight item and switch to its tab or
-        // open a new one.
-        if userActivity.activityType == CSSearchableItemActionType {
-            if let userInfo = userActivity.userInfo,
-                let urlString = userInfo[CSSearchableItemActivityIdentifier] as? String,
-                let url = URL(string: urlString) {
-                bvc.switchToTabForURLOrOpen(url)
-                return true
-            }
-        }
-
-        return false
-    }
-
+    /// When a user presses and holds the app icon from the Home Screen, we present quick actions / shortcut items (see QuickActions).
+    ///
+    /// This method can handle a quick action from both app launch and when the app becomes active. However, the system calls launch methods first if the app `launches`
+    /// and gives you a chance to handle the shortcut there. If it's not handled there, this method is called in the activation process with the shortcut item.
+    ///
+    /// Quick actions / shortcut items are handled here as long as our two launch methods return `true`. If either of them return `false`, this method
+    /// won't be called to handle shortcut items.
     func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
-        let handledShortCutItem = QuickActions.sharedInstance.handleShortCutItem(shortcutItem, withBrowserViewController: BrowserViewController.foregroundBVC())
+        let handledShortCutItem = QuickActions.sharedInstance.handleShortCutItem(shortcutItem, withBrowserViewController: browserViewController)
 
         completionHandler(handledShortCutItem)
     }
@@ -562,51 +465,65 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 }
 
-// MARK: - Root View Controller Animations
-extension AppDelegate: UINavigationControllerDelegate {
-    func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation, from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        switch operation {
-        case .push:
-            return BrowserToTrayAnimator()
-        case .pop:
-            return TrayToBrowserAnimator()
-        default:
-            return nil
+// This functionality will need to be moved to the SceneDelegate when the time comes
+extension AppDelegate {
+
+    func startListeningForThemeUpdates() {
+        NotificationCenter.default.addObserver(forName: .DisplayThemeChanged, object: nil, queue: .main) { (notification) -> Void in
+            if !LegacyThemeManager.instance.systemThemeIsOn {
+                self.window?.overrideUserInterfaceStyle = LegacyThemeManager.instance.userInterfaceStyle
+            } else {
+                self.window?.overrideUserInterfaceStyle = .unspecified
+            }
         }
     }
-}
 
-extension AppDelegate: MFMailComposeViewControllerDelegate {
-    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-        // Dismiss the view controller and start the app up
-        controller.dismiss(animated: true, completion: nil)
-        _ = startApplication(application!, withLaunchOptions: self.launchOptions)
-    }
-}
-
-extension UIApplication {
-    static var isInPrivateMode: Bool {
-        return BrowserViewController.foregroundBVC().tabManager.selectedTab?.isPrivate ?? false
-    }
-}
-
-// Orientation lock for views that use new modal presenter
-extension AppDelegate {
-    /// ref: https://stackoverflow.com/questions/28938660/
-    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+    // Orientation lock for views that use new modal presenter
+    func application(_ application: UIApplication,
+                     supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
         return self.orientationLock
     }
 
-    struct AppUtility {
-        static func lockOrientation(_ orientation: UIInterfaceOrientationMask) {
-            if let delegate = UIApplication.shared.delegate as? AppDelegate {
-                delegate.orientationLock = orientation
+    func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+        if userActivity.activityType == SiriShortcuts.activityType.openURL.rawValue {
+            browserViewController.openBlankNewTab(focusLocationField: false)
+            return true
+        }
+
+        // If the `NSUserActivity` has a `webpageURL`, it is either a deep link or an old history item
+        // reached via a "Spotlight" search before we began indexing visited pages via CoreSpotlight.
+        if let url = userActivity.webpageURL {
+            let query = url.getQuery()
+
+            // Check for fxa sign-in code and launch the login screen directly
+            if query["signin"] != nil {
+                // bvc.launchFxAFromDeeplinkURL(url) // Was using Adjust. Consider hooking up again when replacement system in-place.
+                return true
+            }
+
+            // Per Adjust documenation, https://docs.adjust.com/en/universal-links/#running-campaigns-through-universal-links,
+            // it is recommended that links contain the `deep_link` query parameter. This link will also
+            // be url encoded.
+            if let deepLink = query["deep_link"]?.removingPercentEncoding, let url = URL(string: deepLink) {
+                browserViewController.switchToTabForURLOrOpen(url)
+                return true
+            }
+
+            browserViewController.switchToTabForURLOrOpen(url)
+            return true
+        }
+
+        // Otherwise, check if the `NSUserActivity` is a CoreSpotlight item and switch to its tab or
+        // open a new one.
+        if userActivity.activityType == CSSearchableItemActionType {
+            if let userInfo = userActivity.userInfo,
+                let urlString = userInfo[CSSearchableItemActivityIdentifier] as? String,
+                let url = URL(string: urlString) {
+                browserViewController.switchToTabForURLOrOpen(url)
+                return true
             }
         }
 
-        static func lockOrientation(_ orientation: UIInterfaceOrientationMask, andRotateTo rotateOrientation: UIInterfaceOrientation) {
-            self.lockOrientation(orientation)
-            UIDevice.current.setValue(rotateOrientation.rawValue, forKey: "orientation")
-        }
+        return false
     }
 }
