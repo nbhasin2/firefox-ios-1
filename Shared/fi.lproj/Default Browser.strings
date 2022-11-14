@@ -1,8 +1,20 @@
+/* Button string to learn how to set your default browser. */
+"DefaultBrowserCard.Button.v2" = "Lue lisää";
+
 /* Description for small home tab banner shown that allows user to switch their default browser to Firefox. */
 "DefaultBrowserCard.Description" = "Aseta verkkosivustojen, sähköpostien ja viestien linkit avautumaan automaattisesti Firefoxissa.";
 
 /* Title for small home tab banner shown that allows user to switch their default browser to Firefox. */
 "DefaultBrowserCard.Title" = "Vaihda oletusselain";
+
+/* Button string to open settings that allows user to switch their default browser to Firefox. */
+"DefaultBrowserOnboarding.Button" = "Siirry asetuksiin";
+
+/* Description for default browser onboarding card. */
+"DefaultBrowserOnboarding.Description1" = "1. Siirry kohtaan Asetukset";
+
+/* Description for default browser onboarding card. */
+"DefaultBrowserOnboarding.Description2" = "2. Napauta Oletusselainappi";
 
 /* Description for default browser onboarding card. */
 "DefaultBrowserOnboarding.Description3" = "3. Valitse Firefox";
