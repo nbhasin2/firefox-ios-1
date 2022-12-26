@@ -1034,7 +1034,7 @@
 "Reading list" = "Λίστα ανάγνωσης";
 
 /* Title for the Recently Closed Tabs Panel */
-"RecentlyClosedTabsPanel.Title" = "Έκλεισα πρόσφατα";
+"RecentlyClosedTabsPanel.Title" = "Έκλεισαν πρόσφατα";
 
 /* More button text for Recently Saved items at the home page. */
 "RecentlySaved.Actions.More" = "Εμφάνιση όλων";
