@@ -952,21 +952,20 @@ class TabWebView: WKWebView, MenuHelperInterface {
     var accessoryDoneAction: (() -> Void)?
     var accessoryCreditCardAction: (() -> Void)?
     var accessoryView: AccessoryViewProvider?
+    fileprivate weak var delegate: TabWebViewDelegate?
 
     override var inputAccessoryView: UIView? {
-        guard let accessoryView = accessoryView else { return nil }
-
-        translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            accessoryView.widthAnchor.constraint(equalToConstant: UIScreen.main.bounds.width),
-            accessoryView.heightAnchor.constraint(equalToConstant: 50)
-        ])
-
         return accessoryView
     }
 
-    fileprivate weak var delegate: TabWebViewDelegate?
+    override init(frame: CGRect, configuration: WKWebViewConfiguration) {
+        super.init(frame: frame, configuration: configuration)
+        accessoryView = AccessoryViewProvider()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     // Updates the `background-color` of the webview to match
     // the theme if the webview is showing "about:blank" (nil).
