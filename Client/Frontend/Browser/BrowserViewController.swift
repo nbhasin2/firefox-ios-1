@@ -1950,11 +1950,13 @@ extension BrowserViewController: LegacyTabDelegate {
             tab.addContentScript(creditCardHelper, name: CreditCardHelper.name())
 
             creditCardHelper.foundFieldValues = { fieldValues in
-               guard let tabWebView = tab.webView as? TabWebView,
-                     let accessoryView = tabWebView.accessoryView
-               else { return }
-                accessoryView.reloadViewFor(.creditCard)
-                tabWebView.accessoryView?.savedCardsClosure = { }
+                guard let tabWebView = tab.webView as? TabWebView else { return }
+
+                tabWebView.accessoryView.reloadViewFor(.creditCard)
+                tabWebView.reloadInputViews()
+
+                // stub. Action will be to present a half sheet, ref: FXIOS-6111
+                tabWebView.accessoryView.savedCardsClosure = { }
             }
         }
 
@@ -2729,16 +2731,7 @@ extension BrowserViewController: KeyboardHelperDelegate {
 
         guard let tabWebView = tabManager.selectedTab?.webView as? TabWebView else { return }
 
-        guard let accessoryView = tabWebView.accessoryView else {
-            tabWebView.accessoryView = AccessoryViewProvider()
-            tabWebView.accessoryView?.previousClosure = { CreditCardHelper.previousInput() }
-            tabWebView.accessoryView?.nextClosure = { CreditCardHelper.nextInput() }
-            tabWebView.accessoryView?.doneClosure = { tabWebView.endEditing(true) }
-
-            return
-        }
-
-        accessoryView.reloadViewFor(.standard)
+        tabWebView.accessoryView.reloadViewFor(.standard)
         tabWebView.reloadInputViews()
     }
 
