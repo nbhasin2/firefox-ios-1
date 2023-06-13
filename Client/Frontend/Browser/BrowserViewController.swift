@@ -1855,9 +1855,9 @@ class BrowserViewController: UIViewController, SearchBarLocationProvider, Themea
             existingCard, error in
             guard let existingCard = existingCard else {
                 DispatchQueue.main.async {
-                    self.showSingleCardViewController(creditCard: nil,
-                                                      decryptedCard: fieldValues,
-                                                      viewType: .save)
+                    self.showBottomSheetCardViewController(creditCard: nil,
+                                                           decryptedCard: fieldValues,
+                                                           viewType: .save)
                 }
                 return
             }
@@ -1865,9 +1865,9 @@ class BrowserViewController: UIViewController, SearchBarLocationProvider, Themea
             // card already saved should update if any of its other values are different
             if !fieldValues.isEqualToCreditCard(creditCard: existingCard) {
                 DispatchQueue.main.async {
-                    self.showSingleCardViewController(creditCard: existingCard,
-                                                      decryptedCard: fieldValues,
-                                                      viewType: .update)
+                    self.showBottomSheetCardViewController(creditCard: existingCard,
+                                                           decryptedCard: fieldValues,
+                                                           viewType: .update)
                 }
             }
         }
@@ -2593,13 +2593,15 @@ extension BrowserViewController {
         self.dismiss(animated: true, completion: nil)
     }
 
-    public func showSingleCardViewController(creditCard: CreditCard?, decryptedCard: UnencryptedCreditCardFields?, viewType state: SingleCreditCardViewState) {
-        let creditCardControllerViewModel = SingleCreditCardViewModel(profile: profile,
-                                                                      creditCard: creditCard,
-                                                                      decryptedCreditCard: decryptedCard,
-                                                                      state: state)
+    public func showBottomSheetCardViewController(creditCard: CreditCard?,
+                                                  decryptedCard: UnencryptedCreditCardFields?,
+                                                  viewType state: CreditCardBottomSheetState) {
+        let creditCardControllerViewModel = CreditCardBottomSheetViewModel(profile: profile,
+                                                                           creditCard: creditCard,
+                                                                           decryptedCreditCard: decryptedCard,
+                                                                           state: state)
 
-        let viewController = SingleCreditCardViewController(viewModel: creditCardControllerViewModel)
+        let viewController = CreditCardBottomSheetViewController(viewModel: creditCardControllerViewModel)
         viewController.didTapYesClosure = { error in
             if let error = error {
                 SimpleToast().showAlertWithText(error.localizedDescription,
