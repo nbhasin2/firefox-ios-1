@@ -839,7 +839,7 @@
 "Menu.Toolbar.Home.AccessibilityLabel.v99" = "මුල";
 
 /* String to let users know the site verifier, where the placeholder represents the SSL certificate signer. */
-"Menu.TrackingProtection.Details.Verifier" = "තහවුරු කළේ: %@";
+"Menu.TrackingProtection.Details.Verifier" = "සත්‍යාපනය: %@";
 
 /* The title for tracking protection settings */
 "Menu.TrackingProtection.ProtectionSettings.Title" = "රැකවරණ සැකසුම්";
