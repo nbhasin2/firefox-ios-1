@@ -121,6 +121,14 @@ class BrowserCoordinator: BaseCoordinator,
         screenshotService.screenshotableView = webviewController
     }
 
+    func showHidePDFView(show: Bool, url: URL?) {
+        // Keep the webviewController in memory, update to newest webview when needed
+        if let webviewController = webviewController {
+            webviewController.updateVisibilityPDFView(show: show, url: url)
+        }
+        screenshotService.screenshotableView = webviewController
+    }
+
     func browserHasLoaded() {
         browserIsReady = true
         logger.log("Browser has loaded", level: .info, category: .coordinator)

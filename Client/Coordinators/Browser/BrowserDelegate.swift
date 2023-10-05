@@ -4,6 +4,7 @@
 
 import Foundation
 import WebKit
+import WebKit
 
 protocol BrowserDelegate: AnyObject {
     /// Show the homepage to the user
@@ -26,6 +27,8 @@ protocol BrowserDelegate: AnyObject {
     /// Show the webview to navigate
     /// - Parameter webView: When nil, will show the already existing webview
     func show(webView: WKWebView)
+
+    func showHidePDFView(show: Bool, url: URL?)
 
     /// This is called the browser is ready to start navigating, ensuring we are in the required state to perform deeplinks
     func browserHasLoaded()

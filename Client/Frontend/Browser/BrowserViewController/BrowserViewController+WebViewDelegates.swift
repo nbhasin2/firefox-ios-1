@@ -559,6 +559,7 @@ extension BrowserViewController: WKNavigationDelegate {
         decidePolicyFor navigationResponse: WKNavigationResponse,
         decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void
     ) {
+        browserDelegate?.showHidePDFView(show: false, url: nil)
         let response = navigationResponse.response
         let responseURL = response.url
 
@@ -647,6 +648,11 @@ extension BrowserViewController: WKNavigationDelegate {
         if navigationResponse.isForMainFrame, let tab = tabManager[webView] {
             if response.mimeType != MIMEType.HTML, let request = request {
                 tab.temporaryDocument = TemporaryDocument(preflightResponse: response, request: request)
+                if response.mimeType == MIMEType.PDF {
+                    decisionHandler(.cancel)
+                    browserDelegate?.showHidePDFView(show: true, url: request.url)
+                    return
+                }
             } else {
                 tab.temporaryDocument = nil
             }
