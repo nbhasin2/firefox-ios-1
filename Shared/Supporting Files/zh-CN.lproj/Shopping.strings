@@ -11,7 +11,7 @@
 "ContextualHints.Shopping.OptedInBody.v120" = "这些评价可信吗？立即检查即可查看调整后的评分。";
 
 /* Description adjusted of the rating card displayed in the shopping review quality bottom sheet. */
-"Shopping.AdjustedRating.Description.v120" = "已移除不可信的评价";
+"Shopping.AdjustedRating.Description.v120" = "已排除不可信的评价";
 
 /* Accessibility label, associated to adjusted rating stars. %@ is a decimal value from 0 to 5 that will only use a tenth (example: 3.5). */
 "Shopping.AdjustedRating.StarsAccessibilityLabel.v120" = "%@ 颗星（满分 5 星）";
@@ -94,14 +94,11 @@
 /* Title for the card displayed when a shopping product has not been analysed yet but the analysis is in progress. */
 "Shopping.NoAnalysisCard.InProgress.Headline.Title.v120" = "正在核查评价质量";
 
-/* Text for the disclaimer that appears beneath the rating image of the Shopping Experience Opt In onboarding Card (Fakespot). The parameter will be replaced by the Fakespot app name. */
-"Shopping.OptInCard.Disclaimer.Title.v120" = "选择“试试看”即代表您同意 %@ 的：";
-
 /* Label for the first paragraph of the Shopping Experience Opt In onboarding Card (Fakespot). The first parameter will be the website the user is coming from when viewing this screen (default Amazon). The second parameter will be replaced by the app name. The third and fourth parameters will be the other two websites that are currently supported (Amazon, Best Buy or Walmart) besides the one used for the first parameter. */
 "Shopping.OptInCard.FirstParagraph.Description.v120" = "购买前看看 %1$@ 上产品评论的可靠性。核查评价是来自 %2$@ 的实验性功能，它直接内置在浏览器中，同样也适用于 %3$@ 和 %4$@。";
 
 /* Label for the header of the Shopping Experience Opt In onboarding Card (Fakespot) */
-"Shopping.OptInCard.HeaderLabel.Title.v120" = "试试我们可信赖的商品评价指南";
+"Shopping.OptInCard.HeaderLabel.Title.v120" = "试试我们可信赖的商品评价向导";
 
 /* Label for the Learn more button in the Shopping Experience Opt In onboarding Card (Fakespot) */
 "Shopping.OptInCard.LearnMoreButtonTitle.Title.v120" = "详细了解";
@@ -113,10 +110,10 @@
 "Shopping.OptInCard.PrivacyPolicy.Button.Title.v120" = "隐私政策";
 
 /* Text for the secondary button of the Shopping Experience Opt In onboarding Card (Fakespot) */
-"Shopping.OptInCard.SecondaryButton.Title.v120" = "暂不操作";
+"Shopping.OptInCard.SecondaryButton.Title.v120" = "暂时不要";
 
 /* Label for the second paragraph of the Shopping Experience Opt In onboarding Card (Fakespot). The first parameter will be replaced by the Fakespot app name. The second parameter will be replaced the company name of Mozilla. */
-"Shopping.OptInCard.SecondParagraph.Description.v120" = "借助 %2$@ 的 %1$@ 的强大功能我们帮助您避免有偏见和不真实的评论。在您购物时我们的 AI 模型会不断改进为您提供保护。";
+"Shopping.OptInCard.SecondParagraph.Description.v120" = "由 %2$@ 支持的 %1$@ 可帮助您规避不真实、不公允的评价。在您购物时，我们的人工智能模型也会不断改进，以更好地保护您的权益。";
 
 /* Show Firefox Browser Terms of Use page from the Privacy section in the Shopping Experience Opt In onboarding Card (Fakespot). See https://www.mozilla.org/privacy/firefox/ */
 "Shopping.OptInCard.TermsOfUse.Button.Title.v120" = "使用条款";
@@ -131,7 +128,7 @@
 "Shopping.ReviewQuality.ReliabilityRating.AB.Description.v120" = "可信评价";
 
 /* Description of the reliability rating 'C' displayed in the shopping review quality bottom sheet. */
-"Shopping.ReviewQuality.ReliabilityRating.C.Description.v120" = "介于可信与不可信评价之间的评价";
+"Shopping.ReviewQuality.ReliabilityRating.C.Description.v120" = "可信与不可信评价混杂";
 
 /* Description of the reliability ratings for rating 'D' and 'F' displayed in the shopping review quality bottom sheet. */
 "Shopping.ReviewQuality.ReliabilityRating.DF.Description.v120" = "不可信评价";
@@ -146,7 +143,7 @@
 "Shopping.ReviewQualityCard.Expand.AccessibilityLabel.v120" = "展开我们如何判定评价质量卡片";
 
 /* Label of the headline from How we determine review quality card displayed in the shopping review quality bottom sheet. The first parameter will be replaced by the Fakespot app name and the second parameter by the company name of Mozilla. */
-"Shopping.ReviewQualityCard.Headline.Label.v120" = "我们使用由 %1$@ 支持的 %2$@ 的人工智能技术来分析商品评价的可信度。分析结果只能辅助您评估评价的质量，不能反映商品质量。";
+"Shopping.ReviewQualityCard.Headline.Label.v120" = "我们使用由 %2$@ 支持的 %1$@ 的人工智能技术来分析商品评价的可信度。分析结果只能辅助您评估评价的质量，不能反映商品质量。";
 
 /* Highlights label from How we determine review quality card displayed in the shopping review quality bottom sheet. The parameter substitutes the partner website the user is coming from. The *text inside asterisks* denotes part of the string to bold, please leave the text inside the '*' so that it is bolded correctly. */
 "Shopping.ReviewQualityCard.Highlights.Label.v120" = "*最有帮助的评价*选自我们认为可信的最近 80 天内 %1@ 网站上的评价。";
@@ -176,7 +173,7 @@
 "Shopping.SettingsCard.Expand.AccessibilityLabel.v120" = "展开设置卡片";
 
 /* Action title of the footer underneath the Settings Card displayed in the shopping review quality bottom sheet. The first parameter will be replaced by the Fakespot app name and the second parameter by the company name of Mozilla. */
-"Shopping.SettingsCard.Footer.Action.v120" = "核查评价由 %2$@ 的 %1$@ 提供支持";
+"Shopping.SettingsCard.Footer.Action.v120" = "核查评价由 %2$@ 支持的 %1$@ 提供支持";
 
 /* Title of the settings card displayed in the shopping review quality bottom sheet. */
 "Shopping.SettingsCard.Label.Title.v120" = "设置";

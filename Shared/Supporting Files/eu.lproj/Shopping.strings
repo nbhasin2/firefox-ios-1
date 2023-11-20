@@ -94,9 +94,6 @@
 /* Title for the card displayed when a shopping product has not been analysed yet but the analysis is in progress. */
 "Shopping.NoAnalysisCard.InProgress.Headline.Title.v120" = "Balorazioaren kalitatea egiaztatzen";
 
-/* Text for the disclaimer that appears beneath the rating image of the Shopping Experience Opt In onboarding Card (Fakespot). The parameter will be replaced by the Fakespot app name. */
-"Shopping.OptInCard.Disclaimer.Title.v120" = "\"Bai, probatu\" hautatuz gero, %@ onartzen duzu:";
-
 /* Label for the first paragraph of the Shopping Experience Opt In onboarding Card (Fakespot). The first parameter will be the website the user is coming from when viewing this screen (default Amazon). The second parameter will be replaced by the app name. The third and fourth parameters will be the other two websites that are currently supported (Amazon, Best Buy or Walmart) besides the one used for the first parameter. */
 "Shopping.OptInCard.FirstParagraph.Description.v120" = "Erosi aurretik, ikusi %1$@(e)ko produktuen balorazioak zenbateraino diren fidagarriak. Balorazioen egiaztatzailea, %2$@(e)n eginbide esperimentala, nabigatzailean integratuta dago. %3$@ eta %4$@(e)n ere badabil.";
 
@@ -146,7 +143,7 @@
 "Shopping.ReviewQualityCard.Expand.AccessibilityLabel.v120" = "Zabaldu 'Nola antzematen dugun balorazioen kalitatea' txartela";
 
 /* Label of the headline from How we determine review quality card displayed in the shopping review quality bottom sheet. The first parameter will be replaced by the Fakespot app name and the second parameter by the company name of Mozilla. */
-"Shopping.ReviewQualityCard.Headline.Label.v120" = "%1$@(r)en %1$@ Adimen Artifizial (AA) teknologia erabiltzen dugu produktuen balorazioen fidagarritasuna egiaztatzeko. Honek balorazioen kalitatea neurtzen lagunduko dizu, ez produktuen kalitatea.";
+"Shopping.ReviewQualityCard.Headline.Label.v120" = "%1$@(r)en %2$@ Adimen Artifizial (AA) teknologia erabiltzen dugu produktuen balorazioen fidagarritasuna egiaztatzeko. Honek balorazioen kalitatea neurtzen lagunduko dizu, ez produktuen kalitatea.";
 
 /* Highlights label from How we determine review quality card displayed in the shopping review quality bottom sheet. The parameter substitutes the partner website the user is coming from. The *text inside asterisks* denotes part of the string to bold, please leave the text inside the '*' so that it is bolded correctly. */
 "Shopping.ReviewQualityCard.Highlights.Label.v120" = "*Nabarmentzekoak* %1@(e)ko azken 80 egunetan fidagarriak direla uste ditugun balorazioak dira.";
