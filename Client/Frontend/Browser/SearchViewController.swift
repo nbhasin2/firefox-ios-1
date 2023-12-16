@@ -9,7 +9,7 @@ import Telemetry
 import Common
 import SiteImageView
 
-private enum SearchListSection: Int, CaseIterable {
+enum SearchListSection: Int, CaseIterable {
     case searchSuggestions
     case remoteTabs
     case openedTabs
@@ -53,6 +53,15 @@ struct SearchViewModel {
     let isBottomSearchBar: Bool
 }
 
+struct SearchSuggestionSnapshotItem {
+    var title: String
+    var index: IndexPath
+    var type: SearchListSection
+    var didTap: Bool
+    var isVisible: Bool = false
+    var url: String = ""
+}
+
 class SearchViewController: SiteTableViewController,
                             KeyboardHelperDelegate,
                             LoaderListener,
@@ -78,6 +87,7 @@ class SearchViewController: SiteTableViewController,
     private let searchEngineScrollViewContent: UIView = .build()
     private var bottomConstraintWithKeyboard: NSLayoutConstraint?
     private var bottomConstraintWithoutKeyboard: NSLayoutConstraint?
+    private var visibleIndexPaths = [IndexPath]()
 
     private lazy var bookmarkedBadge: UIImage = {
         return UIImage(named: StandardImageIdentifiers.Medium.bookmarkBadgeFillBlue50)!
@@ -91,6 +101,9 @@ class SearchViewController: SiteTableViewController,
     var savedQuery: String = ""
     var searchFeature: FeatureHolder<Search>
     static var userAgent: String?
+    var didDisappear: (([SearchSuggestionSnapshotItem]) -> Void)?
+    var tempSearchSuggestionSnapshotList: [SearchSuggestionSnapshotItem] = [SearchSuggestionSnapshotItem]()
+    var lastTappedIndexPath: IndexPath?
 
     var hasFirefoxSuggestions: Bool {
         let dataCount = data.count
@@ -119,6 +132,103 @@ class SearchViewController: SiteTableViewController,
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    func wasLastTapped(indexPath: IndexPath) -> Bool {
+        return indexPath == lastTappedIndexPath
+    }
+
+    func createSearchSuggestionSnapshot() {
+        tempSearchSuggestionSnapshotList.removeAll()
+        tempSearchSuggestionSnapshotList = extractDataFromTableView()
+    }
+
+    func extractDataFromTableView(lastTappedIndexPath: IndexPath? = nil) -> [SearchSuggestionSnapshotItem] {
+        var items: [SearchSuggestionSnapshotItem] = []
+
+        suggestions?.enumerated().forEach { (index, suggestion) in
+            let indexPath = IndexPath(row: index, section: SearchListSection.searchSuggestions.rawValue)
+            items.append(SearchSuggestionSnapshotItem(title: suggestion,
+                                                      index: indexPath,
+                                                      type: .searchSuggestions,
+                                                      didTap: wasLastTapped(indexPath: indexPath),
+                                                      url: suggestion.asURL?.absoluteString ?? ""))
+        }
+
+        for (index, openedTab) in filteredOpenedTabs.enumerated() {
+            let indexPath = IndexPath(row: index, section: SearchListSection.openedTabs.rawValue)
+            let title = openedTab.title ?? openedTab.lastTitle ?? ""
+            items.append(SearchSuggestionSnapshotItem(title: title,
+                                                      index: indexPath,
+                                                      type: .openedTabs,
+                                                      didTap: wasLastTapped(indexPath: indexPath),
+                                                      url: openedTab.url?.absoluteString ?? ""))
+        }
+
+        for (index, remoteTab) in filteredRemoteClientTabs.enumerated() {
+            let indexPath = IndexPath(row: index, section: SearchListSection.remoteTabs.rawValue)
+            let title = remoteTab.tab.title
+            items.append(SearchSuggestionSnapshotItem(title: title,
+                                                      index: indexPath,
+                                                      type: .remoteTabs,
+                                                      didTap: wasLastTapped(indexPath: indexPath),
+                                                      url: remoteTab.tab.URL.absoluteString))
+        }
+
+        for (index, site) in data.enumerated() {
+            let indexPath = IndexPath(row: index, section: SearchListSection.bookmarksAndHistory.rawValue)
+            let title = site?.title ?? ""
+            items.append(SearchSuggestionSnapshotItem(title: title,
+                                                      index: indexPath,
+                                                      type: .bookmarksAndHistory,
+                                                      didTap: wasLastTapped(indexPath: indexPath),
+                                                      url: site?.url ?? ""))
+        }
+
+        for (index, highlight) in searchHighlights.enumerated() {
+            let indexPath = IndexPath(row: index, section: SearchListSection.searchHighlights.rawValue)
+            let title = highlight.displayTitle
+            items.append(SearchSuggestionSnapshotItem(title: title,
+                                                      index: indexPath,
+                                                      type: .searchHighlights,
+                                                      didTap: wasLastTapped(indexPath: indexPath),
+                                                      url: highlight.urlString ?? ""))
+        }
+
+        for (index, firefoxSuggestion) in firefoxSuggestions.enumerated() {
+            let indexPath = IndexPath(row: index, section: SearchListSection.firefoxSuggestions.rawValue)
+            let title = firefoxSuggestion.title
+            items.append(SearchSuggestionSnapshotItem(title: title,
+                                                      index: indexPath,
+                                                      type: .firefoxSuggestions,
+                                                      didTap: wasLastTapped(indexPath: indexPath),
+                                                      url: firefoxSuggestion.url.absoluteString))
+        }
+
+        if !visibleIndexPaths.isEmpty {
+            items = items.map { item in
+                var newItem = item
+                newItem.isVisible = visibleIndexPaths.contains(item.index)
+                return newItem
+            }
+        }
+
+        return items
+    }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        updateVisibleCells()
+    }
+
+    func updateVisibleCells() {
+        visibleIndexPaths = tableView.indexPathsForVisibleRows ?? []
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        updateVisibleCells()
+        createSearchSuggestionSnapshot()
+        didDisappear?(tempSearchSuggestionSnapshotList)
+        super.viewWillDisappear(animated)
     }
 
     override func viewDidLoad() {
@@ -551,6 +661,8 @@ class SearchViewController: SiteTableViewController,
     // MARK: - Table view delegate
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        lastTappedIndexPath = indexPath
+        updateVisibleCells()
         switch SearchListSection(rawValue: indexPath.section)! {
         case .searchSuggestions:
             guard let defaultEngine = searchEngines?.defaultEngine else { return }
@@ -631,10 +743,11 @@ class SearchViewController: SiteTableViewController,
             withIdentifier: TwoLineImageOverlayCell.cellIdentifier, for: indexPath) as! TwoLineImageOverlayCell
         let oneLineTableViewCell = tableView.dequeueReusableCell(withIdentifier: OneLineTableViewCell.cellIdentifier,
                                                                  for: indexPath) as! OneLineTableViewCell
-        return getCellForSection(twoLineImageOverlayCell,
+        var cell = getCellForSection(twoLineImageOverlayCell,
                                  oneLineCell: oneLineTableViewCell,
                                  for: SearchListSection(rawValue: indexPath.section)!,
                                  indexPath)
+        return cell
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

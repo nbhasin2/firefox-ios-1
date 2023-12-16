@@ -65,6 +65,7 @@ class BrowserViewController: UIViewController,
     var toolbarContextHintVC: ContextualHintViewController
     let shoppingContextHintVC: ContextualHintViewController
     private var backgroundTabLoader: DefaultBackgroundTabLoader
+    var searchSuggestionSnapshotList: [SearchSuggestionSnapshotItem]?
 
     // popover rotation handling
     var displayedPopoverController: UIViewController?
@@ -1134,6 +1135,18 @@ class BrowserViewController: UIViewController,
     }
 
     func hideSearchController() {
+        self.searchController?.didDisappear = { [weak self] suggestionsSnapshot in
+            self?.searchSuggestionSnapshotList = suggestionsSnapshot
+            let tappedItems = suggestionsSnapshot.filter { $0.didTap }
+            if let item = tappedItems.first {
+                print("HH - Tapped Item: \(item.title), Index: \(item.index), Type: \(item.type), Url: \(item.url)")
+            }
+
+            let visibleItems = suggestionsSnapshot.filter { $0.isVisible }
+            visibleItems.forEach { item in
+                print("HH - Visible Item: \(item.title), Index: \(item.index), Type: \(item.type)")
+            }
+        }
         privateModeDimmingView.removeFromSuperview()
         guard let searchController = self.searchController else { return }
         searchController.willMove(toParent: nil)

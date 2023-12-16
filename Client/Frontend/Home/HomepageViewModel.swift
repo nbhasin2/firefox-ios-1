@@ -14,7 +14,7 @@ protocol HomepageDataModelDelegate: AnyObject {
     func reloadView()
 }
 
-class HomepageViewModel: FeatureFlaggable {
+class HomepageViewModel: FeatureFlaggable, HomepageDataModelDelegate {
     struct UX {
         static let spacingBetweenSections: CGFloat = 62
         static let standardInset: CGFloat = 18
@@ -238,11 +238,12 @@ class HomepageViewModel: FeatureFlaggable {
         guard let actualSectionNumber = shownSections[safe: shownSection]?.rawValue else { return nil }
         return childViewModels[safe: actualSectionNumber]
     }
-}
 
-// MARK: - HomepageDataModelDelegate
-extension HomepageViewModel: HomepageDataModelDelegate {
+    // MARK: - HomepageDataModelDelegate
+
     func reloadView() {
         delegate?.reloadView()
     }
 }
+
+
