@@ -26,6 +26,18 @@ class FxAWebViewController: UIViewController {
     private let logger: Logger
     /// Closure for dismissing higher up FxA Sign in view controller
     var shouldDismissFxASignInViewController: (() -> Void)?
+    private lazy var shareButton: UIBarButtonItem = {
+        let button = UIBarButtonItem(image: UIImage.templateImageNamed(StandardImageIdentifiers.Large.navShare),
+                                     style: .plain,
+                                     target: self,
+                                     action: #selector(sharePdf))
+        button.accessibilityLabel = "Add accessibility LABEL - TBD"
+        return button
+    }()
+
+    // When viewing a non-HTML content type in the webview (like a PDF document), this URL will
+    // point to a tempfile containing the content so it can be shared to external applications.
+    var temporaryDocument: TemporaryDocument?
 
     /**
      init() FxAWebView.
@@ -90,6 +102,11 @@ class FxAWebViewController: UIViewController {
             self?.endPairingConnectionBackgroundTask()
             self?.dismiss(animated: true)
         }
+
+        // Initially disabled and hid button invisible
+//        shareButton.isEnabled = false
+//        shareButton.tintColor = .clear
+//        navigationItem.rightBarButtonItem = shareButton
     }
 
     /**
@@ -138,6 +155,46 @@ class FxAWebViewController: UIViewController {
         UIApplication.shared.endBackgroundTask(backgroundTaskID)
         backgroundTaskID = UIBackgroundTaskIdentifier.invalid
     }
+    
+//    @objc private func sharePdf() {
+//        // If the webView.url isn't directly pointing to a PDF, consider sharing the current page's URL
+//        // or implementing another method to obtain the PDF data.
+//        if let currentURL = webView.url {
+//            let activityViewController = UIActivityViewController(activityItems: [currentURL], applicationActivities: nil)
+//            if let popoverController = activityViewController.popoverPresentationController {
+//                popoverController.barButtonItem = navigationItem.rightBarButtonItem
+//            }
+//            present(activityViewController, animated: true, completion: nil)
+//        }
+//    }
+    
+    @objc private func sharePdf() {
+        guard let url = webView.url else { return }
+
+        // Create URLRequest for the PDF
+        let request = URLRequest(url: url)
+
+        // Assuming you have access to the URLResponse that has the suggested filename
+        let response = URLResponse(url: url, mimeType: "application/pdf", expectedContentLength: -1, textEncodingName: nil)
+
+        // Initialize TemporaryDocument
+        temporaryDocument = TemporaryDocument(preflightResponse: response, request: request)
+
+        // Download and get the local file URL
+        temporaryDocument?.getURL { [weak self] localUrl in
+            guard let localUrl = localUrl else { return }
+
+            DispatchQueue.main.async {
+                // Share the downloaded file
+                let activityViewController = UIActivityViewController(activityItems: [localUrl], applicationActivities: nil)
+                if let popoverController = activityViewController.popoverPresentationController {
+                    popoverController.barButtonItem = self?.navigationItem.rightBarButtonItem
+                }
+                self?.present(activityViewController, animated: true, completion: nil)
+            }
+        }
+    }
+
 }
 
 // MARK: - WKNavigationDelegate
@@ -164,7 +221,43 @@ extension FxAWebViewController: WKNavigationDelegate {
             return
         }
 
+        if let url = webView.url, url.pathExtension.lowercased() == "pdf" {
+            print("NB --- PDF Loaded v2")
+            // PDF is loaded, perform necessary actions		
+        }
+
+        webView.evaluateJavascriptInDefaultContentWorld("document.contentType") { (result, error) in
+            if let mimeType = result as? String, mimeType == "application/pdf" {
+                print("NB --- PDF Loaded v3")
+                // PDF is loaded, perform necessary actions
+            }
+        }
+        
+        // Check if the loaded content is a PDF
+        webView.evaluateJavaScript("document.contentType", completionHandler: { (result, error) in
+            if let mimeType = result as? String, mimeType == "application/pdf" {
+                print("NB --- PDF Loaded")
+                // PDF is loaded, perform necessary actions
+            }
+        })
+        
+
+
         navigationItem.title = nil
+    }
+    
+    func webView(
+        _ webView: WKWebView,
+        decidePolicyFor navigationResponse: WKNavigationResponse,
+        decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void
+    ) {
+        if let mimeType = navigationResponse.response.mimeType, mimeType == "application/pdf" {
+            navigationItem.rightBarButtonItem = shareButton
+        } else {
+            navigationItem.rightBarButtonItem = nil
+        }
+        
+        decisionHandler(.allow)
     }
 }
 
