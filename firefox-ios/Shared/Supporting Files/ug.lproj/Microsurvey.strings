@@ -31,6 +31,9 @@
 /* After engaging with the microsurvey prompt, the microsurvey pops up as a bottom sheet for the user to answer, this is the title for the header on the screen. */
 "Microsurvey.Survey.HeaderLabel.v127" = "بۇ تەكشۈرۈشنى تاماملاڭ";
 
+/* After engaging with the microsurvey prompt, the microsurvey pops up as a bottom sheet for the user to answer, this is the title for the header on the screen. */
+"Microsurvey.Survey.HeaderLabel.v129" = "راي سىناشنى تاماملاڭ";
+
 /* After engaging with the microsurvey prompt, the microsurvey pops up as a bottom sheet for the user to answer, this is the logo image that appears on the bottom sheet that informs the user that it is coming from the app specifically. Placeholder is for the app name. */
 "Microsurvey.Survey.LogoImage.AccessibilityLabel.v129" = "%@ تۇغى";
 
