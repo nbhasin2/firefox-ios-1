@@ -43,3 +43,4 @@ curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/mozilla/a
 
 # Run and update content blocker
 ./content_blocker_update.sh
+ 
