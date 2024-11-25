@@ -73,3 +73,45 @@
 /* Text to let users know how many social media trackers were blocked on the current website. The placeholder will show the number of such cookies detected */
 "Menu.EnhancedTrackingProtection.Details.Trackers.SocialMedia.v129" = "ᱥᱟᱸᱣᱛᱟ ᱢᱤᱰᱤᱭᱟ ᱯᱟᱧᱡᱟ ᱫᱟᱱᱟᱲ ᱠᱚ ᱺ %@";
 
+/* Text to let users know how many trackers were blocked on the current website. Placeholder for the number of trackers blocked */
+"Menu.EnhancedTrackingProtection.Details.Trackers.v128" = "ᱴᱨᱮᱠᱟᱨ ᱠᱚ ᱵᱞᱚᱠ ᱮᱱᱟ: %@";
+
+/* Text to let users know the site verifier, where the placeholder represents the SSL certificate signer which is on the enhanced tracking protection screen after the user taps on the connection details. */
+"Menu.EnhancedTrackingProtection.Details.Verifier.v128" = "ᱫᱟᱨᱟᱭ ᱛᱮ ᱧᱮᱞ ᱢᱮᱲᱟᱣ %@";
+
+/* The title for the button that allows users to view certificates inside the enhanced tracking protection details screen. */
+"Menu.EnhancedTrackingProtection.Details.ViewCertificatesTitle.v131" = "ᱯᱚᱨᱢᱟᱱ ᱥᱟᱠᱟᱢ ᱧᱮᱞ ᱢᱮ";
+
+/* Header for the enhanced tracking protection screen when the user has opted out of the feature. Placeholder will be replaced by the app name */
+"Menu.EnhancedTrackingProtection.Off.Header.v128" = "%@ ᱫᱚ ᱵᱟᱭ ᱠᱟᱹᱢᱤ ᱠᱟᱱᱟᱭ ᱾  ᱟᱞᱮ ᱫᱚ ᱨᱩᱠᱷᱤᱭᱟᱹ ᱠᱚ ᱫᱚᱦᱲᱟ ᱪᱟᱹᱞᱩ ᱞᱟᱹᱜᱤᱫ ᱞᱮ ᱥᱚᱞᱦᱟ ᱮᱫᱟ᱾";
+
+/* Title for the enhanced tracking protection screen when the user has opted out of the feature. */
+"Menu.EnhancedTrackingProtection.Off.Title.v128" = "ᱟᱢ ᱨᱩᱠᱷᱤᱭᱟᱹ ᱠᱚ ᱵᱚᱱᱫᱚ ᱠᱮᱫᱟᱢ";
+
+/* Header for the enhanced tracking protection screen when the user has selected to be protected. */
+"Menu.EnhancedTrackingProtection.On.Header.v128" = "ᱟᱢ ᱨᱩᱠᱷᱤᱭᱟᱹ ᱜᱮᱭᱟᱢ ᱾  ᱡᱩᱫᱤ ᱟᱞᱮ ᱡᱟᱦᱟᱱᱟᱜ ᱞᱮ ᱧᱮᱞ ᱧᱟᱢ ᱠᱮᱫᱟ, ᱟᱞᱮ ᱟᱢ ᱞᱮ ᱵᱟᱰᱟᱭ ᱚᱪᱚ ᱢᱮᱭᱟ ᱾";
+
+/* Header for the enhanced tracking protection screen when the user has selected to be protected but the connection is not secure. */
+"Menu.EnhancedTrackingProtection.On.NotSecure.Header.v128" = "ᱟᱢᱟᱜ ᱡᱩᱲᱟᱣ ᱫᱚ ᱵᱟᱝ ᱨᱩᱠᱷᱤᱭᱟᱹ ᱜᱮᱭᱟ ᱾";
+
+/* Title for the enhanced tracking protection screen when the user has selected to be protected but the connection is not secure. */
+"Menu.EnhancedTrackingProtection.On.NotSecure.Title.v128" = "ᱱᱟᱶᱟ ᱥᱟᱭᱤᱴ ᱨᱮ ᱥᱟᱵᱫᱷᱟᱱ ᱛᱟᱦᱮᱸᱱ ᱢᱮ ᱾";
+
+/* Title for the enhanced tracking protection screen when the user has selected to be protected. The placeholder will have the value of the app name */
+"Menu.EnhancedTrackingProtection.On.Title.v128" = "%@ ᱨᱩᱠᱷᱤᱭᱟᱹ ᱨᱮ ᱢᱮᱱᱟᱜ ᱠᱟᱹᱫᱮᱭᱟ";
+
+/* The title for the privacy settings button inside the enhanced tracking protection screen. */
+"Menu.EnhancedTrackingProtection.PrivacySettings.Title.v128" = "ᱱᱤᱥᱚᱱ ᱥᱟᱡᱟᱣᱠᱚ";
+
+/* Title for the switch to enable/disable enhanced tracking protection inside the menu. */
+"Menu.EnhancedTrackingProtection.Switch.Title.v128" = "ᱵᱟᱲᱦᱟᱣᱟᱠᱟᱱ ᱯᱟᱸᱡᱟ ᱨᱚᱯᱷᱟ";
+
+/* A switch to disable enhanced tracking protection inside the menu. */
+"Menu.EnhancedTrackingProtection.SwitchOff.Text.v128" = "ᱨᱩᱠᱷᱤᱭᱟᱹ ᱫᱚ ᱵᱚᱱᱫᱚ ᱜᱮᱭᱟ ᱾  ᱟᱞᱮ ᱫᱚ ᱱᱚᱣᱟ ᱫᱚᱦᱲᱟ ᱪᱟᱹᱞᱩ ᱞᱟᱹᱜᱤᱫ ᱥᱚᱞᱦᱟ ᱞᱮ ᱮᱢᱟᱭᱟ ᱾";
+
+/* A switch to disable enhanced tracking protection inside the menu. */
+"Menu.EnhancedTrackingProtection.SwitchOff.Text.v129" = "ᱨᱩᱠᱷᱤᱭᱟᱹ ᱫᱚ ᱵᱚᱱᱫᱚ ᱜᱮᱭᱟ ᱾  ᱟᱞᱮ ᱩᱱᱠᱩ ᱫᱚᱦᱲᱟ ᱪᱟᱹᱞᱩ ᱞᱟᱹᱜᱤᱫ ᱥᱚᱞᱦᱟ ᱞᱮ ᱮᱢᱟᱫ ᱠᱚᱣᱟ ᱾";
+
+/* A switch to disable enhanced tracking protection inside the menu. */
+"Menu.EnhancedTrackingProtection.SwitchOn.Text.v128" = "ᱡᱩᱫᱤ ᱱᱚᱶᱟ ᱥᱟᱭᱤᱴ ᱨᱮ ᱡᱟᱦᱟᱱᱟᱜ ᱨᱟᱹᱯᱩᱫ ᱧᱮᱞᱚᱜ ᱠᱟᱱᱟ, ᱮᱱᱠᱷᱟᱱ ᱚᱱᱟ ᱵᱚᱱᱫᱚ ᱨᱮᱭᱟᱜ ᱠᱩᱨᱩᱢᱩᱴᱩᱭ ᱢᱮ ᱾";
+
