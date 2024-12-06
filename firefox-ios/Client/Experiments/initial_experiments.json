@@ -91,7 +91,7 @@
       "channel": "release",
       "userFacingName": "iOS Optimize Onboarding Card Order",
       "userFacingDescription": "Experiment changing the order of onboarding cards",
-      "isEnrollmentPaused": false,
+      "isEnrollmentPaused": true,
       "isRollout": false,
       "bucketConfig": {
         "randomizationUnit": "nimbus_id",
