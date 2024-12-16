@@ -16,18 +16,6 @@
 /* About settings section title */
 "About" = "درباره";
 
-/* The title for the pinning a shortcut action */
-"ActivityStream.ContextMenu.AddToShortcuts" = "اضافه کردن به میانبرها";
-
-/* The title for the pinning a topsite action */
-"ActivityStream.ContextMenu.PinTopsite2" = "سنجاق کردن";
-
-/* On the Firefox homepage in the Jump Back In section, if a Tab group item - a collection of grouped tabs from a related search - exists underneath the search term for the tab group, there will be a subtitle with a number for how many tabs are in that group. The placeholder is for a number. It will read 'Tabs: 5' or similar. */
-"ActivityStream.JumpBackIn.TabGroup.SiteCount" = "زبانه‌ها: %d";
-
-/* A string used to signify the start of the Recently Saved section in Home Screen. */
-"ActivityStream.Library.Title" = "اخیرا ذخیره شده";
-
 /* Section title label for recently visited websites */
 "ActivityStream.RecentHistory.Title" = "بازدید‌های اخیر";
 
@@ -90,9 +78,6 @@
 
 /* The label to show the location of the folder where the bookmark is located */
 "Bookmarks.Folder.Label" = "پوشه";
-
-/* A label indicating all bookmarks grouped under the category 'Desktop Bookmarks'. */
-"Bookmarks.Menu.DesktopBookmarks" = "نشانک‌های رایانه رومیزی";
 
 /* The button to create a new bookmark */
 "Bookmarks.NewBookmark.Label" = "نشانک جدید";
@@ -177,9 +162,6 @@
 
 /* Context menu item for sharing a link URL */
 "ContextMenu.ShareLinkButtonTitle" = "همرسانی پیوند";
-
-/* Contextual hints are little popups that appear for the users informing them of new features. This one is the call to action for the inactive tabs contextual popup. */
-"ContextualHints.TabTray.InactiveTabs.CallToAction" = "در تنظیمات خاموش کنید";
 
 /* Accessibility message e.g. spoken by VoiceOver after adding current webpage to the Reading List failed. */
 "Could not add page to Reading list" = "امکان اضافه کردن صفحه به فهرست مطالعه نیست";
@@ -388,9 +370,6 @@
 /* Title for the Recently Closed button in the History Panel */
 "HistoryPanel.RecentlyClosedTabsButton.Title" = "به تازگی بسته شده";
 
-/* Accessibility label for the tab toolbar indicating the Home button. */
-"Home" = "خانه";
-
 /* The title for the Bookmark context menu action for sites in Home Panels */
 "HomePanel.ContextMenu.Bookmark" = "نشانک‌گذاری";
 
@@ -445,53 +424,11 @@
 /* A label indicating the keyboard shortcut of switching to a tab immediately preceding to the currently selected tab. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
 "Hotkeys.ShowPreviousTab.DiscoveryTitle" = "نمایش زبانه قبلی";
 
-/* In the Tabs Tray, in the Inactive Tabs section, this is the button the user must tap in order to close all inactive tabs. */
-"InactiveTabs.TabTray.CloseButtonTitle" = "بستن همه برگه‌های غیرفعال";
-
 /* Accessibility label for button increasing font size in display settings of reader mode */
 "Increase text size" = "افزایش اندازه متن";
 
 /* Relative time for a tab that was visited within the last few moments. */
 "just now" = "هم‌اکنون";
-
-/* A label indicating the keyboard shortcut of resetting a web page's view to the standard viewing size. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ActualSize" = "اندازه واقعی";
-
-/* A label indicating the keyboard shortcut of clearing recent history. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ClearRecentHistory" = "پاک کردن تاریخچه اخیر";
-
-/* A label indicating the keyboard shortcut of finding text a user desires within a page again. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.FindAgain" = "پیدا کردن مجدد";
-
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can do with History. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.History" = "تاریخچه";
-
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can do with locally saved items. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.Tools" = "ابزارها";
-
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can take when navigating between their availale set of tabs. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.Window" = "پنجره";
-
-/* A label indicating the keyboard shortcut of opening the application's settings menu. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Settings" = "تنظیمات";
-
-/* A label indicating the keyboard shortcut of showing all bookmarks. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ShowBookmarks" = "نمایش نشانک‌ها";
-
-/* A label indcating the keyboard shortcut of showing all downloads. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ShowDownloads" = "نمایش بارگیری‌ها";
-
-/* A label indicating the keyboard shortcut of showing all history. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ShowHistory" = "نمایش تاریخچه";
-
-/* A label indicating the keyboard shortcut switch from your current tab to the last tab. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ShowLastTab" = "نمایش آخرین برگه";
-
-/* A label indicating the keyboard shortcut of enlarging the view of the current web page. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ZoomIn" = "بزرگنمایی";
-
-/* A label indicating the keyboard shortcut of shrinking the view of the current web page. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ZoomOut" = "کوچک‌نمایی";
 
 /* This label is meant to signify the section containing a group of items from the past thirty days. */
 "Last month" = "ماه گذشته";
@@ -516,15 +453,6 @@
 
 /* Toggle logins syncing setting */
 "Logins" = "ورود";
-
-/* Title of the Learn More button that links to a support page about device passcode requirements. */
-"Logins.DevicePasscodeRequired.LearnMoreButtonTitle" = "بیشتر بدانید";
-
-/* Title of the Continue button. */
-"Logins.Onboarding.ContinueButtonTitle" = "ادامه";
-
-/* Title of the Learn More button that links to a support page about device passcode requirements. */
-"Logins.Onboarding.LearnMoreButtonTitle" = "بیشتر بدانید";
 
 /* Button to not save the user's password */
 "LoginsHelper.DontSave.Button" = "ذخیره نشود";
@@ -642,9 +570,6 @@
 
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "نوار ابزار راهبری";
-
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "زبانه‌ جدید";
 
 /* Restore Tabs Negative Action */
 "No" = "خیر";
@@ -973,17 +898,8 @@
 /* General settings section title */
 "Settings.General.SectionName" = "عمومی";
 
-/* In the settings menu, in the Firefox homepage customization section, this is the title for the option that allows users to toggle Shortcuts section on the Firefox homepage on or off */
-"Settings.Home.Option.Shortcuts" = "میانبرها";
-
 /* Label used as an item in Settings. When touched it will open a dialog to configure the home page and its uses. */
 "Settings.HomePage.SectionName" = "صفحه خانه";
-
-/* Users can disable or enable shortcuts related settings. This string is the title of the page to change your shortcuts settings. */
-"Settings.Homepage.Shortcuts.ShortcutsPageTitle.v100" = "میانبرها";
-
-/* This string is the title of the toggle to disable the shortcuts section in the settings page. */
-"Settings.Homepage.Shortcuts.ShortcutsToggle.v100" = "میانبرها";
 
 /* Title of the setting section containing the URL of the current home page. */
 "Settings.HomePage.URL.Title" = "صفحه خانگی فعلی";
@@ -1050,9 +966,6 @@
 
 /* Description displayed under the ”Show Link Previews” option */
 "Settings.ShowLinkPreviews.Status" = "وقتی پیوندی را به صورت طولانی فشار می‌دهید";
-
-/* Description displayed under the ”Show Link Previews” option */
-"Settings.ShowLinkPreviews.StatusV2" = "وقتی پیوندی را به صورت طولانی فشار می‌دهید";
 
 /* Title of setting to enable link previews when long-pressing links. */
 "Settings.ShowLinkPreviews.Title" = "پخش پیش نمایش پیوند";

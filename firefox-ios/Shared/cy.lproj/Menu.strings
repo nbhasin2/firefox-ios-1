@@ -1,15 +1,6 @@
 /* Label for the button, displayed in the menu, used to close all tabs currently open. */
 "Menu.CloseAllTabsAction.Title" = "Cau Pob Tab";
 
-/* Label for the button, displayed in the menu, used to copy the current page link to the clipboard. */
-"Menu.CopyLink.Title" = "Copïo Dolen";
-
-/* Toast displayed to user after downlaod pdf was pressed. */
-"Menu.DownloadPDF.Confirm.v129" = "Wedi Llwytho PDF i Lawr yn Llwyddiannus";
-
-/* Label for the button, displayed in the menu, downloads a pdf when pressed. */
-"Menu.DownloadPDF.Label.v129" = "Llwytho PDF i Lawr";
-
 /* Label for the button, displayed in the menu, used to open the toolbar to search for text within the current page. */
 "Menu.FindInPageAction.Title" = "Canfod ar y Dudalen";
 
@@ -37,9 +28,6 @@
 /* Accessibility label for the button, displayed in the menu, used to open the Synced Tabs home panel. Please keep as short as possible, <15 chars of space available. */
 "Menu.OpenSyncedTabsAction.AccessibilityLabel.v2" = "Tabiau wedi'u Cydweddu";
 
-/* Label for the button, displayed in the menu, used to report a compatibility issue with the current page. */
-"Menu.ReportSiteIssueAction.Title" = "Adrodd ar Fater Gwefan";
-
 /* Label for the button, displayed in Firefox Home, used to see all Library panels. */
 "Menu.SeeAllAction.Title" = "Gweld Popeth";
 
@@ -51,7 +39,4 @@
 
 /* Label for the button, displayed in the menu, used to request the mobile version of the current website. */
 "Menu.ViewMobileSiteAction.Title" = "Gofyn am Wefan Symudol";
-
-/* Label for the button, displayed in the menu, used to navigate to the home page. */
-"SettingsMenu.OpenHomePageAction.Title" = "Tudalen Cartref";
 

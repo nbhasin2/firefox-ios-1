@@ -16,12 +16,6 @@
 /* About settings section title */
 "About" = "గురించి";
 
-/* On the Firefox homepage in the Jump Back In section, if a Tab group item - a collection of grouped tabs from a related search - exists underneath the search term for the tab group, there will be a subtitle with a number for how many tabs are in that group. The placeholder is for a number. It will read 'Tabs: 5' or similar. */
-"ActivityStream.JumpBackIn.TabGroup.SiteCount" = "ట్యాబులు: %d";
-
-/* A string used to signify the start of the Recently Saved section in Home Screen. */
-"ActivityStream.Library.Title" = "ఇటీవల భద్రపరచినవి";
-
 /* Section title label for recently visited websites */
 "ActivityStream.RecentHistory.Title" = "ఇటీవల చూసినవి";
 
@@ -84,9 +78,6 @@
 
 /* The label to show the location of the folder where the bookmark is located */
 "Bookmarks.Folder.Label" = "సంచిక";
-
-/* A label indicating all bookmarks grouped under the category 'Desktop Bookmarks'. */
-"Bookmarks.Menu.DesktopBookmarks" = "డెస్క్‌టాప్ ఇష్టాంశాలు";
 
 /* The button to create a new bookmark */
 "Bookmarks.NewBookmark.Label" = "కొత్త ఇష్టాంశం";
@@ -274,18 +265,6 @@
 /* Title for firefox about:home page in tab history list */
 "Firefox.HomePage.Title" = "Firefox ముంగిలి పేజీ";
 
-/* On each Pocket Stories on the Firefox Homepage, this label appears and indicates the number of minutes to read an article. Minutes should be abbreviated due to space constraints. %d represents the number of minutes */
-"FirefoxHome.Pocket.Minutes.v99" = "%d నిమి";
-
-/* When a user taps and holds on an item from the Recently Visited section, this label will appear indicating the option to remove that item. */
-"FirefoxHome.RecentHistory.Remove" = "తీసివేయి";
-
-/* The title for the Settings context menu action for sponsored tiles in the Firefox home page shortcuts section. Clicking this brings the users to the Shortcuts Settings. */
-"FirefoxHomepage.ContextualMenu.Settings.v101" = "అమరికలు";
-
-/* The title for the Sponsored Content context menu action for sponsored tiles in the Firefox home page shortcuts section. Clicking this brings the users to a support page where users can learn more about Sponsored content and how it works. */
-"FirefoxHomepage.ContextualMenu.SponsoredContent.v101" = "మా ప్రాయోజకులు & మీ అంతరంగికత";
-
 /* Accessibility Label for the tab toolbar Forward button */
 "Forward" = "ఫార్వార్డ్";
 
@@ -364,17 +343,11 @@
 /* Title for the Recently Closed button in the History Panel */
 "HistoryPanel.RecentlyClosedTabsButton.Title" = "ఇటీవల మూసినవి";
 
-/* Accessibility label for the tab toolbar indicating the Home button. */
-"Home" = "ముంగిలి";
-
 /* The title for the Bookmark context menu action for sites in Home Panels */
 "HomePanel.ContextMenu.Bookmark" = "ఇష్టాంశంగా గుర్తించు";
 
 /* The title for the Delete from History context menu action for sites in Home Panels */
 "HomePanel.ContextMenu.DeleteFromHistory" = "చరిత్ర నుండి తొలగించు";
-
-/* The title for the Open in New Private Tab context menu action for sites in Home Panels */
-"HomePanel.ContextMenu.OpenInNewPrivateTab.v101" = "అంతరంగిక ట్యాబులో తెరువు";
 
 /* The title for the Open in New Tab context menu action for sites in Home Panels */
 "HomePanel.ContextMenu.OpenInNewTab" = "కొత్త ట్యాబులో తెరువు";
@@ -430,62 +403,11 @@
 /* Relative time for a tab that was visited within the last few moments. */
 "just now" = "ఇప్పుడే";
 
-/* A label indicating the keyboard shortcut of resetting a web page's view to the standard viewing size. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ActualSize" = "అసలు పరిమాణం";
-
-/* A label indicating the keyboard shortcut of clearing recent history. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ClearRecentHistory" = "ఇటీవలి చరిత్రను తుడిచివేయి";
-
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can do with Bookmarks. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.Bookmark" = "ఇష్టాంశాలు";
-
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can do with History. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.History" = "చరిత్ర";
-
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can do with locally saved items. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.Tools" = "పనిముట్లు";
-
-/* A label indicating the keyboard shortcut of opening the application's settings menu. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Settings" = "అమరికలు";
-
-/* A label indicating the keyboard shortcut of showing all bookmarks. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ShowBookmarks" = "ఇష్టాంశాలను చూపించు";
-
-/* A label indcating the keyboard shortcut of showing all downloads. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ShowDownloads" = "దింపుకోళ్లను చూపించు";
-
-/* A label indicating the keyboard shortcut to switch from the current tab to the first tab. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ShowFirstTab" = "మొదటి ట్యాబును చూపించు";
-
-/* A label indicating the keyboard shortcut of showing all history. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ShowHistory" = "చరిత్రను చూపించు";
-
-/* A label indicating the keyboard shortcut switch from your current tab to the last tab. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ShowLastTab" = "చివరి ట్యాబును చూపించు";
-
 /* This label is meant to signify the section containing a group of items from the past thirty days. */
 "Last month" = "గత నెల";
 
 /* This label is meant to signify the section containing a group of items from the past seven days. */
 "Last week" = "గత వారం";
-
-/* Within the History Panel, users can delete search group sites history. They can cancel this action by pressing a cancel button. */
-"LibraryPanel.History.ClearGroupedTabsCancel.v100" = "రద్దుచేయి";
-
-/* Within the History Panel, users can delete search group sites history. They need to confirm the action by pressing the delete button. */
-"LibraryPanel.History.ClearGroupedTabsDelete.v100" = "తొలగించు";
-
-/* Within the History Panel, users can delete search group sites history. %@ represents the search group name. */
-"LibraryPanel.History.ClearGroupedTabsTitle.v100" = "%@ లోని సైట్లన్నిటినీ తొలగించాలా?";
-
-/* In the history panel, users will be able to search terms in their browsing history. This label is shown when there is no results after querying the search terms in the user's history. */
-"LibraryPanel.History.NoHistoryFound.v99" = "చరిత్రేమీ లేదు";
-
-/* In the history panel, this is the title on the button that navigates the user to a screen showing their recently closed tabs. */
-"LibraryPanel.History.RecentlyClosedTabs.v99" = "ఇటీవల మూసిన ట్యాబులు";
-
-/* This label is meant to signify the section containing a group of items that are older than thirty days. */
-"LibraryPanel.Section.Older" = "పాతవి";
 
 /* Settings item that opens a tab containing the licenses. See http://mzl.la/1NSAWCG */
 "Licenses" = "లైసెన్స్ లు";
@@ -504,15 +426,6 @@
 
 /* Toggle logins syncing setting */
 "Logins" = "ప్రవేశాలు";
-
-/* Title of the Learn More button that links to a support page about device passcode requirements. */
-"Logins.DevicePasscodeRequired.LearnMoreButtonTitle" = "ఇంకా తెలుసుకోండి";
-
-/* Title of the Continue button. */
-"Logins.Onboarding.ContinueButtonTitle" = "కొనసాగించు";
-
-/* Title of the Learn More button that links to a support page about device passcode requirements. */
-"Logins.Onboarding.LearnMoreButtonTitle" = "ఇంకా తెలుసుకోండి";
 
 /* Button to not save the user's password */
 "LoginsHelper.DontSave.Button" = "సేవ్ చేయవద్దు";
@@ -535,9 +448,6 @@
 /* Placeholder test for search box in logins list view. */
 "LoginsList.LoginsListSearchPlaceholder" = "వడపోత";
 
-/* Title for cancel button for user to stop searching for a particular login */
-"LoginsList.Search.Cancel" = "రద్దుచేయి";
-
 /* Title for the list of logins */
 "LoginsList.Title" = "భద్రపరచిన ప్రవేశాలు";
 
@@ -553,38 +463,14 @@
 /* Toast displayed to the user after a bookmark has been added. */
 "Menu.AddBookmark.Confirm" = "ఇష్టాంశం చేర్చబడింది";
 
-/* Label for the add bookmark button in the menu. Pressing this button bookmarks the current page. Please keep the text as short as possible for this label. */
-"Menu.AddBookmark.Label.v99" = "చేర్చు";
-
-/* Label for the add to reading list button in the menu. Pressing this button adds the current page to the reading list. Please keep the text as short as possible for this label. */
-"Menu.AddReadingList.Label.v99" = "చేర్చు";
-
 /* Toast displayed to the user after adding the item to their reading list. */
 "Menu.AddToReadingList.Confirm" = "చదవాల్సిన జాబితాకి చేర్చు";
-
-/* Label for the button, displayed in the menu, takes you to bookmarks screen when pressed. */
-"Menu.Bookmarks.Label" = "ఇష్టాంసాలు";
 
 /* The title for the button that lets you copy the url from the location bar. */
 "Menu.Copy.Title" = "చిరునామా కాపీచెయ్యి";
 
 /* Toast displayed to user after copy url pressed. */
 "Menu.CopyURL.Confirm" = "క్లిప్‌బోర్డునకు URL కాపీతీయబడెను";
-
-/* Label for the button, displayed in the menu, takes you to Downloads screen when pressed. */
-"Menu.Downloads.Label" = "దింపుకోళ్ళు";
-
-/* Label for the help button in the menu page. Pressing this button opens the support page https://support.mozilla.org/en-US/products/ios */
-"Menu.Help.v99" = "సహాయం";
-
-/* Label for the button, displayed in the menu, takes you to History screen when pressed. */
-"Menu.History.Label" = "చరిత్ర";
-
-/* Label for the new tab button in the menu page. Pressing this button opens a new tab. */
-"Menu.NewTab.v99" = "కొత్త ట్యాబు";
-
-/* Label for the button, displayed in the menu, takes you to passwords screen when pressed. */
-"Menu.Passwords.Label" = "సంకేతపదాలు";
 
 /* The title for the button that lets you paste into the location bar */
 "Menu.Paste.Title" = "అతికించు";
@@ -601,20 +487,8 @@
 /* Toast displayed to the user after a bookmark has been removed. */
 "Menu.RemoveBookmark.Confirm" = "ఇష్టాంశము తీసివేయబడింది";
 
-/* Label for the remove bookmark button in the menu. Pressing this button remove the current page from the bookmarks. Please keep the text as short as possible for this label. */
-"Menu.RemoveBookmark.Label.v99" = "తీసివేయి";
-
-/* Label for the remove from reading list button in the menu. Pressing this button removes the current page from the reading list. Please keep the text as short as possible for this label. */
-"Menu.RemoveReadingList.Label.v99" = "తీసివేయి";
-
 /* Toast displayed to the user after a tab has been sent successfully. */
 "Menu.TabSent.Confirm" = "ట్యాబు పంపబడింది";
-
-/* Accessibility label for the Bookmark button on the toolbar. Pressing this button opens the bookmarks menu */
-"Menu.Toolbar.Bookmarks.AccessibilityLabel.v99" = "ఇష్టాంశాలు";
-
-/* Accessibility label for the Home button on the toolbar. Pressing this button brings the user to the home page. */
-"Menu.Toolbar.Home.AccessibilityLabel.v99" = "ముంగిలి";
 
 /* The title for tracking protection settings */
 "Menu.TrackingProtection.ProtectionSettings.Title" = "సంరక్షణ అమరికలు";
@@ -663,9 +537,6 @@
 
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "నెవిగేషను టూల్బార్";
-
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "కొత్త ట్యాబు";
 
 /* Restore Tabs Negative Action */
 "No" = "కాదు";
@@ -732,9 +603,6 @@
 
 /* Title for the Recently Closed Tabs Panel */
 "RecentlyClosedTabsPanel.Title" = "ఇటీవల మూసినవి";
-
-/* More button text for Recently Saved items at the home page. */
-"RecentlySaved.Actions.More" = "అన్నీ చూపించు";
 
 /* Accessibility Label for the tab toolbar Reload button */
 "Reload" = "రీలోడు చెయ్యి";
@@ -991,29 +859,8 @@
 /* General settings section title */
 "Settings.General.SectionName" = "సాధారణం";
 
-/* In the settings menu, in the Firefox homepage customization section, this is the title for the option that allows users to toggle Recently Saved section on the Firefox homepage on or off */
-"Settings.Home.Option.RecentlySaved" = "ఇటీవల భద్రపరచినవి";
-
-/* In the settings menu, in the Firefox homepage customization section, this is the title for the option that allows users to toggle Recently Visited section on the Firfox homepage on or off */
-"Settings.Home.Option.RecentlyVisited" = "ఇటీవల చూసినవి";
-
-/* In the settings menu, on the Start at Home homepage customization option, this allows users to set this setting to return to the last tab they were on, every time they open up Firefox */
-"Settings.Home.Option.StartAtHome.Never" = "మునుపటి ట్యాబు";
-
 /* Label used as an item in Settings. When touched it will open a dialog to configure the home page and its uses. */
 "Settings.HomePage.SectionName" = "హొమ్ పేజీ";
-
-/* This string is the title of the setting button which can be clicked to open a page to customize the number of rows in the shortcuts section */
-"Settings.Homepage.Shortcuts.Rows.v100" = "వరుసలు";
-
-/* This string is the title of the page to customize the number of rows in the shortcuts section */
-"Settings.Homepage.Shortcuts.RowsPageTitle.v100" = "వరుసలు";
-
-/* Toggled OFF to hide the shortcuts section */
-"Settings.Homepage.Shortcuts.ToggleOff.v100" = "అచేతనం";
-
-/* Toggled ON to show the shortcuts section */
-"Settings.Homepage.Shortcuts.ToggleOn.v100" = "చేతనం";
 
 /* Title of the setting section containing the URL of the current home page. */
 "Settings.HomePage.URL.Title" = "ప్రస్తుత హోంపేజీ";
@@ -1048,9 +895,6 @@
 /* Footer at the bottom of the New Tab screen after entering New Tab in settings */
 "Settings.NewTab.TopSectionNameFooter" = "కొత్త ట్యాబు తెరిచేటప్పుడు ఏమి చూపించాలో ఎంచుకోండి";
 
-/* Label for the block images toggle displayed in the settings menu. Enabling this toggle will hide images on any webpage the user visits. */
-"Settings.NoImageModeBlockImages.Label.v99" = "బొమ్మలను నిరోధించు";
-
 /* Description displayed under the ”Offer to Open Copied Link” option. See https://bug1223660.bmoattachments.org/attachment.cgi?id=8898349 */
 "Settings.OfferClipboardBar.Status" = "Firefox తెరుస్తున్నపుడు";
 
@@ -1084,9 +928,6 @@
 /* Description displayed under the ”Show Link Previews” option */
 "Settings.ShowLinkPreviews.Status" = "లంకెలను ఎక్కువసేపు నొక్కినప్పుడు";
 
-/* Description displayed under the ”Show Link Previews” option */
-"Settings.ShowLinkPreviews.StatusV2" = "లంకెలను ఎక్కువసేపు నొక్కినప్పుడు";
-
 /* Title of setting to enable link previews when long-pressing links. */
 "Settings.ShowLinkPreviews.Title" = "లంకె మునుజూపులను చూపించు";
 
@@ -1101,15 +942,6 @@
 
 /* The option that takes you to the siri shortcuts settings page */
 "Settings.Siri.SectionName" = "సిరిలో సత్వరమార్గాలు";
-
-/* Title for a link that explains what Mozilla means by Studies */
-"Settings.Studies.Toggle.Link" = "ఇంకా తెలుసుకోండి.";
-
-/* Label used as a toggle item in Settings. When this is off, the user is opting out of all studies. */
-"Settings.Studies.Toggle.Title" = "అధ్యయనాలు";
-
-/* In the settings menu, this is the title for the Tabs customization section option */
-"Settings.Tabs.Title" = "ట్యాబులు";
 
 /* Dismiss button for the tracker protection alert. */
 "Settings.TrackingProtection.Alert.Button" = "సరే, అర్థమయ్యింది";
@@ -1219,14 +1051,8 @@
 /* A label indicating the keyboard shortcut of closing all tabs from the tab tray. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
 "TabTray.CloseAllTabs.KeyCodeTitle" = "ట్యాబులన్నింటినీ మూసివేయి";
 
-/* In the tab tray, when tab groups appear and there exist tabs that don't belong to any group, those tabs are listed under this header as \"Others\" */
-"TabTray.Header.FilteredTabs.SectionHeader" = "ఇతరాలు";
-
 /* A label indicating the keyboard shortcut of opening a new tab in the tab tray. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
 "TabTray.OpenNewTab.KeyCodeTitle" = "కొత్త ట్యాబును తెరువు";
-
-/* The title on the button to look at regular tabs. */
-"TabTray.SegmentedControlTitles.Tabs" = "ట్యాబులు";
 
 /* The title for the tab tray */
 "TabTray.Title" = "తెరిచివున్న ట్యాబులు";

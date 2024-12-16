@@ -553,9 +553,6 @@
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "வழிசெலுத்தி கருவிப்பட்டை";
 
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "புதிய கீற்று";
-
 /* Restore Tabs Negative Action */
 "No" = "வேண்டாம்";
 
@@ -948,9 +945,6 @@
 
 /* Description displayed under the ”Show Link Previews” option */
 "Settings.ShowLinkPreviews.Status" = "தொடுப்புகளை தொடர்ந்து அழுத்தும் போது";
-
-/* Description displayed under the ”Show Link Previews” option */
-"Settings.ShowLinkPreviews.StatusV2" = "தொடுப்புகளை தொடர்ந்து அழுத்தும் போது";
 
 /* Title of setting to enable link previews when long-pressing links. */
 "Settings.ShowLinkPreviews.Title" = "தொடுப்பு மாதிரிக்காட்சிகளைக் காட்டு";

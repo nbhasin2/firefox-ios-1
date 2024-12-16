@@ -4,12 +4,6 @@
 /* Context menu option for opening a link in a new private tab */
 "ContextMenu.OpenInNewPrivateTabButtonTitle" = "Deschide într-o filă privată nouă";
 
-/* Description text displayed when there are no open tabs while in private mode */
-"Firefox won’t remember any of your history or cookies, but new bookmarks will be saved." = "Firefox nu va reține istoricul sau cookie-urile, însă noile marcaje vor fi salvate.";
-
-/* Text button displayed when there are no tabs open while in private mode */
-"Learn More" = "Află mai multe";
-
 /* Toggled OFF accessibility value */
 "Off" = "Dezactivată";
 

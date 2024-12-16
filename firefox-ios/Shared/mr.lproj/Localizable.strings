@@ -526,9 +526,6 @@
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "संचारन साधनपट्टी";
 
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "नवीन टॅब";
-
 /* Restore Tabs Negative Action */
 "No" = "नाही";
 

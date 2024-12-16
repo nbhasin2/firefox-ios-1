@@ -1,9 +1,6 @@
 /* Setting for closing private tabs */
 "Close Private Tabs" = "Tutup Tab Pribadi";
 
-/* Text button displayed when there are no tabs open while in private mode */
-"Learn More" = "Sinaoni Manèh";
-
 /* Toggled OFF accessibility value */
 "Off" = "Mati";
 

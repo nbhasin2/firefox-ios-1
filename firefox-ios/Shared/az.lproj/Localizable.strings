@@ -16,15 +16,6 @@
 /* About settings section title */
 "About" = "Haqqında";
 
-/* The title for the pinning a shortcut action */
-"ActivityStream.ContextMenu.AddToShortcuts" = "Qısayollara əlavə et";
-
-/* The title for the pinning a topsite action */
-"ActivityStream.ContextMenu.PinTopsite2" = "Bərkid";
-
-/* The title for the unpinning a topsite action */
-"ActivityStream.ContextMenu.UnpinTopsite" = "Çıxart";
-
 /* Section title label for recently visited websites */
 "ActivityStream.RecentHistory.Title" = "Təzəlikcə ziyarət edilən";
 
@@ -481,32 +472,17 @@
 /* Toast displayed to the user after adding the item to their reading list. */
 "Menu.AddToReadingList.Confirm" = "Oxuma Siyahısına əlavə edildi";
 
-/* Label for the button, displayed in the menu, takes you to bookmarks screen when pressed. */
-"Menu.Bookmarks.Label" = "Əlfəcinlər";
-
 /* The title for the button that lets you copy the url from the location bar. */
 "Menu.Copy.Title" = "Ünvanı Köçür";
 
 /* Toast displayed to user after copy url pressed. */
 "Menu.CopyURL.Confirm" = "URL mübadilə buferinə köçürüldü";
 
-/* Label for the button, displayed in the menu, takes you to Downloads screen when pressed. */
-"Menu.Downloads.Label" = "Endirmələr";
-
-/* Label for the button, displayed in the menu, takes you to History screen when pressed. */
-"Menu.History.Label" = "Tarixçə";
-
-/* Label for the button, displayed in the menu, takes you to passwords screen when pressed. */
-"Menu.Passwords.Label" = "Parollar";
-
 /* The title for the button that lets you paste into the location bar */
 "Menu.Paste.Title" = "Yapışdır";
 
 /* The title for the button that lets you paste and go to a URL */
 "Menu.PasteAndGo.Title" = "Yapışdır və aç";
-
-/* Label for the button, displayed in the menu, takes you to Reading List screen when pressed. */
-"Menu.ReadingList.Label" = "Oxuma Siyahısı";
 
 /* Label for the button, displayed in the menu, used to reload the current website without Tracking Protection */
 "Menu.ReloadWithoutTrackingProtection.Title" = "İzlənmə Qoruması olmadan yenilə";
@@ -567,9 +543,6 @@
 
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "Naviqasiya Alət Sətri";
-
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "Yeni Vərəq";
 
 /* Restore Tabs Negative Action */
 "No" = "Xeyr";
@@ -976,12 +949,6 @@
 /* The option that takes you to the siri shortcuts settings page */
 "Settings.Siri.SectionName" = "Siri Qısayolları";
 
-/* Title for a link that explains what Mozilla means by Studies */
-"Settings.Studies.Toggle.Link" = "Ətraflı öyrən.";
-
-/* Label used as a toggle item in Settings. When this is off, the user is opting out of all studies. */
-"Settings.Studies.Toggle.Title" = "Tədqiqatlar";
-
 /* Dismiss button for the tracker protection alert. */
 "Settings.TrackingProtection.Alert.Button" = "Tamam, başa düşdüm";
 
@@ -1104,15 +1071,6 @@
 
 /* A label indicating the keyboard shortcut of opening a new tab in the tab tray. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
 "TabTray.OpenNewTab.KeyCodeTitle" = "Yeni Vərəq Aç";
-
-/* The title on the button to look at private tabs. */
-"TabTray.SegmentedControlTitles.PrivateTabs" = "Məxfi";
-
-/* The title on the button to look at synced tabs. */
-"TabTray.SegmentedControlTitles.SyncedTabs" = "Sinxron";
-
-/* The title on the button to look at regular tabs. */
-"TabTray.SegmentedControlTitles.Tabs" = "Vərəqlər";
 
 /* The title for the tab tray */
 "TabTray.Title" = "Açıq Vərəqlər";

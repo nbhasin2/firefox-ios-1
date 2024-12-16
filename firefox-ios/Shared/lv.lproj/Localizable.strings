@@ -451,9 +451,6 @@
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "Navigācijas rīkjosla";
 
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "Jauna cilne";
-
 /* Restore Tabs Negative Action */
 "No" = "Nē";
 

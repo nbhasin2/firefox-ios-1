@@ -568,9 +568,6 @@
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "Barra de ferramientas de navegación";
 
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "Nueva pestanya";
-
 /* Restore Tabs Negative Action */
 "No" = "No";
 
@@ -966,9 +963,6 @@
 
 /* Description displayed under the ”Show Link Previews” option */
 "Settings.ShowLinkPreviews.Status" = "Quan se preta un vinclo per tiempo prolongau";
-
-/* Description displayed under the ”Show Link Previews” option */
-"Settings.ShowLinkPreviews.StatusV2" = "Quan se preta un vinclo per tiempo prolongau";
 
 /* Title of setting to enable link previews when long-pressing links. */
 "Settings.ShowLinkPreviews.Title" = "Previsualizar los vinclos";
