@@ -568,9 +568,6 @@
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "ကူးသန်းရန် ခလုတ်ဘား";
 
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "တပ်ဗ်အသစ်";
-
 /* Restore Tabs Negative Action */
 "No" = "မဟုတ်";
 
@@ -966,9 +963,6 @@
 
 /* Description displayed under the ”Show Link Previews” option */
 "Settings.ShowLinkPreviews.Status" = "လင့်များ ကို ကြာကြာဖိထား သောခါ";
-
-/* Description displayed under the ”Show Link Previews” option */
-"Settings.ShowLinkPreviews.StatusV2" = "လင့်များ ကို ကြာကြာဖိထား သောခါ";
 
 /* Title of setting to enable link previews when long-pressing links. */
 "Settings.ShowLinkPreviews.Title" = "လင့်ခ်ကို ကြိုတင်အစမ်းပြပါ။";

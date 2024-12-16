@@ -34,9 +34,6 @@
 /* Quick Actions title when widget enters edit mode */
 "TodayWidget.QuickActionsGalleryTitle" = "ການກະທຳດ່ວນ";
 
-/* Firefox shortcuts title when widget enters edit mode. Do not translate the word Firefox. */
-"TodayWidget.QuickActionsGalleryTitleV2" = "ທາງລັດເຂົ້າ Firefox";
-
 /* Description for Quick View widget in Gallery View where user can add it to home screen */
 "TodayWidget.QuickViewGalleryDescriptionV2" = "ເພີ່ມທາງລັດໄປຫາແທັບທີ່ເປີດຢູ່ຂອງທ່ານ.";
 
@@ -54,7 +51,4 @@
 
 /* Title for top sites widget to add Firefox top sites shotcuts to home screen */
 "TodayWidget.TopSitesGalleryTitle" = "ເວັບໄຊທຍອດນິຍົມ";
-
-/* Title for top sites widget to add Firefox top sites shotcuts to home screen */
-"TodayWidget.TopSitesGalleryTitleV2" = "ທາງລັດເຂົ້າເວັບໄຊທ";
 

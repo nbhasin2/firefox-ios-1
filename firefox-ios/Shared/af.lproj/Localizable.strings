@@ -235,9 +235,6 @@
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "Navigasienutsbalk";
 
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "Nuwe oortjie";
-
 /* Restore Tabs Negative Action */
 "No" = "Nee";
 

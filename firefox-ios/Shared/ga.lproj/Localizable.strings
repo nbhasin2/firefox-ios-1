@@ -292,9 +292,6 @@
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "Barra Nascleanúna";
 
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "Cluaisín Nua";
-
 /* Restore Tabs Negative Action */
 "No" = "Níl";
 

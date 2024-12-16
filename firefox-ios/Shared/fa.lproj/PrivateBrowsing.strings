@@ -4,12 +4,6 @@
 /* Context menu option for opening a link in a new private tab */
 "ContextMenu.OpenInNewPrivateTabButtonTitle" = "بازکردن در یک زبانه خصوصی جدید";
 
-/* Description text displayed when there are no open tabs while in private mode */
-"Firefox won’t remember any of your history or cookies, but new bookmarks will be saved." = "فایرفاکس هیچ‌گونه تاریخچه یا کوکی از شما به خاطر نمی‌سپارد، ولی نشانک‌های جدید ذخیره خواهد شد.";
-
-/* Text button displayed when there are no tabs open while in private mode */
-"Learn More" = "بیشتر بدانید";
-
 /* Toggled OFF accessibility value */
 "Off" = "خاموش";
 

@@ -409,9 +409,6 @@
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "Naaruyan goyjinay zuu";
 
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "Kanji taaga";
-
 /* Restore Tabs Negative Action */
 "No" = "Kalaa";
 

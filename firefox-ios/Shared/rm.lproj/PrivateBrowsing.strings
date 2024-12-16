@@ -4,12 +4,6 @@
 /* Context menu option for opening a link in a new private tab */
 "ContextMenu.OpenInNewPrivateTabButtonTitle" = "Avrir en in nov tab privat";
 
-/* Description text displayed when there are no open tabs while in private mode */
-"Firefox won’t remember any of your history or cookies, but new bookmarks will be saved." = "Firefox na memorisescha betg la cronologia u cookies, ma novs segnapaginas vegnan memorisads.";
-
-/* Text button displayed when there are no tabs open while in private mode */
-"Learn More" = "Ulteriuras infurmaziuns";
-
 /* Toggled OFF accessibility value */
 "Off" = "Deactivà";
 
@@ -21,9 +15,6 @@
 
 /* Accessibility label for toggling on/off private mode */
 "Private Mode" = "Modus privat";
-
-/* Accessibility label for toggling on/off private mode */
-"PrivateBrowsing.Toggle.A11y.Label.v132" = "Modus privat";
 
 /* Accessiblity hint for toggling on/off private mode */
 "Turns private mode on or off" = "Activescha u deactivescha il modus privat";

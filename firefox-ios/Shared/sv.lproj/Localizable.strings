@@ -16,24 +16,6 @@
 /* About settings section title */
 "About" = "Om";
 
-/* The title for the pinning a shortcut action */
-"ActivityStream.ContextMenu.AddToShortcuts" = "Lägg till i genvägar";
-
-/* The title for the pinning a topsite action */
-"ActivityStream.ContextMenu.PinTopsite2" = "Fäst";
-
-/* The title for the unpinning a topsite action */
-"ActivityStream.ContextMenu.UnpinTopsite" = "Lösgör";
-
-/* Title for the Jump Back In section. This section allows users to jump back in to a recently viewed tab */
-"ActivityStream.JumpBackIn.SectionTitle" = "Gå tillbaka till";
-
-/* On the Firefox homepage in the Jump Back In section, if a Tab group item - a collection of grouped tabs from a related search - exists underneath the search term for the tab group, there will be a subtitle with a number for how many tabs are in that group. The placeholder is for a number. It will read 'Tabs: 5' or similar. */
-"ActivityStream.JumpBackIn.TabGroup.SiteCount" = "Flikar: %d";
-
-/* A string used to signify the start of the Recently Saved section in Home Screen. */
-"ActivityStream.Library.Title" = "Nyligen sparad";
-
 /* Section title label for recently visited websites */
 "ActivityStream.RecentHistory.Title" = "Nyligen besökta";
 
@@ -60,12 +42,6 @@
 
 /* Accessibility label for address and search field, both words (Address, Search) are therefore nouns. */
 "Address and Search" = "Adress och sökfunktion";
-
-/* Accessibility label for action adding current page to reading list. */
-"Address.Bar.ReadingList.v106" = "Lägg till i läslista";
-
-/* Accessibility label for the Address Bar, where a user can enter the search they wish to make */
-"Address.Bar.v99" = "Adressfält";
 
 /* Used as a button label for crash dialog prompt */
 "Always Send" = "Skicka alltid";
@@ -102,9 +78,6 @@
 
 /* The label to show the location of the folder where the bookmark is located */
 "Bookmarks.Folder.Label" = "Mapp";
-
-/* A label indicating all bookmarks grouped under the category 'Desktop Bookmarks'. */
-"Bookmarks.Menu.DesktopBookmarks" = "Datorns bokmärken";
 
 /* The button to create a new bookmark */
 "Bookmarks.NewBookmark.Label" = "Nytt bokmärke";
@@ -163,17 +136,11 @@
 /* The label text in the Button Toast for switching to a fresh New Private Tab. */
 "ContextMenu.ButtonToast.NewPrivateTabOpened.LabelText" = "Ny privat flik öppnades";
 
-/* The label text in the Button Toast for switching to a fresh New Private Tab. */
-"ContextMenu.ButtonToast.NewPrivateTabOpened.LabelText.v113" = "Ny privat flik öppnad";
-
 /* The button text in the Button Toast for switching to a fresh New Tab. */
 "ContextMenu.ButtonToast.NewTabOpened.ButtonText" = "Växla";
 
 /* The label text in the Button Toast for switching to a fresh New Tab. */
 "ContextMenu.ButtonToast.NewTabOpened.LabelText" = "Ny flik öppnades";
-
-/* The label text in the Button Toast for switching to a fresh New Tab. */
-"ContextMenu.ButtonToast.NewTabOpened.LabelText.v114" = "Ny flik öppnad";
 
 /* Context menu item for copying an image to the clipboard */
 "ContextMenu.CopyImageButtonTitle" = "Kopiera bild";
@@ -195,18 +162,6 @@
 
 /* Context menu item for sharing a link URL */
 "ContextMenu.ShareLinkButtonTitle" = "Dela länk";
-
-/* Contextual hints are little popups that appear for the users informing them of new features. This one is a call to action for the popup describing search bar placement. It indicates a user can navigate to the settings page that allows them to customize the placement of the search bar. */
-"ContextualHints.SearchBarPlacement.CallToAction" = "Inställningar för verktygsfält";
-
-/* Contextual hints are little popups that appear for the users informing them of new features. This one talks about the inactive tabs feature. */
-"ContextualHints.TabTray.InactiveTabs" = "Flikar som du inte har besökt på två veckor flyttas hit.";
-
-/* Contextual hints are little popups that appear for the users informing them of new features. This one is the call to action for the inactive tabs contextual popup. */
-"ContextualHints.TabTray.InactiveTabs.CallToAction" = "Stäng av i inställningarna";
-
-/* Accessibility label for action denoting closing contextual hint. */
-"ContextualHintsCloseButtonAccessibility.v105" = "Stäng";
 
 /* Accessibility message e.g. spoken by VoiceOver after adding current webpage to the Reading List failed. */
 "Could not add page to Reading list" = "Kunde inte lägga till sidan till läslistan";
@@ -237,9 +192,6 @@
 
 /* Title for default search engine picker. */
 "Default Search Engine" = "Standardsökmotor";
-
-/* Accessibility label for action denoting closing default browser home tab banner. */
-"DefaultBrowserCloseButtonAccessibility.v102" = "Stäng";
 
 /* Name for display settings button in reader mode. Display in the meaning of presentation, not monitor. */
 "Display Settings" = "Bildskärmsinställningar";
@@ -331,45 +283,6 @@
 /* Title for firefox about:home page in tab history list */
 "Firefox.HomePage.Title" = "Firefox startsida";
 
-/* A button at bottom of the Firefox homepage that, when clicked, takes users straight to the settings options, where they can customize the Firefox Home page */
-"FirefoxHome.CustomizeHomeButton.Title" = "Anpassa startsidan";
-
-/* At the end of the Pocket section on the Firefox Homepage, this button appears and indicates tapping it will navigate the user to more Pocket Stories. */
-"FirefoxHome.Pocket.DiscoverMore" = "Upptäck mer";
-
-/* On each Pocket Stories on the Firefox Homepage, this label appears and indicates the number of minutes to read an article. Minutes should be abbreviated due to space constraints. %d represents the number of minutes */
-"FirefoxHome.Pocket.Minutes.v99" = "%d min";
-
-/* This is the title of the Pocket section on Firefox Homepage. */
-"FirefoxHome.Pocket.SectionTitle" = "Tankeväckande berättelser";
-
-/* When a user taps and holds on an item from the Recently Visited section, this label will appear indicating the option to remove that item. */
-"FirefoxHome.RecentHistory.Remove" = "Ta bort";
-
-/* Label showing how many pages there is in a search group. %d represents a number */
-"FirefoxHomepage.Common.PagesCount.v112" = "Sidor: %d";
-
-/* The title for the Settings context menu action for sponsored tiles in the Firefox home page shortcuts section. Clicking this brings the users to the Shortcuts Settings. */
-"FirefoxHomepage.ContextualMenu.Settings.v101" = "Inställningar";
-
-/* The title for the Sponsored Content context menu action for sponsored tiles in the Firefox home page shortcuts section. Clicking this brings the users to a support page where users can learn more about Sponsored content and how it works. */
-"FirefoxHomepage.ContextualMenu.SponsoredContent.v101" = "Våra sponsorer & din integritet";
-
-/* Accessibility action title to open the synced tab for tab pickup on the Firefox homepage in the Jump Back In section. */
-"FirefoxHomepage.JumpBackIn.TabPickup.OpenTab.A11y.v106" = "Öppna synkroniserad flik";
-
-/* Button title shown for tab pickup on the Firefox homepage in the Jump Back In section. */
-"FirefoxHomepage.JumpBackIn.TabPickup.ShowAll.ButtonTitle.v104" = "Se alla synkroniserade flikar";
-
-/* If a user is signed in, and a sync has been performed to collect their recent tabs from other signed in devices, their most recent tab from another device can now appear in the Jump Back In section. This label specifically points out which cell inside the Jump Back In section shows that synced tab. */
-"FirefoxHomepage.JumpBackIn.TabPickup.v104" = "Synkroniserade flikar";
-
-/* This string will show under the description on pocket story, indicating that the story is sponsored. */
-"FirefoxHomepage.Pocket.Sponsored.v103" = "Sponsrad";
-
-/* This string will show under a shortcuts tile on the firefox home page, indicating that the tile is a sponsored tile. Space is limited, please keep as short as possible. */
-"FirefoxHomepage.Shortcuts.Sponsored.v100" = "Sponsrad";
-
 /* Accessibility Label for the tab toolbar Forward button */
 "Forward" = "Framåt";
 
@@ -418,9 +331,6 @@
 /* Body of a notification displayed when unnamed device has been disconnected from FxA. */
 "FxAPush_DeviceDisconnected_UnknownDevice_body" = "En enhet har kopplats från Firefox Sync";
 
-/* On the firefox homepage, the string read by the voice over prompt for accessibility, for the button which changes the wallpaper */
-"FxHomepage.Wallpaper.ButtonLabel.v99" = "Firefox logotyp, byt bakgrund.";
-
 /* Show the SUMO support page from the Support section in the settings. see http://mzl.la/1dmM8tZ */
 "Help" = "Hjälp";
 
@@ -460,17 +370,11 @@
 /* Title for the Recently Closed button in the History Panel */
 "HistoryPanel.RecentlyClosedTabsButton.Title" = "Nyligen stängda";
 
-/* Accessibility label for the tab toolbar indicating the Home button. */
-"Home" = "Hem";
-
 /* The title for the Bookmark context menu action for sites in Home Panels */
 "HomePanel.ContextMenu.Bookmark" = "Bokmärk";
 
 /* The title for the Delete from History context menu action for sites in Home Panels */
 "HomePanel.ContextMenu.DeleteFromHistory" = "Ta bort från historik";
-
-/* The title for the Open in New Private Tab context menu action for sites in Home Panels */
-"HomePanel.ContextMenu.OpenInNewPrivateTab.v101" = "Öppna i en privat flik";
 
 /* The title for the Open in New Tab context menu action for sites in Home Panels */
 "HomePanel.ContextMenu.OpenInNewTab" = "Öppna i ny flik";
@@ -520,107 +424,17 @@
 /* A label indicating the keyboard shortcut of switching to a tab immediately preceding to the currently selected tab. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
 "Hotkeys.ShowPreviousTab.DiscoveryTitle" = "Visa föregående flik";
 
-/* In the Tabs Tray, in the Inactive Tabs section, this is the button the user must tap in order to close all inactive tabs. */
-"InactiveTabs.TabTray.CloseButtonTitle" = "Stäng alla inaktiva flikar";
-
 /* Accessibility label for button increasing font size in display settings of reader mode */
 "Increase text size" = "Öka textstorleken";
 
 /* Relative time for a tab that was visited within the last few moments. */
 "just now" = "just nu";
 
-/* A label indicating the keyboard shortcut of resetting a web page's view to the standard viewing size. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ActualSize" = "Verklig storlek";
-
-/* A label indicating the keyboard shortcut of adding the currently viewing web page as a bookmark. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.AddBookmark" = "Lägg till bokmärke";
-
-/* A label indicating the keyboard shortcut of clearing recent history. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ClearRecentHistory" = "Rensa ut tidigare historik";
-
-/* A label indicating the keyboard shortcut of finding text a user desires within a page again. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.FindAgain" = "Sök nästa";
-
-/* A label indicating the keyboard shortcut to reload a tab without it's cache. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. */
-"Keyboard.Shortcuts.RefreshWithoutCache.v108" = "Ignorera cache och ladda om";
-
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can do with Bookmarks. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.Bookmark" = "Bokmärken";
-
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can do with History. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.History" = "Historik";
-
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can do with locally saved items. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.Tools" = "Verktyg";
-
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can take when navigating between their availale set of tabs. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.Window" = "Fönster";
-
-/* A label indicating the keyboard shortcut of opening the application's settings menu. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Settings" = "Inställningar";
-
-/* A label indicating the keyboard shortcut of showing all bookmarks. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ShowBookmarks" = "Visa bokmärken";
-
-/* A label indcating the keyboard shortcut of showing all downloads. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ShowDownloads" = "Visa nedladdningar";
-
-/* A label indicating the keyboard shortcut to switch from the current tab to the first tab. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ShowFirstTab" = "Visa första flik";
-
-/* A label indicating the keyboard shortcut of showing all history. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ShowHistory" = "Visa historik";
-
-/* A label indicating the keyboard shortcut switch from your current tab to the last tab. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ShowLastTab" = "Visa sista fliken";
-
-/* A label indicating the keyboard shortcut of enlarging the view of the current web page. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ZoomIn" = "Zooma in";
-
-/* A label indicating the keyboard shortcut of shrinking the view of the current web page. This label is displayed in the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.ZoomOut" = "Zooma ut";
-
 /* This label is meant to signify the section containing a group of items from the past thirty days. */
 "Last month" = "Förra månaden";
 
 /* This label is meant to signify the section containing a group of items from the past seven days. */
 "Last week" = "Förra veckan";
-
-/* Panel accessibility label */
-"LibraryPanel.Accessibility.Bookmarks.v106" = "Bokmärken";
-
-/* Panel accessibility label */
-"LibraryPanel.Accessibility.History.v106" = "Historik";
-
-/* Within the History Panel, users can delete search group sites history. They can cancel this action by pressing a cancel button. */
-"LibraryPanel.History.ClearGroupedTabsCancel.v100" = "Avbryt";
-
-/* Within the History Panel, users can delete search group sites history. They need to confirm the action by pressing the delete button. */
-"LibraryPanel.History.ClearGroupedTabsDelete.v100" = "Ta bort";
-
-/* Within the History Panel, users can delete search group sites history. %@ represents the search group name. */
-"LibraryPanel.History.ClearGroupedTabsTitle.v100" = "Ta bort alla webbplatser i %@?";
-
-/* Within the History Panel, users can open an action menu to clear recent history. */
-"LibraryPanel.History.ClearHistoryMenuTitle.v100" = "Tar bort historik (inklusive historik som synkroniserats från andra enheter), kakor och annan webbläsardata.";
-
-/* Within the history panel, a user can navigate into a screen with only grouped history items. Within that screen, a user can now swipe to delete a single item in the list. This label informs the user of a deletion action on the item. */
-"LibraryPanel.History.DeleteGroupedItem.v104" = "Ta bort";
-
-/* In the history panel, users will be able to search terms in their browsing history. This label is shown when there is no results after querying the search terms in the user's history. */
-"LibraryPanel.History.NoHistoryFound.v99" = "Ingen historik hittades";
-
-/* In the history panel, this is the title on the button that navigates the user to a screen showing their recently closed tabs. */
-"LibraryPanel.History.RecentlyClosedTabs.v99" = "Nyligen stängda flikar";
-
-/* In the history panel, users will be able to search terms in their browsing history. This placeholder text inside the search component will indicate that a user can search through their browsing history. */
-"LibraryPanel.History.SearchHistoryPlaceholder.v99" = "Ange söktermer";
-
-/* Within the History Panel, users can see the option of viewing their history from synced tabs. */
-"LibraryPanel.History.SyncedHistory.v100" = "Synkroniserad historik";
-
-/* This label is meant to signify the section containing a group of items that are older than thirty days. */
-"LibraryPanel.Section.Older" = "Äldre";
 
 /* Settings item that opens a tab containing the licenses. See http://mzl.la/1NSAWCG */
 "Licenses" = "Licenser";
@@ -639,27 +453,6 @@
 
 /* Toggle logins syncing setting */
 "Logins" = "Inloggningar";
-
-/* Title of the Learn More button that links to a support page about device passcode requirements. */
-"Logins.DevicePasscodeRequired.LearnMoreButtonTitle" = "Läs mer";
-
-/* Title of the Continue button. */
-"Logins.Onboarding.ContinueButtonTitle" = "Fortsätt";
-
-/* Title of the Learn More button that links to a support page about device passcode requirements. */
-"Logins.Onboarding.LearnMoreButtonTitle" = "Läs mer";
-
-/* Warning message shown when you try to enable or use native AutoFill without a device passcode setup */
-"Logins.PasscodeRequirement.Warning" = "För att använda autofyll-funktionen för Firefox måste du ha ett enhetslösenord aktiverat.";
-
-/* Label displaying welcome view tagline under the title */
-"Logins.WelcomeView.Tagline" = "Ta med dina lösenord överallt";
-
-/* Label displaying welcome view title */
-"Logins.WelcomeView.Title2" = "Autofyll Firefox-lösenord";
-
-/* Title of the big blue button to enable AutoFill */
-"Logins.WelcomeView.TurnOnAutoFill" = "Aktivera autofyll";
 
 /* Button to not save the user's password */
 "LoginsHelper.DontSave.Button" = "Spara inte";
@@ -688,15 +481,6 @@
 /* Placeholder test for search box in logins list view. */
 "LoginsList.LoginsListSearchPlaceholder" = "Filter";
 
-/* Label that appears after the search if there are no logins matching the search */
-"LoginsList.NoMatchingResult.Subtitle" = "Det finns inga resultat som matchar din sökning.";
-
-/* Title for cancel button for user to stop searching for a particular login */
-"LoginsList.Search.Cancel" = "Avbryt";
-
-/* Label displaying select a password to fill instruction */
-"LoginsList.SelectPassword.Title" = "Välj ett lösenord som ska fyllas i";
-
 /* Title for the list of logins */
 "LoginsList.Title" = "SPARADE INLOGGNINGAR";
 
@@ -712,23 +496,8 @@
 /* Toast displayed to the user after a bookmark has been added. */
 "Menu.AddBookmark.Confirm" = "Bokmärke tillagt";
 
-/* Label for the add bookmark button in the menu. Pressing this button bookmarks the current page. Please keep the text as short as possible for this label. */
-"Menu.AddBookmark.Label.v99" = "Lägg till";
-
-/* Toast displayed to the user after adding the item to the Shortcuts. */
-"Menu.AddPin.Confirm2" = "Tillagd i genvägar";
-
-/* Label for the add to reading list button in the menu. Pressing this button adds the current page to the reading list. Please keep the text as short as possible for this label. */
-"Menu.AddReadingList.Label.v99" = "Lägg till";
-
 /* Toast displayed to the user after adding the item to their reading list. */
 "Menu.AddToReadingList.Confirm" = "Tillagd till läsningslistan";
-
-/* Label for the add to shortcuts button in the menu. Pressing this button pins the current website as a shortcut on the home page. */
-"Menu.AddToShortcuts.v99" = "Lägg till i genvägar";
-
-/* Label for the button, displayed in the menu, takes you to bookmarks screen when pressed. */
-"Menu.Bookmarks.Label" = "Bokmärken";
 
 /* The title for the button that lets you copy the url from the location bar. */
 "Menu.Copy.Title" = "Kopiera adress";
@@ -736,47 +505,17 @@
 /* Toast displayed to user after copy url pressed. */
 "Menu.CopyURL.Confirm" = "URL kopierad till urklipp";
 
-/* Label for the customize homepage button in the menu page. Pressing this button takes users to the settings options, where they can customize the Firefox Home page */
-"Menu.CustomizeHomePage.v99" = "Anpassa startsidan";
-
-/* Label for the button, displayed in the menu, takes you to Downloads screen when pressed. */
-"Menu.Downloads.Label" = "Nedladdningar";
-
 /* A switch to disable enhanced tracking protection inside the menu. */
 "Menu.EnhancedTrackingProtectionOff.Title" = "Skydd är AV för den här webbplatsen";
 
 /* A switch to enable enhanced tracking protection inside the menu. */
 "Menu.EnhancedTrackingProtectionOn.Title" = "Skydd är PÅ för den här webbplatsen";
 
-/* Label for the help button in the menu page. Pressing this button opens the support page https://support.mozilla.org/en-US/products/ios */
-"Menu.Help.v99" = "Hjälp";
-
-/* Label for the button, displayed in the menu, takes you to History screen when pressed. */
-"Menu.History.Label" = "Historik";
-
-/* Label for the new private tab button in the menu page. Pressing this button opens a new private tab. */
-"Menu.NewPrivateTab.Label" = "Ny privat flik";
-
-/* Label for the new tab button in the menu page. Pressing this button opens a new tab. */
-"Menu.NewTab.v99" = "Ny flik";
-
-/* Label for the button, displayed in the menu, turns off night mode. */
-"Menu.NightModeTurnOff.Label2" = "Stäng av nattläge";
-
-/* Label for the button, displayed in the menu, turns on night mode. */
-"Menu.NightModeTurnOn.Label2" = "Slå på nattläge";
-
-/* Label for the button, displayed in the menu, takes you to passwords screen when pressed. */
-"Menu.Passwords.Label" = "Lösenord";
-
 /* The title for the button that lets you paste into the location bar */
 "Menu.Paste.Title" = "Klistra in";
 
 /* The title for the button that lets you paste and go to a URL */
 "Menu.PasteAndGo.Title" = "Klistra in och öppna";
-
-/* Label for the button, displayed in the menu, takes you to Reading List screen when pressed. */
-"Menu.ReadingList.Label" = "Läslista";
 
 /* Label for the button, displayed in the menu, used to reload the current website without Tracking Protection */
 "Menu.ReloadWithoutTrackingProtection.Title" = "Ladda om utan spårningsskydd";
@@ -787,38 +526,8 @@
 /* Toast displayed to the user after a bookmark has been removed. */
 "Menu.RemoveBookmark.Confirm" = "Bokmärke borttaget";
 
-/* Label for the remove bookmark button in the menu. Pressing this button remove the current page from the bookmarks. Please keep the text as short as possible for this label. */
-"Menu.RemoveBookmark.Label.v99" = "Ta bort";
-
-/* Label for the remove from shortcuts button in the menu. Pressing this button removes the current website from the shortcut pins on the home page. */
-"Menu.RemovedFromShortcuts.v99" = "Ta bort från genvägar";
-
-/* Toast displayed to the user after removing the item to the Shortcuts. */
-"Menu.RemovePin.Confirm2.v99" = "Borttagen från genvägar";
-
-/* Toast displayed to confirm to the user that his reading list item was correctly removed. */
-"Menu.RemoveReadingList.Confirm.v99" = "Borttagen från läslistan";
-
-/* Label for the remove from reading list button in the menu. Pressing this button removes the current page from the reading list. Please keep the text as short as possible for this label. */
-"Menu.RemoveReadingList.Label.v99" = "Ta bort";
-
-/* Label for the share button in the menu page. Pressing this button open the share menu to share the current website. */
-"Menu.Share.v99" = "Dela";
-
-/* Label for the Firefox Sync button in the menu page. Pressing this button open the sign in to Firefox page service to sync and save data. */
-"Menu.SyncAndSaveData.v103" = "Synkronisera och spara data";
-
 /* Toast displayed to the user after a tab has been sent successfully. */
 "Menu.TabSent.Confirm" = "Flik skickad";
-
-/* Accessibility label for the Bookmark button on the toolbar. Pressing this button opens the bookmarks menu */
-"Menu.Toolbar.Bookmarks.AccessibilityLabel.v99" = "Bokmärken";
-
-/* Accessibility label for the Home button on the toolbar. Pressing this button brings the user to the home page. */
-"Menu.Toolbar.Home.AccessibilityLabel.v99" = "Startsida";
-
-/* String to let users know the site verifier, where the placeholder represents the SSL certificate signer. */
-"Menu.TrackingProtection.Details.Verifier" = "Verifierad av: %@";
 
 /* The title for tracking protection settings */
 "Menu.TrackingProtection.ProtectionSettings.Title" = "Skyddsinställningar";
@@ -856,9 +565,6 @@
 /* The title for the option to view the What's new page. */
 "Menu.WhatsNew.Title" = "Vad är nytt";
 
-/* Label for the zoom page button in the menu, used to show the Zoom Page bar. The placeholder shows the current zoom level in percent. */
-"Menu.ZoomPage.Title.v113" = "Zoom (%@)";
-
 /* Accessibility label for Mobile Device image in remote tabs list */
 "mobile device" = "mobil enhet";
 
@@ -871,9 +577,6 @@
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "Navigeringsfältet";
 
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "Ny flik";
-
 /* Restore Tabs Negative Action */
 "No" = "Nej";
 
@@ -885,9 +588,6 @@
 
 /* Restore Tabs Affirmative Action */
 "Okay" = "Okej";
-
-/* On the onboarding card letting users know what's new in this version of Firefox, this is the title for the button, on the bottom of the card, used to get back to browsing on Firefox by dismissing the onboarding card */
-"Onboarding.WhatsNew.Button.Title" = "Börja surfa";
 
 /* Title for prompt displayed to user after the app crashes */
 "Oops! Firefox crashed" = "Hoppsan! Firefox kraschade";
@@ -925,17 +625,8 @@
 /* Show Firefox Browser Privacy Policy page from the Privacy section in the settings. See https://www.mozilla.org/privacy/firefox/ */
 "Privacy Policy" = "Integritetspolicy";
 
-/* This is the value for a label that indicates if a user is on an unencrypted website. */
-"ProtectionStatus.NotSecure" = "Anslutningen är inte säker";
-
-/* This is the value for a label that indicates if a user is on a secure https connection. */
-"ProtectionStatus.Secure" = "Anslutningen är säker";
-
 /* Title for quick-search engines settings section. */
 "Quick-Search Engines" = "Snabbsökmotorer";
-
-/* A label indicating the action that a user can rate the Firefox app in the App store. */
-"Ratings.Settings.RateOnAppStore" = "Betygsätt på App Store";
 
 /* Accessibility label for read article in reading list. It's a past participle - functions as an adjective. */
 "read" = "läs";
@@ -946,20 +637,11 @@
 /* Accessibility message e.g. spoken by VoiceOver when Reader Mode becomes available. */
 "ReaderMode.Available.VoiceOverAnnouncement" = "Läsläge tillgängligt";
 
-/* Name for Mark as read button in reader mode */
-"ReaderModeBar.MarkAsRead.v106" = "Markera som läst";
-
-/* Name for Mark as unread button in reader mode */
-"ReaderModeBar.MarkAsUnread.v106" = "Markera som oläst";
-
 /* Panel accessibility label */
 "Reading list" = "Läslista";
 
 /* Title for the Recently Closed Tabs Panel */
 "RecentlyClosedTabsPanel.Title" = "Nyligen stängda";
-
-/* More button text for Recently Saved items at the home page. */
-"RecentlySaved.Actions.More" = "Visa alla";
 
 /* Accessibility Label for the tab toolbar Reload button */
 "Reload" = "Ladda om";
@@ -1000,9 +682,6 @@
 /* Text of the prompt that is shown to the user when the data is invalid */
 "ScanQRCode.InvalidDataError.Message" = "Felaktig data";
 
-/* Text of the prompt to setup the camera authorization for the Scan QR Code feature. */
-"ScanQRCode.PermissionError.Message.v100" = "Gå till enhetens ‘Inställningar’ > ‘Firefox’. Tillåt Firefox att komma åt kameran.";
-
 /* Title for the QR code scanner view. */
 "ScanQRCode.View.Title" = "Skanna QR-kod";
 
@@ -1011,12 +690,6 @@
 
 /* The text shown in the URL bar on about:home */
 "Search or enter address" = "Sök eller ange adress";
-
-/* Search suggestion cell label that allows user to switch to tab which they searched for in url bar */
-"Search.Awesomebar.SwitchToTab" = "Växla till flik";
-
-/* When making a new search from the awesome bar, suggestions appear to the user as they write new letters in their search. Different types of suggestions can appear. This string will be used as a header to separate Firefox suggestions from normal suggestions. */
-"Search.SuggestSectionTitle.v102" = "Firefox Suggest";
 
 /* The message that asks the user to Add the search provider explaining where the search engine will appear */
 "Search.ThirdPartyEngines.AddMessage" = "Den nya sökmotorn kommer att visas i snabbsökningsfältet.";
@@ -1062,9 +735,6 @@
 
 /* Button title for cancelling share screen */
 "SendTo.Cancel.Button" = "Avbryt";
-
-/* Close button in top navigation bar */
-"SendTo.Close.Button" = "Stäng";
 
 /* Header for the list of devices table */
 "SendTo.DeviceList.Text" = "Tillgängliga enheter:";
@@ -1144,9 +814,6 @@
 /* The placeholder for URL Field when saving a custom search engine */
 "Settings.AddCustomEngine.URLPlaceholder" = "URL (ersätt fråga med %s)";
 
-/* Title of setting to block opening external apps when pressing links. */
-"Settings.BlockOpeningExternalApps.Title" = "Blockera öppning av externa appar";
-
 /* Button in Data Management that clears all items. */
 "Settings.ClearAllWebsiteData.Clear.Button" = "Rensa all webbplatsdata";
 
@@ -1155,9 +822,6 @@
 
 /* Label used as an item in Settings. When touched it will open a dialog prompting the user to make sure they want to clear all of their private data. */
 "Settings.ClearPrivateData.SectionName" = "Rensa privat data";
-
-/* Button in Data Management that clears private data for the selected items. Parameter is the number of items to be cleared */
-"Settings.ClearSelectedWebsiteData.ClearSelected.Button" = "Rensa objekt: %1$@";
 
 /* Copy app version alert shown in settings. */
 "Settings.CopyAppVersion.Title" = "Kopierad till urklipp";
@@ -1207,9 +871,6 @@
 /* Display (theme) settings footer describing how the brightness slider works. */
 "Settings.DisplayTheme.SectionFooter" = "Temat ändras automatiskt baserat på skärmens ljusstyrka. Du kan ställa in tröskeln där temat ändras. Cirkeln indikerar skärmens aktuella ljusstyrka.";
 
-/* Display (theme) settings label to show if automatically switch theme is enabled. */
-"Settings.DisplayTheme.StatusTitle" = "Automatisk";
-
 /* Switch mode settings section title */
 "Settings.DisplayTheme.SwitchMode.SectionHeader" = "Byt läge";
 
@@ -1243,122 +904,8 @@
 /* General settings section title */
 "Settings.General.SectionName" = "Allmänt";
 
-/* This is the description below the settings section located in the menu under customize current homepage. It describes what the options in the section are for. */
-"Settings.Home.Current.Description.v101" = "Välj vad som ska visas som startsida.";
-
-/* In the settings menu, on the Firefox homepage customization section, this is the description below the section, describing what the options in the section are for. */
-"Settings.Home.Option.Description.v101" = "Välj vad som ingår på Firefox-startsidan.";
-
-/* In the settings menu, in the Firefox homepage customization section, this is the title for the option that allows users to toggle the Jump Back In section on homepage on or off */
-"Settings.Home.Option.JumpBackIn" = "Gå tillbaka till";
-
-/* In the settings menu, in the Firefox homepage customization section, this is the title for the option that allows users to turn the Pocket Recommendations section on the Firefox homepage on or off */
-"Settings.Home.Option.Pocket" = "Rekommenderas av Pocket";
-
-/* In the settings menu, in the Firefox homepage customization section, this is the title for the option that allows users to toggle Recently Saved section on the Firefox homepage on or off */
-"Settings.Home.Option.RecentlySaved" = "Nyligen sparad";
-
-/* In the settings menu, in the Firefox homepage customization section, this is the title for the option that allows users to toggle Recently Visited section on the Firfox homepage on or off */
-"Settings.Home.Option.RecentlyVisited" = "Nyligen besökta";
-
-/* In the settings menu, in the Firefox homepage customization section, this is the title for the option that allows users to toggle Shortcuts section on the Firefox homepage on or off */
-"Settings.Home.Option.Shortcuts" = "Genvägar";
-
-/* In the settings menu, on the Start at Home homepage customization option, this allows users to set this setting to return to the Homepage after four hours of inactivity. */
-"Settings.Home.Option.StartAtHome.AfterFourHours" = "Startsida efter fyra timmars inaktivitet";
-
-/* In the settings menu, on the Start at Home homepage customization option, this allows users to set this setting to return to the Homepage every time they open up Firefox */
-"Settings.Home.Option.StartAtHome.Always" = "Startsida";
-
-/* In the settings menu, in the Start at Home customization options, this is text that appears below the section, describing what the section settings do. */
-"Settings.Home.Option.StartAtHome.Description" = "Välj vad som ska visas när du återvänder till Firefox.";
-
-/* In the settings menu, on the Start at Home homepage customization option, this allows users to set this setting to return to the last tab they were on, every time they open up Firefox */
-"Settings.Home.Option.StartAtHome.Never" = "Senaste flik";
-
-/* Title for the section in the settings menu where users can configure the behaviour of the Start at Home feature on the Firefox Homepage. */
-"Settings.Home.Option.StartAtHome.Title" = "Öppningsskärm";
-
-/* In the settings menu, this is the title of the Firefox Homepage customization settings section */
-"Settings.Home.Option.Title.v101" = "Inkludera på startsidan";
-
-/* In the settings menu, on the Firefox homepage customization section, this is the title for the option that allows users to access the wallpaper settings for the application. */
-"Settings.Home.Option.Wallpaper" = "Bakgrundsbild";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the accessibility string for the amethyst firefox wallpaper. */
-"Settings.Home.Option.Wallpaper.Accessibility.AmethystWallpaper.v99" = "Firefox bakgrundsbild, ametistmönster.";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the title accessibility string for the beach hills firefox wallpaper. */
-"Settings.Home.Option.Wallpaper.Accessibility.BeachHillsWallpaper.v100" = "Firefox bakgrundsbild, mönster med strandkullar.";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the title accessibility string for the cerulean firefox wallpaper. */
-"Settings.Home.Option.Wallpaper.Accessibility.CeruleanWallpaper.v99" = "Firefox bakgrundsbild, cerulean-mönster.";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the accessibility string for the default wallpaper. */
-"Settings.Home.Option.Wallpaper.Accessibility.DefaultWallpaper.v99" = "Ren standardbakgrund.";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the title accessibility string for the sunrise firefox wallpaper. */
-"Settings.Home.Option.Wallpaper.Accessibility.SunriseWallpaper.v99" = "Firefox bakgrundsbild, soluppgångsmönster.";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the accessibility string of the toggle for turning wallpaper cycling shortcut on or off on the homepage. */
-"Settings.Home.Option.Wallpaper.Accessibility.ToggleButton" = "Växla bakgrundsbildscykel på startsidan";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the title accessibility string for the twilight hills firefox wallpaper. */
-"Settings.Home.Option.Wallpaper.Accessibility.TwilightHillsWallpaper.v100" = "Firefox bakgrundsbild, mönster med strandkullar i skymning.";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the title of the group of wallpapers that are always available to the user. The %@ will be replaced by the app name and thus doesn't need translation. */
-"Settings.Home.Option.Wallpaper.Classic.Title.v106" = "Klassisk %@";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the title of the section that allows users to change the wallpaper settings for the application. */
-"Settings.Home.Option.Wallpaper.CollectionTitle" = "ÖPPNINGSSKÄRM";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the button title of the group of wallpapers that are seasonally available to the user. */
-"Settings.Home.Option.Wallpaper.LearnMore.v106" = "Läs mer";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the default description of the group of wallpapers that are seasonally available to the user. */
-"Settings.Home.Option.Wallpaper.LimitedEdition.Default.Description.v106" = "Prova den nya kollektionen.";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the description of the group of wallpapers that are seasonally available to the user. */
-"Settings.Home.Option.Wallpaper.LimitedEdition.IndependentVoices.Description.v106" = "Den nya kollektionen Independent Voices.";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the title of the group of wallpapers that are seasonally available to the user. */
-"Settings.Home.Option.Wallpaper.LimitedEdition.Title.v106" = "Begränsad utgåva";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the string titling the switch button's function, which allows a user to toggle wallpaper switching from the homepage logo on or off. */
-"Settings.Home.Option.Wallpaper.SwitchTitle.v99" = "Ändra bakgrundsbild genom att trycka på Firefox logotyp på startsidan";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the title of that screen, which allows users to change the wallpaper settings for the application. */
-"Settings.Home.Option.Wallpaper.Title" = "Bakgrundsbild";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the title of toast that comes up when the user changes wallpaper, which lets them know that the wallpaper has been updated. */
-"Settings.Home.Option.Wallpaper.UpdatedToast" = "Bakgrunden uppdaterad!";
-
-/* In the settings menu, on the Firefox wallpaper customization screen, this is the title of the button found on the toast that comes up once the user changes wallpaper, and allows users to dismiss the settings page. In this case, consider View as a verb - the action of dismissing settings and seeing the wallpaper. */
-"Settings.Home.Option.Wallpaper.UpdatedToastButton" = "Visa";
-
 /* Label used as an item in Settings. When touched it will open a dialog to configure the home page and its uses. */
 "Settings.HomePage.SectionName" = "Startsida";
-
-/* This string is the title of the setting button which can be clicked to open a page to customize the number of rows in the shortcuts section */
-"Settings.Homepage.Shortcuts.Rows.v100" = "Rader";
-
-/* This string is the title of the page to customize the number of rows in the shortcuts section */
-"Settings.Homepage.Shortcuts.RowsPageTitle.v100" = "Rader";
-
-/* Users can disable or enable shortcuts related settings. This string is the title of the page to change your shortcuts settings. */
-"Settings.Homepage.Shortcuts.ShortcutsPageTitle.v100" = "Genvägar";
-
-/* This string is the title of the toggle to disable the shortcuts section in the settings page. */
-"Settings.Homepage.Shortcuts.ShortcutsToggle.v100" = "Genvägar";
-
-/* This string is the title of the toggle to disable the sponsored shortcuts functionnality which can be enabled in the shortcut sections. This toggle is in the settings page. */
-"Settings.Homepage.Shortcuts.SponsoredShortcutsToggle.v100" = "Sponsrade genvägar";
-
-/* Toggled OFF to hide the shortcuts section */
-"Settings.Homepage.Shortcuts.ToggleOff.v100" = "Av";
-
-/* Toggled ON to show the shortcuts section */
-"Settings.Homepage.Shortcuts.ToggleOn.v100" = "På";
 
 /* Title of the setting section containing the URL of the current home page. */
 "Settings.HomePage.URL.Title" = "Aktuell startsida";
@@ -1374,9 +921,6 @@
 
 /* Option in settings to show a blank page when you open a new tab */
 "Settings.NewTab.Option.BlankPage" = "En tom sida";
-
-/* Option in settings to show your homepage when you open a new tab */
-"Settings.NewTab.Option.Custom" = "Anpassad";
 
 /* Option in settings to show Firefox Home when you open a new tab */
 "Settings.NewTab.Option.FirefoxHome" = "Firefox startsida";
@@ -1396,14 +940,8 @@
 /* Footer at the bottom of the New Tab screen after entering New Tab in settings */
 "Settings.NewTab.TopSectionNameFooter" = "Välj vad som ska laddas när du öppnar en ny flik";
 
-/* Label for the block images toggle displayed in the settings menu. Enabling this toggle will hide images on any webpage the user visits. */
-"Settings.NoImageModeBlockImages.Label.v99" = "Blockera bilder";
-
 /* Description displayed under the ”Offer to Open Copied Link” option. See https://bug1223660.bmoattachments.org/attachment.cgi?id=8898349 */
 "Settings.OfferClipboardBar.Status" = "När du öppnar Firefox";
-
-/* Description displayed under the ”Offer to Open Copied Link” option. See https://bug1223660.bmoattachments.org/attachment.cgi?id=8898349. Placeholder is for the app name. */
-"Settings.OfferClipboardBar.Status.v128" = "När du öppnar %@";
 
 /* Title of setting to enable the Go to Copied URL feature. See https://bug1223660.bmoattachments.org/attachment.cgi?id=8898349 */
 "Settings.OfferClipboardBar.Title" = "Erbjud att öppna kopierade länkar";
@@ -1413,18 +951,6 @@
 
 /* Label used as an item in Settings. When touched it will open a dialog to configure the open with (mail links) behavior. */
 "Settings.OpenWith.SectionName" = "E-postapp";
-
-/* Touch ID prompt subtitle when accessing logins and passwords */
-"Settings.Passwords.FingerPrintReason.v103" = "Använd ditt fingeravtryck för att komma åt lösenord nu.";
-
-/* Message shown when you enter Passwords screen for the first time. It explains how password are protected in the Firefox for iOS application. */
-"Settings.Passwords.OnboardingMessage.v103" = "Dina lösenord skyddas nu av Face-ID, Touch-ID eller ett enhetslösenord.";
-
-/* Setting that appears in the Passwords screen to enable the built-in password manager so users can save their passwords. */
-"Settings.Passwords.SavePasswords.v103" = "Spara lösenord";
-
-/* Title for the passwords screen. */
-"Settings.Passwords.Title.v103" = "Lösenord";
 
 /* Setting to enable the built-in password manager */
 "Settings.SaveLogins.Title" = "Spara inloggningar";
@@ -1447,9 +973,6 @@
 /* Description displayed under the ”Show Link Previews” option */
 "Settings.ShowLinkPreviews.Status" = "Långtrycka på länkar";
 
-/* Description displayed under the ”Show Link Previews” option */
-"Settings.ShowLinkPreviews.StatusV2" = "Långtrycka på länkar";
-
 /* Title of setting to enable link previews when long-pressing links. */
 "Settings.ShowLinkPreviews.Title" = "Visa länkförhandsvisning";
 
@@ -1464,48 +987,6 @@
 
 /* The option that takes you to the siri shortcuts settings page */
 "Settings.Siri.SectionName" = "Siri-genvägar";
-
-/* Title for a link that explains what Mozilla means by Studies */
-"Settings.Studies.Toggle.Link" = "Läs mer.";
-
-/* A short description that explains that Mozilla is running studies */
-"Settings.Studies.Toggle.Message" = "Firefox kan installera och köra undersökningar då och då.";
-
-/* Label used as a toggle item in Settings. When this is off, the user is opting out of all studies. */
-"Settings.Studies.Toggle.Title" = "Undersökningar";
-
-/* Ddescription that appears in the settings screen to explain what Firefox Sync is useful for. */
-"Settings.Sync.ButtonDescription.v103" = "Logga in för att synkronisera flikar, bokmärken, lösenord och mer.";
-
-/* Button label that appears in the settings to prompt the user to sign in to Firefox for iOS sync service to sync and save data. */
-"Settings.Sync.ButtonTitle.v103" = "Synkronisera och spara data";
-
-/* Title for the page where the user sign in to their Firefox Sync account. */
-"Settings.Sync.SignInView.Title.v103" = "Synkronisera och spara data";
-
-/* This is the description for the setting that toggles the Inactive Tabs feature in the settings menu under the Tabs customization section. Inactive tabs are a separate section of tabs that appears in the Tab Tray, which can be enabled or not */
-"Settings.Tabs.CustomizeTabsSection.InactiveTabs" = "Inaktiva flikar";
-
-/* This is the description for the setting that toggles the Inactive Tabs feature in the settings menu under the Tabs customization section. Inactive tabs are a separate section of tabs that appears in the Tab Tray, which can be enabled or not */
-"Settings.Tabs.CustomizeTabsSection.InactiveTabsDescription.v101" = "Flikar som du inte har tittat på under två veckor flyttas till den inaktiva sektionen.";
-
-/* In the settings menu, in the Tabs customization section, this is the title for the setting that toggles the Tab Groups feature - where tabs from related searches are grouped - on or off */
-"Settings.Tabs.CustomizeTabsSection.TabGroups" = "Flikgrupper";
-
-/* In the settings menu, in the Tabs customization section, this is the title for the Tabs Tray customization section. The tabs tray is accessed from firefox hompage */
-"Settings.Tabs.CustomizeTabsSection.Title" = "Anpassa flikraden";
-
-/* In the settings menu, this is the title for the Tabs customization section option */
-"Settings.Tabs.Title" = "Flikar";
-
-/* In the settings menu, in the Toolbar customization section, this label indicates that selecting this will make the toolbar appear at the bottom of the screen. */
-"Settings.Toolbar.Bottom" = "Botten";
-
-/* In the settings menu, this label indicates that there is an option of customizing the Toolbar appearance. */
-"Settings.Toolbar.SettingsTitle" = "Verktygsfält";
-
-/* In the settings menu, in the Toolbar customization section, this label indicates that selecting this will make the toolbar appear at the top of the screen. */
-"Settings.Toolbar.Top" = "Toppen";
 
 /* Dismiss button for the tracker protection alert. */
 "Settings.TrackingProtection.Alert.Button" = "Ok, jag förstår";
@@ -1528,9 +1009,6 @@
 /* Footer information for tracker protection level. */
 "Settings.TrackingProtection.ProtectionLevel.Footer" = "Om en webbplats inte fungerar som förväntat, tryck på låset i adressfältet och inaktivera Förbättrat spårningsskydd för den sidan.";
 
-/* Footer information for tracker protection level. */
-"Settings.TrackingProtection.ProtectionLevel.Footer.Lock" = "Om en webbplats inte fungerar som förväntat, tryck på låset i adressfältet och inaktivera Förbättrat spårningsskydd för den sidan.";
-
 /* Description for standard level tracker protection */
 "Settings.TrackingProtection.ProtectionLevelStandard.Description" = "Tillåter viss annonsspårning så att webbplatser fungerar korrekt.";
 
@@ -1546,9 +1024,6 @@
 /* Tracking protection settings option for using the basic blocklist. */
 "Settings.TrackingProtectionOption.BasicBlockList" = "Standard (standard)";
 
-/* Tracking protection settings status showing the current option selected. */
-"Settings.TrackingProtectionOption.BasicBlockList.Status" = "Standard";
-
 /* Tracking protection settings option for using the strict blocklist. */
 "Settings.TrackingProtectionOption.BlockListStrict" = "Strikt";
 
@@ -1563,9 +1038,6 @@
 
 /* Description of the confirmation dialog shown when a user tries to clear their private data. */
 "Settings.WebsiteData.ConfirmPrompt" = "Denna åtgärd kommer att rensa alla dina webbplatsdata. Det kan inte ångras.";
-
-/* Description of the confirmation dialog shown when a user tries to clear some of their private data. */
-"Settings.WebsiteData.SelectedConfirmPrompt" = "Den här åtgärden rensar de valda objekten. Den kan inte ångras.";
 
 /* Title displayed in header of the Data Management panel. */
 "Settings.WebsiteData.Title" = "Webbplatsdata";
@@ -1593,12 +1065,6 @@
 
 /* Action label on share extension to search for the selected text in Firefox. */
 "ShareExtension.SeachInFirefoxAction.Title" = "Sök i Firefox";
-
-/* Button in share sheet to copy the url of the current tab. */
-"ShareSheet.Copy.Title.v108" = "Kopiera";
-
-/* Button in the share sheet to send the current link to another device. */
-"ShareSheet.SendToDevice.Title.v108" = "Skicka länk till enhet";
 
 /* Label for show search suggestions setting. */
 "Show Search Suggestions" = "Visa sökförslag";
@@ -1642,47 +1108,17 @@
 /* The label indicating that all the tabs were closed */
 "Tabs.DeleteAllUndo.Title" = "%d flik(ar) stängda";
 
-/* Accessibility title for the inactive tabs section button when section is closed. This section groups all tabs that haven't been used in a while. */
-"TabsTray.InactiveTabs.SectionTitle.Closed.Accessibility.v103" = "Visa inaktiva flikar";
-
-/* Accessibility title for the inactive tabs section button when section is open. This section groups all tabs that haven't been used in a while. */
-"TabsTray.InactiveTabs.SectionTitle.Opened.Accessibility.v103" = "Dölj inaktiva flikar";
-
-/* Accessibility Label for the tab toolbar Search button */
-"TabToolbar.Accessibility.Search.v106" = "Sök";
-
 /* Accessibility label for the Add Tab button in the Tab Tray. */
 "TabTray.AddTab.Button" = "Lägg till flik";
 
 /* A label indicating the keyboard shortcut of closing all tabs from the tab tray. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
 "TabTray.CloseAllTabs.KeyCodeTitle" = "Stäng alla flikar";
 
-/* Accessibility label for the currently selected tab. */
-"TabTray.CurrentSelectedTab.A11Y" = "För närvarande vald flik.";
-
-/* In the tab tray, when tab groups appear and there exist tabs that don't belong to any group, those tabs are listed under this header as \"Others\" */
-"TabTray.Header.FilteredTabs.SectionHeader" = "Övriga";
-
-/* Title for the inactive tabs section. This section groups all tabs that haven't been used in a while. */
-"TabTray.InactiveTabs.SectionTitle" = "Inaktiva flikar";
-
 /* A label indicating the keyboard shortcut of opening a new tab in the tab tray. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
 "TabTray.OpenNewTab.KeyCodeTitle" = "Öppna ny flik";
 
-/* The title on the button to look at private tabs. */
-"TabTray.SegmentedControlTitles.PrivateTabs" = "Privat";
-
-/* The title on the button to look at synced tabs. */
-"TabTray.SegmentedControlTitles.SyncedTabs" = "Synkroniserad";
-
-/* The title on the button to look at regular tabs. */
-"TabTray.SegmentedControlTitles.Tabs" = "Flikar";
-
 /* The title for the tab tray */
 "TabTray.Title" = "Öppna flikar";
-
-/* Accessibility Label for the tabs button in the tab toolbar */
-"TabTrayButtons.Accessibility.ShowTabs.v106" = "Visa flikar";
 
 /* Message displayed when the reader mode page could not be loaded. This message will appear only when sharing to Firefox reader mode from another app. */
 "The page could not be displayed in Reader View." = "Denna sida kunde inte visas i Läsvyn.";
@@ -1695,9 +1131,6 @@
 
 /* Relative date for date in past week. */
 "this week" = "denna vecka";
-
-/* Relative date for yesterday. */
-"TimeConstants.Yesterday.v106" = "igår";
 
 /* label for Not Now button */
 "Toasts.NotNow" = "Inte nu";
@@ -1749,24 +1182,6 @@
 
 /* Username textbox in Authentication prompt */
 "Username" = "Användarnamn";
-
-/* The message of the error displayed to a user when they trying to change a wallpaper failed. */
-"Wallpaper.Change.Error.Body.v106" = "Något gick fel med den här bakgrundsbilden.";
-
-/* The title of the error displayed when changing wallpaper fails. */
-"Wallpaper.Change.Error.Title.v106" = "Det gick inte att ändra bakgrundsbild";
-
-/* The message of the error displayed to a user when they try change a wallpaper that failed downloading. */
-"Wallpaper.Download.Error.Body.v106" = "Något gick fel med din nedladdning.";
-
-/* The title of the error displayed if download fails when changing a wallpaper. */
-"Wallpaper.Download.Error.Title.v106" = "Det gick inte att ladda ner bakgrundsbild";
-
-/* An action for the error displayed to a user when they trying to change a wallpaper failed. */
-"Wallpaper.Error.Dismiss.v106" = "Avbryt";
-
-/* Action displayed when changing wallpaper fails. */
-"Wallpaper.Error.TryAgain.v106" = "Försök igen";
 
 /* Accessibility label for the main web content view */
 "Web content" = "Webbinnehåll";

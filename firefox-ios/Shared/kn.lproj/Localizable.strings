@@ -430,9 +430,6 @@
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "ನ್ಯಾವಿಗೇಶನ್ ಉಪಕರಣಪಟ್ಟಿ‍";
 
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "ಹೊಸ ಟ್ಯಾಬ್‍";
-
 /* Restore Tabs Negative Action */
 "No" = "ಇಲ್ಲ";
 

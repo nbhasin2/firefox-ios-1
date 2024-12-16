@@ -34,9 +34,6 @@
 /* Quick Actions title when widget enters edit mode */
 "TodayWidget.QuickActionsGalleryTitle" = "Azzioni preste";
 
-/* Firefox shortcuts title when widget enters edit mode. Do not translate the word Firefox. */
-"TodayWidget.QuickActionsGalleryTitleV2" = "Accurtatoghji Firefox";
-
 /* Description for Quick View widget in Gallery View where user can add it to home screen */
 "TodayWidget.QuickViewGalleryDescriptionV2" = "Aghjunghjite accurtatoghji à e vostre unghjette aperte.";
 
@@ -54,7 +51,4 @@
 
 /* Title for top sites widget to add Firefox top sites shotcuts to home screen */
 "TodayWidget.TopSitesGalleryTitle" = "Siti principale";
-
-/* Title for top sites widget to add Firefox top sites shotcuts to home screen */
-"TodayWidget.TopSitesGalleryTitleV2" = "Accurtatoghji di siti web";
 

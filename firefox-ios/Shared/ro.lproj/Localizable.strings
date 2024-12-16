@@ -430,12 +430,6 @@
 /* Relative time for a tab that was visited within the last few moments. */
 "just now" = "chiar acum";
 
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can do with Bookmarks. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.Bookmark" = "Marcaje";
-
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can do with locally saved items. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.Tools" = "Instrumente";
-
 /* This label is meant to signify the section containing a group of items from the past thirty days. */
 "Last month" = "Luna trecută";
 
@@ -577,9 +571,6 @@
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "Bară de navigare";
 
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "Filă nouă";
-
 /* Restore Tabs Negative Action */
 "No" = "Nu";
 
@@ -693,9 +684,6 @@
 
 /* The text shown in the URL bar on about:home */
 "Search or enter address" = "Caută sau introdu adresa";
-
-/* Search suggestion cell label that allows user to switch to tab which they searched for in url bar */
-"Search.Awesomebar.SwitchToTab" = "Comută la filă";
 
 /* The message that asks the user to Add the search provider explaining where the search engine will appear */
 "Search.ThirdPartyEngines.AddMessage" = "Noul motor de căutare va apărea în bara de căutare rapidă.";
@@ -979,9 +967,6 @@
 /* Description displayed under the ”Show Link Previews” option */
 "Settings.ShowLinkPreviews.Status" = "La atingerea îndelungată a linkurilor";
 
-/* Description displayed under the ”Show Link Previews” option */
-"Settings.ShowLinkPreviews.StatusV2" = "La atingerea îndelungată a linkurilor";
-
 /* Title of setting to enable link previews when long-pressing links. */
 "Settings.ShowLinkPreviews.Title" = "Afișează previzualizări ale linkurilor";
 
@@ -996,9 +981,6 @@
 
 /* The option that takes you to the siri shortcuts settings page */
 "Settings.Siri.SectionName" = "Scurtături Siri";
-
-/* Title for a link that explains what Mozilla means by Studies */
-"Settings.Studies.Toggle.Link" = "Află mai multe.";
 
 /* Dismiss button for the tracker protection alert. */
 "Settings.TrackingProtection.Alert.Button" = "OK, am înțeles!";

@@ -1,9 +1,6 @@
 /* Label for the button, displayed in the menu, used to close all tabs currently open. */
 "Menu.CloseAllTabsAction.Title" = "Închide toate filele";
 
-/* Label for the button, displayed in the menu, used to copy the current page link to the clipboard. */
-"Menu.CopyLink.Title" = "Copiază linkul";
-
 /* Label for the button, displayed in the menu, used to open the toolbar to search for text within the current page. */
 "Menu.FindInPageAction.Title" = "Caută în pagină";
 

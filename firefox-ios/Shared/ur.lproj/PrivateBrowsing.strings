@@ -4,12 +4,6 @@
 /* Context menu option for opening a link in a new private tab */
 "ContextMenu.OpenInNewPrivateTabButtonTitle" = "نئے نجی ٹیب میں کھولیں";
 
-/* Description text displayed when there are no open tabs while in private mode */
-"Firefox won’t remember any of your history or cookies, but new bookmarks will be saved." = "Firefox آپ کے سابقات ہا کوکیزوں کو یاد نہیں رکھے گا لیکن نئی بک مارکس محفوظ کی جائیں گی۔";
-
-/* Text button displayed when there are no tabs open while in private mode */
-"Learn More" = "مزید سیکھیں";
-
 /* Toggled OFF accessibility value */
 "Off" = "بند";
 

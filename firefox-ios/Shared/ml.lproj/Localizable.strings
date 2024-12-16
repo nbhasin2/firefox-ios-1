@@ -62,10 +62,13 @@
 "Bookmark.DetailFieldTitle.Label" = "തലക്കെട്ട്";
 
 /* The label for the URL field when editing a bookmark */
-"Bookmark.DetailFieldURL.Label" = "യുആര്‍എല്‍";
+"Bookmark.DetailFieldURL.Label" = "യു.ആര.എല്‍";
 
 /* Toggle bookmarks syncing setting */
 "Bookmarks" = "അടയാളക്കുറിപ്പുകള്‍";
+
+/* The button on the snackbar to edit a bookmark after adding it. */
+"Bookmarks.Edit.Button" = "തിരുത്തുക";
 
 /* The button to edit a bookmark */
 "Bookmarks.EditBookmark.Label" = "അടയാളക്കുറിപ്പ് തിരുത്തുക";
@@ -74,19 +77,34 @@
 "Bookmarks.EditFolder.Label" = "ഫോള്‍ഡര്‍ തിരുത്തുക";
 
 /* The label to show the location of the folder where the bookmark is located */
-"Bookmarks.Folder.Label" = "ഫോള്‍ഡര്‍";
+"Bookmarks.Folder.Label" = "അറ";
 
 /* The button to create a new bookmark */
 "Bookmarks.NewBookmark.Label" = "പുതിയ അടയാളക്കുറിപ്പു്";
 
 /* The button to create a new folder */
-"Bookmarks.NewFolder.Label" = "പുതിയ ഫോള്‍ഡര്‍";
+"Bookmarks.NewFolder.Label" = "പുതിയ അറ";
 
 /* The button to create a new separator */
 "Bookmarks.NewSeparator.Label" = "പുതിയ വിടവടയാളം";
 
 /* The label for the title of a bookmark */
 "Bookmarks.Title.Label" = "തലക്കെട്ട്";
+
+/* Describes the date on which the breach occurred */
+"BreachAlerts.BreachDate" = "ഈ ലംഘനം സംഭവിച്ചു";
+
+/* Description of what a breach is */
+"BreachAlerts.Description" = "താങ്ങൾ അവസാനമായി രഹസ്യവാക്കു് മാറ്റിയതിനാൽ രഹസ്യവാക്കുകൾ ചോർന്നു അല്ലെങ്കിൽ മോഷ്ടിക്കപ്പെട്ടു. ഈ അക്കൗണ്ട് പരിരക്ഷിക്കുന്നതിന്, സൈറ്റിലേക്ക് പ്രവേശിച്ച് രഹസ്യവാക്കു് മാറ്റുക.";
+
+/* Link to monitor.firefox.com to learn more about breached passwords */
+"BreachAlerts.LearnMoreButton" = "കൂടുതല്‍ അറിയുക";
+
+/* Leads to a link to the breached website */
+"BreachAlerts.Link" = "എന്നതിലേക്ക് പോകുക";
+
+/* Title for the Breached Login Detail View. */
+"BreachAlerts.Title" = "വെബ്‌സ്ഥാന ലംഘനം";
 
 /* Accessibility label for brightness adjustment slider in Reader Mode display settings */
 "Brightness" = "തെളിച്ചം";
@@ -104,7 +122,7 @@
 "ClipboardToast.GoToCopiedLink.Button" = "പോവുക";
 
 /* Message displayed when the user has a copied link on the clipboard */
-"ClipboardToast.GoToCopiedLink.Title" = "പകർത്തിയ ലിങ്കിലേക്ക് പോകണോ?";
+"ClipboardToast.GoToCopiedLink.Title" = "പകർത്തിയ കണ്ണിയിലേക്ക് പോകണോ?";
 
 /* Accessibility label for action denoting closing a tab in tab list (tray) */
 "Close" = "അടയ്‍ക്കുക";
@@ -154,6 +172,15 @@
 /* Error message that is shown in settings when there was a problem loading */
 "Could not load page." = "താള്‍ കൊണ്ടു വരാന്‍ കഴിയുന്നില്ല.";
 
+/* Description for the new ETP mode i.e. standard vs strict */
+"CoverSheet.v24.ETP.Description" = "സ്വഭാവികമായിട്ടുള്ള മെച്ചപ്പെടുത്തിയ പിന്തുടർച്ച പരിരക്ഷണം താങ്ങളെ പിന്തുടരുന്നത് തടയാൻ സഹായിക്കുന്നു. കൂടുതൽ പിന്തുടർച്ചയന്ത്രങ്ങളും പരസ്യങ്ങളും പൊന്തുവരലുകളും എന്നിവ തടയുന്നതിന് കർശനരീതിയിടുക. ";
+
+/* Text for the new ETP settings button */
+"CoverSheet.v24.ETP.Settings.Button" = "ക്രമീകരണങ്ങളിലേക്കു പോവുക";
+
+/* Title for the new ETP mode i.e. standard vs strict */
+"CoverSheet.v24.ETP.Title" = "പരസ്യ പിന്തുടർച്ചയിൽ നിന്നു് സംരക്ഷണം";
+
 /* See http://mzl.la/1Qtkf0j */
 "Create an account" = "അക്കൗണ്ട്‌ ഉണ്ടാക്കുക";
 
@@ -179,7 +206,7 @@
 "Downloads" = "ഡൌണ്‍ലോഡുകള്‍";
 
 /* The label of the button the user will press to start downloading a file */
-"Downloads.Alert.DownloadNow" = "ഇപ്പോള്‍ ഡൗണ്‍ലോഡ് ചെയ്യുക";
+"Downloads.Alert.DownloadNow" = "ഇപ്പോള്‍ ഇറക്കിവയ്ക്കുക";
 
 /* Button confirming the cancellation of the download. */
 "Downloads.CancelDialog.Cancel" = "റദ്ദാക്കുക";
@@ -191,16 +218,16 @@
 "Downloads.CancelDialog.Resume" = "തുടരുക";
 
 /* Alert dialog title when the user taps the cancel download icon. */
-"Downloads.CancelDialog.Title" = "ഡൗൺലോഡ് റദ്ദാക്കുക";
+"Downloads.CancelDialog.Title" = "ഇറക്കിവയ്ക്കൽ റദ്ദാക്കുക";
 
 /* The label text in the Download Cancelled toast for showing confirmation that the download was cancelled. */
-"Downloads.Toast.Cancelled.LabelText" = "ഡൗൺലോഡ് റദ്ദാക്കി";
+"Downloads.Toast.Cancelled.LabelText" = "ഇറക്കിവയ്ക്കൽ റദ്ദാക്കി";
 
 /* The label text in the Download Failed toast for showing confirmation that the download has failed. */
-"Downloads.Toast.Failed.LabelText" = "ഡൗൺലോഡ് പരാജയപ്പെട്ടു";
+"Downloads.Toast.Failed.LabelText" = "ഇറക്കിവയ്ക്കൽ പരാജയപ്പെട്ടു";
 
 /* The button to open a new tab with the Downloads home panel */
-"Downloads.Toast.GoToDownloads.Button" = "ഡൌണ്‍ലോഡുകള്‍";
+"Downloads.Toast.GoToDownloads.Button" = "ഇറക്കിവയ്ക്കലുകൾ";
 
 /* The description text in the Download progress toast for showing the number of files when multiple files are downloading. */
 "Downloads.Toast.MultipleFiles.DescriptionText" = "%d ഫയലുകളിൽ 1 എണ്ണം";
@@ -267,6 +294,15 @@
 
 /* Label when no internet is present */
 "FxA.NoInternetConnection" = "ഇന്റർനെറ്റ് ബന്ധം ഇല്ല";
+
+/* FxA sign in view subtitle */
+"fxa.signin.camera-signin" = "താങ്ങളുടെ ക്യാമറ ഉപയോഗിച്ച് പ്രവേശിക്കുക";
+
+/* FxA sign in view qr code instructions */
+"fxa.signin.qr-link-instruction" = "താങ്ങളുടെ ഗണനികയിൽ ഫയർ‌ഫോക്സ് തുറന്ന് firefox.com/pair ലേക്കു് പോവുക";
+
+/* FxA sign in view email login button */
+"fxa.signin.use-email-instead" = "പകരം ഇ-തപാൽ ഉപയോഗിക്കുക";
 
 /* Button label to Sync your Firefox Account */
 "FxA.SyncNow" = "ഇപ്പോൾ സമന്വയിപ്പിക്കുൂ";
@@ -386,7 +422,7 @@
 "Hotkeys.ShowPreviousTab.DiscoveryTitle" = "മുമ്പത്തെ ടാബ് കാണിക്കുക";
 
 /* Accessibility label for button increasing font size in display settings of reader mode */
-"Increase text size" = "ടെക്‌സ്റ്റ് വലുപ്പം കൂട്ടുക";
+"Increase text size" = "പാഠത്തിന്റെ വലുപ്പം കൂട്ടുക";
 
 /* Relative time for a tab that was visited within the last few moments. */
 "just now" = "ഇപ്പോള്‍";
@@ -427,6 +463,12 @@
 /* Prompt for saving a password with no username. The parameter is the hostname of the site. */
 "LoginsHelper.PromptSavePassword.Title" = "%@-നു വേണ്ടി രഹസ്യവാക്ക് സംരക്ഷിക്കണോ?";
 
+/* Prompt for updating a login. The first parameter is the hostname for which the password will be updated for. */
+"LoginsHelper.PromptUpdateLogin.Title.OneArg" = "%@ നായി പ്രവേശണം പുതുക്കണോ?";
+
+/* Prompt for updating a login. The first parameter is the username for which the password will be updated for. The second parameter is the hostname of the site. */
+"LoginsHelper.PromptUpdateLogin.Title.TwoArg" = "%2$@-നു വേണ്ടി %1$@ പ്രവേശണം പുതുക്കണോ?";
+
 /* Button to save the user's password */
 "LoginsHelper.SaveLogin.Button" = "പ്രവേശനങ്ങള്‍ സംരക്ഷിക്കുക";
 
@@ -459,6 +501,12 @@
 
 /* Toast displayed to user after copy url pressed. */
 "Menu.CopyURL.Confirm" = "URL ക്ലിപ്ബോർഡിലേക്ക് പകർത്തി";
+
+/* A switch to disable enhanced tracking protection inside the menu. */
+"Menu.EnhancedTrackingProtectionOff.Title" = "ഈ സൈറ്റിനായി മെച്ചപ്പെടുത്തിയ പിന്തുടർച്ച സംരക്ഷണം അണച്ചിരിക്കുന്നു";
+
+/* A switch to enable enhanced tracking protection inside the menu. */
+"Menu.EnhancedTrackingProtectionOn.Title" = "ഈ സൈറ്റിനായി മെച്ചപ്പെടുത്തിയ പിന്തുടർച്ച സംരക്ഷണം തുറന്നിരിക്കുന്നു";
 
 /* The title for the button that lets you paste into the location bar */
 "Menu.Paste.Title" = "ഒട്ടിക്കുക";
@@ -525,9 +573,6 @@
 
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "നാവിഗേഷന്‍ ടൂള്‍ബാര്‍";
-
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "പുതിയ ടാബ്";
 
 /* Restore Tabs Negative Action */
 "No" = "ഇല്ല";
@@ -598,6 +643,9 @@
 /* Accessibility Label for the tab toolbar Reload button */
 "Reload" = "വീണ്ടും തുടങ്ങുക";
 
+/* Accessibility label for the reload button */
+"Reload page" = "താള്‍ വീണ്ടും ലഭ്യമാക്കുക";
+
 /* Title for the button that removes a reading list item */
 "Remove" = "നീക്കം ചെയ്യുക";
 
@@ -632,7 +680,7 @@
 "ScanQRCode.InvalidDataError.Message" = "ഈ ഡാറ്റ അസാധുവാണ്";
 
 /* Title for the QR code scanner view. */
-"ScanQRCode.View.Title" = "QR കോഡ് പരിശോധിക്കുക";
+"ScanQRCode.View.Title" = "QR സങ്കേതം പരിശോധിക്കുക";
 
 /* Open search section of settings */
 "Search" = "തെരയുക";
@@ -773,16 +821,16 @@
 "Settings.ClearPrivateData.SectionName" = "സ്വകാര്യ വിവരം ഇല്ലാതാക്കുക";
 
 /* Copy app version alert shown in settings. */
-"Settings.CopyAppVersion.Title" = "ക്ലിപ്പ്ബോര്‍ഡിലേക്കു് പകര്‍ത്തിയിരിയ്ക്കുന്നു";
+"Settings.CopyAppVersion.Title" = "പകർത്തൽപെട്ടിയിലേക്കു് പകര്‍ത്തിയിരിയ്ക്കുന്നു";
 
 /* Default text in search bar for Data Management */
-"Settings.DataManagement.SearchLabel" = "സൈറ്റുകൾ ഫിൽട്ടർ ചെയ്യുക";
+"Settings.DataManagement.SearchLabel" = "സൈറ്റുകൾ അരിപ്പിക്കുക";
 
 /* Label used as an item in Settings. When touched it will open a dialog prompting the user to make sure they want to clear all of their private data. */
-"Settings.DataManagement.SectionName" = "ഡാറ്റ കൈകാര്യം";
+"Settings.DataManagement.SectionName" = "ദത്ത കൈകാര്യം";
 
 /* Title displayed in header of the setting panel. */
-"Settings.DataManagement.Title" = "ഡാറ്റ കൈകാര്യം";
+"Settings.DataManagement.Title" = "ദത്ത കൈകാര്യം";
 
 /* Body of the alert when prompting the user asking to disconnect. */
 "Settings.Disconnect.Body" = "താങ്കളുടെ അക്കൗണ്ടുമായി സിങ്ക് ചെയ്യുന്നത് ഫയര്‍ഫോക്സ് നിര്‍ത്തുന്നതാണ്, പക്ഷെ ഈ ഡിവൈസിലെ താങ്കളുടെ ബ്രൌസിംഗ് ഡാറ്റ യാതൊന്നും നീക്കം ചെയ്യുകയില്ല.";
@@ -893,10 +941,10 @@
 "Settings.OfferClipboardBar.Status" = "ഫയർഫോക്സ് തുറക്കുമ്പോൾ";
 
 /* Title of setting to enable the Go to Copied URL feature. See https://bug1223660.bmoattachments.org/attachment.cgi?id=8898349 */
-"Settings.OfferClipboardBar.Title" = "പകർത്തിയ ലിങ്കുകൾ തുറക്കുമെന്നു് വാഗ്ദാനം ചെയ്യുന്നു";
+"Settings.OfferClipboardBar.Title" = "പകർത്തിയ കണ്ണികൾ തുറക്കുമെന്നു് വാഗ്ദാനം ചെയ്യുന്നു";
 
 /* Title for Open With Settings */
-"Settings.OpenWith.PageTitle" = "ഇമെയിൽ ലിങ്കുകൾ തുറക്കാന്‍";
+"Settings.OpenWith.PageTitle" = "ഇ-തപാൽ കണ്ണികൾ തുറക്കാന്‍";
 
 /* Label used as an item in Settings. When touched it will open a dialog to configure the open with (mail links) behavior. */
 "Settings.OpenWith.SectionName" = "മെയില്‍ ആപ്പ്";
@@ -919,6 +967,9 @@
 /* The title for the setting to send usage data. */
 "Settings.SendUsage.Title" = "ഉപയോഗ ഡാറ്റ അയക്കുക";
 
+/* Description displayed under the ”Show Link Previews” option */
+"Settings.ShowLinkPreviews.Status" = "കണ്ണികൾ ദീർഘനേരം അമർത്തുമ്പോൾ";
+
 /* Setting to show Logins & Passwords quick access in the application menu */
 "Settings.ShowLoginsInAppMenu.Title" = "അപ്ലിക്കേഷൻ മെനുവിൽ കാണിക്കുക";
 
@@ -931,8 +982,23 @@
 /* The option that takes you to the siri shortcuts settings page */
 "Settings.Siri.SectionName" = "സിരി കുറുക്കുവഴികൾ";
 
+/* Dismiss button for the tracker protection alert. */
+"Settings.TrackingProtection.Alert.Button" = "ശരി പിടി കിട്ടി";
+
+/* Title for the tracker protection alert. */
+"Settings.TrackingProtection.Alert.Title" = "മുന്നറിയിപ്പ്";
+
 /* The Title on info view which shows a list of all blocked websites */
 "Settings.TrackingProtection.Info.BlocksTitle" = "തടയലുകള്‍";
+
+/* 'Learn more' info link on the Tracking Protection settings screen. */
+"Settings.TrackingProtection.LearnMore" = "കൂടുതല്‍ അറിയുക";
+
+/* Description for standard level tracker protection */
+"Settings.TrackingProtection.ProtectionLevelStandard.Description" = "ചില പരസ്യ പിന്തുടർച്ച അനുവദിക്കുന്നതിനാൽ വെബ്‌സൈറ്റുകൾ ശരിയായി പ്രവർത്തിക്കുന്നു.";
+
+/* Description for strict level tracker protection */
+"Settings.TrackingProtection.ProtectionLevelStrict.Description" = "കൂടുതൽ പിന്തുടർച്ചായന്ത്രളും പരസ്യങ്ങളും പൊന്തിവരലുകളും എന്നിവ തടയുന്നു. താളുകൾ വേഗത്തിൽ ലഭ്യമാവും, പക്ഷേ ചില പ്രവർത്തനങ്ങൾ പ്രവർത്തിച്ചേക്കില്ല.";
 
 /* Title for tracking protection options section where level can be selected. */
 "Settings.TrackingProtection.ProtectionLevelTitle" = "പരിരക്ഷണ നില";
@@ -1027,11 +1093,17 @@
 /* The label indicating that all the tabs were closed */
 "Tabs.DeleteAllUndo.Title" = "%d ടാബ്(കൾ) അടച്ചിരിക്കുന്നു";
 
+/* Accessibility label for the Add Tab button in the Tab Tray. */
+"TabTray.AddTab.Button" = "ടാബ് ചേര്‍ക്കുക";
+
 /* A label indicating the keyboard shortcut of closing all tabs from the tab tray. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
 "TabTray.CloseAllTabs.KeyCodeTitle" = "എല്ലാ ടാബുകളും അടയ്ക്കുക";
 
 /* A label indicating the keyboard shortcut of opening a new tab in the tab tray. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
 "TabTray.OpenNewTab.KeyCodeTitle" = "പുതിയ റ്റാബ് തുറക്കുക";
+
+/* The title for the tab tray */
+"TabTray.Title" = "ടാബുകൾ തുറക്കുക";
 
 /* Message displayed when the reader mode page could not be loaded. This message will appear only when sharing to Firefox reader mode from another app. */
 "The page could not be displayed in Reader View." = "വായനാരീതിയില്‍ പേജ് കാണിക്കുവാന്‍ കഴിയുന്നില്ല.";
@@ -1050,6 +1122,9 @@
 
 /* Open App Store button */
 "Toasts.OpenAppStore" = "അപ്പ് സ്റ്റോർ തുറക്കുക";
+
+/* Label for button to undo the action just performed */
+"Toasts.Undo" = "പഴയപോലെയാക്കുക";
 
 /* This label is meant to signify the section containing a group of items from the current day. */
 "Today" = "ഇന്ന്";
@@ -1070,7 +1145,7 @@
 "TranslationToastHandler.PromptTranslate.Cancel" = "വേണ്ട";
 
 /* Button to allow the page to be translated to the user locale language */
-"TranslationToastHandler.PromptTranslate.OK" = "ഉവ്വ്";
+"TranslationToastHandler.PromptTranslate.OK" = "അതെ";
 
 /* Prompt for translation. The first parameter is the language the page is in. The second parameter is the name of our local language. The third is the name of the service. */
 "TranslationToastHandler.PromptTranslate.Title" = "ഈ പേജ് %1$@ൽ ദൃശ്യമാകുന്നു. %3$@ ഉപയോഗിച്ച് %2$@ ലേക്ക് വിവർത്തനംചെയ്യണോ?";
@@ -1086,6 +1161,9 @@
 
 /* Accessibility label for unread article in reading list. It's a past participle - functions as an adjective. */
 "unread" = "വായിക്കാത്തത്";
+
+/* Debug option */
+"Use stage servers" = "സ്റ്റേജ് ദായിനികൾ ഉപയോഗിക്കുക";
 
 /* Username textbox in Authentication prompt */
 "Username" = "ഉപയോക്തൃനാമം";

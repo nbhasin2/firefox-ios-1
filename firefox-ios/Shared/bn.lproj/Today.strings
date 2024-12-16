@@ -34,9 +34,6 @@
 /* Quick Actions title when widget enters edit mode */
 "TodayWidget.QuickActionsGalleryTitle" = "দ্রুত পদক্ষেপ";
 
-/* Firefox shortcuts title when widget enters edit mode. Do not translate the word Firefox. */
-"TodayWidget.QuickActionsGalleryTitleV2" = "দ্রুত পদক্ষেপ";
-
 /* Description for Quick View widget in Gallery View where user can add it to home screen */
 "TodayWidget.QuickViewGalleryDescriptionV2" = "আপনার খোলা ট্যাবগুলিতে শর্টকাট যুক্ত করুন।";
 
@@ -54,7 +51,4 @@
 
 /* Title for top sites widget to add Firefox top sites shotcuts to home screen */
 "TodayWidget.TopSitesGalleryTitle" = "শীর্ষ সাইটগুলি";
-
-/* Title for top sites widget to add Firefox top sites shotcuts to home screen */
-"TodayWidget.TopSitesGalleryTitleV2" = "ওয়েবসাইটের শর্টকাট";
 

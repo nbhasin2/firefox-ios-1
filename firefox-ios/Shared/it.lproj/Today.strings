@@ -34,9 +34,6 @@
 /* Quick Actions title when widget enters edit mode */
 "TodayWidget.QuickActionsGalleryTitle" = "Azioni rapide";
 
-/* Firefox shortcuts title when widget enters edit mode. Do not translate the word Firefox. */
-"TodayWidget.QuickActionsGalleryTitleV2" = "Scorciatoie di Firefox";
-
 /* Description for Quick View widget in Gallery View where user can add it to home screen */
 "TodayWidget.QuickViewGalleryDescriptionV2" = "Aggiungi collegamenti alle tue schede aperte.";
 
@@ -54,7 +51,4 @@
 
 /* Title for top sites widget to add Firefox top sites shotcuts to home screen */
 "TodayWidget.TopSitesGalleryTitle" = "Siti principali";
-
-/* Title for top sites widget to add Firefox top sites shotcuts to home screen */
-"TodayWidget.TopSitesGalleryTitleV2" = "Scorciatoie a siti web";
 

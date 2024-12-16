@@ -34,9 +34,6 @@
 /* Quick Actions title when widget enters edit mode */
 "TodayWidget.QuickActionsGalleryTitle" = "تېز مەشغۇلات";
 
-/* Firefox shortcuts title when widget enters edit mode. Do not translate the word Firefox. */
-"TodayWidget.QuickActionsGalleryTitleV2" = "Firefox تېزلەتمىسى";
-
 /* Description for Quick View widget in Gallery View where user can add it to home screen */
 "TodayWidget.QuickViewGalleryDescriptionV2" = "ئوچۇق بەتكۈچكە تېزلەتمە قوشىدۇ.";
 
@@ -54,7 +51,4 @@
 
 /* Title for top sites widget to add Firefox top sites shotcuts to home screen */
 "TodayWidget.TopSitesGalleryTitle" = "دائىملىق بېكەتلەر";
-
-/* Title for top sites widget to add Firefox top sites shotcuts to home screen */
-"TodayWidget.TopSitesGalleryTitleV2" = "تور بېكەت تېزلەتمىسى";
 

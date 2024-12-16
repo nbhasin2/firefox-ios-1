@@ -4,12 +4,6 @@
 /* Context menu option for opening a link in a new private tab */
 "ContextMenu.OpenInNewPrivateTabButtonTitle" = "Otevřít v anonymním panelu";
 
-/* Description text displayed when there are no open tabs while in private mode */
-"Firefox won’t remember any of your history or cookies, but new bookmarks will be saved." = "Firefox si nebude pamatovat vaši historii ani ukládat cookies, ale vytvořené záložky budou uloženy.";
-
-/* Text button displayed when there are no tabs open while in private mode */
-"Learn More" = "Zjistit více";
-
 /* Toggled OFF accessibility value */
 "Off" = "Vypnuto";
 
@@ -21,9 +15,6 @@
 
 /* Accessibility label for toggling on/off private mode */
 "Private Mode" = "Anonymní režim";
-
-/* Accessibility label for toggling on/off private mode */
-"PrivateBrowsing.Toggle.A11y.Label.v132" = "Anonymní prohlížení";
 
 /* Accessiblity hint for toggling on/off private mode */
 "Turns private mode on or off" = "Zapne nebo vypne anonymní režim";

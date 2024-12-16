@@ -538,9 +538,6 @@
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "શોધખોળ ટૂલબાર";
 
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "નવું ટેબ";
-
 /* Restore Tabs Negative Action */
 "No" = "ના";
 

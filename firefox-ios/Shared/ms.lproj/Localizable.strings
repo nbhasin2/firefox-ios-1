@@ -409,9 +409,6 @@
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "Bar Alatan Navigasi";
 
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "Tab Baru";
-
 /* Restore Tabs Negative Action */
 "No" = "Tidak";
 

@@ -16,9 +16,6 @@
 /* About settings section title */
 "About" = "Tocante a";
 
-/* The title for the pinning a shortcut action */
-"ActivityStream.ContextMenu.AddToShortcuts" = "Amestar a Atayos";
-
 /* Section title label for recently visited websites */
 "ActivityStream.RecentHistory.Title" = "Visitóse apocayá";
 
@@ -367,21 +364,6 @@
 /* Relative time for a tab that was visited within the last few moments. */
 "just now" = "puramente agora";
 
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can do with Bookmarks. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.Bookmark" = "Marcadores";
-
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can do with History. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.History" = "Historial";
-
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can do with locally saved items. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.Tools" = "Ferramientes";
-
-/* A label indicating a grouping of related keyboard shortcuts describing actions a user can take when navigating between their availale set of tabs. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Section.Window" = "Ventana";
-
-/* A label indicating the keyboard shortcut of opening the application's settings menu. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
-"Keyboard.Shortcuts.Settings" = "Axustes";
-
 /* This label is meant to signify the section containing a group of items from the past thirty days. */
 "Last month" = "Últimu mes";
 
@@ -427,12 +409,6 @@
 /* Placeholder test for search box in logins list view. */
 "LoginsList.LoginsListSearchPlaceholder" = "Peñerar";
 
-/* Label that appears after the search if there are no logins matching the search */
-"LoginsList.NoMatchingResult.Subtitle" = "Nun hai resultaos que concasen cola busca.";
-
-/* Title for cancel button for user to stop searching for a particular login */
-"LoginsList.Search.Cancel" = "Encaboxar";
-
 /* Title for the list of logins */
 "LoginsList.Title" = "ANICIOS DE SESIÓN GUARDAOS";
 
@@ -445,23 +421,11 @@
 /* Toast displayed to the user after adding the item to their reading list. */
 "Menu.AddToReadingList.Confirm" = "Amestóse a Llista de Llectura";
 
-/* Label for the button, displayed in the menu, takes you to bookmarks screen when pressed. */
-"Menu.Bookmarks.Label" = "Marcadores";
-
 /* The title for the button that lets you copy the url from the location bar. */
 "Menu.Copy.Title" = "Copiar la direición";
 
 /* Toast displayed to user after copy url pressed. */
 "Menu.CopyURL.Confirm" = "Copióse la URL al cartafueyu";
-
-/* Label for the button, displayed in the menu, takes you to Downloads screen when pressed. */
-"Menu.Downloads.Label" = "Descargues";
-
-/* Label for the button, displayed in the menu, takes you to History screen when pressed. */
-"Menu.History.Label" = "Historial";
-
-/* Label for the button, displayed in the menu, takes you to passwords screen when pressed. */
-"Menu.Passwords.Label" = "Contraseñes";
 
 /* The title for the button that lets you paste into the location bar */
 "Menu.Paste.Title" = "Apegar";
@@ -520,9 +484,6 @@
 /* Accessibility label for the navigation toolbar displayed at the bottom of the screen. */
 "Navigation Toolbar" = "Barra de ferramientes de restolar";
 
-/* Accessibility label for the New Tab button in the tab toolbar. */
-"New Tab" = "Llingüeta nueva";
-
 /* Restore Tabs Negative Action */
 "No" = "Non";
 
@@ -570,12 +531,6 @@
 
 /* Show Firefox Browser Privacy Policy page from the Privacy section in the settings. See https://www.mozilla.org/privacy/firefox/ */
 "Privacy Policy" = "Política de privacidá";
-
-/* This is the value for a label that indicates if a user is on an unencrypted website. */
-"ProtectionStatus.NotSecure" = "La conexón nun ye segura";
-
-/* This is the value for a label that indicates if a user is on a secure https connection. */
-"ProtectionStatus.Secure" = "La conexón ye segura";
 
 /* Title for quick-search engines settings section. */
 "Quick-Search Engines" = "Motores de busca rápida";
@@ -880,15 +835,6 @@
 /* The option that takes you to the siri shortcuts settings page */
 "Settings.Siri.SectionName" = "Atayos de Siri";
 
-/* Title for a link that explains what Mozilla means by Studies */
-"Settings.Studies.Toggle.Link" = "Lleer más.";
-
-/* A short description that explains that Mozilla is running studies */
-"Settings.Studies.Toggle.Message" = "Firefox pue instalar y executar estudios de xemes en cuando.";
-
-/* Label used as a toggle item in Settings. When this is off, the user is opting out of all studies. */
-"Settings.Studies.Toggle.Title" = "Estudios";
-
 /* Dismiss button for the tracker protection alert. */
 "Settings.TrackingProtection.Alert.Button" = "D'acuerdu, entendílo";
 
@@ -966,9 +912,6 @@
 
 /* A label indicating the keyboard shortcut of closing all tabs from the tab tray. This label is displayed inside the Discoverability overlay when a user presses the Command key. The Discoverability overlay and shortcut become available only when a user has connected a hardware keyboard to an iPad. See https://drive.google.com/file/d/1gH3tbvDceg7yG5N67NIHS-AXgDgCzBHN/view?usp=sharing for more details. */
 "TabTray.CloseAllTabs.KeyCodeTitle" = "Zarrar toles llingüetes";
-
-/* The title on the button to look at regular tabs. */
-"TabTray.SegmentedControlTitles.Tabs" = "Llingüetes";
 
 /* The title for the tab tray */
 "TabTray.Title" = "Llingüetes abiertes";
