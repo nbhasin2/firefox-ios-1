@@ -94,7 +94,7 @@
       "channel": "release",
       "userFacingName": "iOS Search Bar Placement v2 - Treatment A Rollout",
       "userFacingDescription": "Search Bar Placement",
-      "isEnrollmentPaused": false,
+      "isEnrollmentPaused": true,
       "isRollout": true,
       "bucketConfig": {
         "randomizationUnit": "nimbus_id",
@@ -240,7 +240,7 @@
       "channel": "release",
       "userFacingName": "New Toolbar iOS - Phase 1 Experiment Share + Home",
       "userFacingDescription": "New toolbar experiment.",
-      "isEnrollmentPaused": false,
+      "isEnrollmentPaused": true,
       "isRollout": false,
       "bucketConfig": {
         "randomizationUnit": "nimbus_id",
