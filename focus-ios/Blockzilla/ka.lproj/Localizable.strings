@@ -25,6 +25,9 @@
 /* Label for row in About screen */
 "About.rowRights" = "თქვენი უფლებები";
 
+/* Label for row in About screen */
+"About.rowTerms" = "გამოყენების პირობები";
+
 /* Label on About screen */
 "About.safariBullet1" = "შეზღუდეთ თვალთვალი, მეტი პირადულობისთვის";
 
@@ -182,7 +185,7 @@
 "NewOnboarding.Button.Title.V2" = "დაიწყეთ";
 
 /* Text for a label that indicates the subtitle for the onboarding screen version 2. */
-"NewOnboarding.Subtitle.V2" = "სწრაფი. პირადი. მხოლოდ საქმისკენ მიმართული.";
+"NewOnboarding.Subtitle.V2" = "სწრაფი. პირადი. საქმისკენ მიმართული.";
 
 /* Text for a label that indicates the title of button from onboarding screen */
 "Onboarding.Button.Title" = "დაიწყეთ გვერდების მონახულება";
