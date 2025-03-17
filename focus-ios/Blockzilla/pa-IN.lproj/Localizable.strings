@@ -25,6 +25,9 @@
 /* Label for row in About screen */
 "About.rowRights" = "ਤੁਹਾਡੇ ਹੱਕ";
 
+/* Label for row in About screen */
+"About.rowTerms" = "ਵਰਤੋਂ ਦੀਆਂ ਸ਼ਰਤਾਂ";
+
 /* Label on About screen */
 "About.safariBullet1" = "ਬੇਹਤਰ ਪਰਦੇਦਾਰੀ ਲਈ ਟਰੈਕਰਾਂ ਉੱਤੇ ਪਾਬੰਦੀ ਲਾਓ";
 

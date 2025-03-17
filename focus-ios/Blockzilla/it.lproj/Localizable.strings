@@ -25,6 +25,9 @@
 /* Label for row in About screen */
 "About.rowRights" = "I tuoi diritti";
 
+/* Label for row in About screen */
+"About.rowTerms" = "Condizioni di utilizzo del servizio";
+
 /* Label on About screen */
 "About.safariBullet1" = "Blocca gli elementi traccianti per una maggiore privacy.";
 
@@ -182,7 +185,7 @@
 "NewOnboarding.Button.Title.V2" = "Inizia";
 
 /* Text for a label that indicates the subtitle for the onboarding screen version 2. */
-"NewOnboarding.Subtitle.V2" = "Veloce. Privato. Nessuna distrazione.";
+"NewOnboarding.Subtitle.V2" = "Veloce. Riservato. Nessuna distrazione.";
 
 /* Text for a label that indicates the title of button from onboarding screen */
 "Onboarding.Button.Title" = "Inizia a navigare";
