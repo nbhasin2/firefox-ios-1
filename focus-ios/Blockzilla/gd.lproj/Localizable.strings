@@ -25,6 +25,9 @@
 /* Label for row in About screen */
 "About.rowRights" = "Do chòraichean";
 
+/* Label for row in About screen */
+"About.rowTerms" = "Teirmichean a’ chleachdaidh";
+
 /* Label on About screen */
 "About.safariBullet1" = "Bac tracaichean airson barrachd prìobhaideachd";
 
@@ -274,8 +277,17 @@
 /* Button label for accepting Content blocker alert */
 "Settings.blockOtherYes2" = "Bac tracaichean susbainte";
 
+/* On the Settings screen, this is the subtitle text for a toggle which controls sending daily usage ping. */
+"Settings.DailyUsagePing.Message" = "Air an dòigh seo, is urrainn dha Mozilla tuairmse a dhèanamh air co mheud neach-cleachdaidh gnìomhach a th’ ann.";
+
+/* On the Settings screen, this is the title text for a toggle which controls automatically sending daily usage ping. */
+"Settings.DailyUsagePing.Title" = "Ping a’ chleachdaidh làitheil";
+
 /* Dark theme option in settings menu */
 "Settings.darkTheme" = "Dorcha";
+
+/* Description associated with the Crash Reports toggle on settings screen */
+"Settings.detailTextCrashReports.V2" = "’S urrainn dhuinn diagnosachd a dhèanamh air a’ bhrabhsair seo mar seo ’s duilgheadasan a chur ceart.";
 
 /* Description associated to the Search Suggestions toggle on main screen. %@ is the app name (Focus/Klar) */
 "Settings.detailTextSearchSuggestion" = "Cuiridh %@ na sgrìobhas tu ann am bàr an t-seòlaidh gun einnsan-luirg agad.";
@@ -381,6 +393,9 @@
 
 /* Label for the checkbox to toggle Social trackers */
 "Settings.toggleBlockSocial2" = "Sòisealta";
+
+/* Label for Crash Reports toggle on settings screen */
+"Settings.toggleCrashReports" = "Cuir aithisgean tuislidh gu fèin-obrachail";
 
 /* Label for toggle on settings screen */
 "Settings.toggleFaceID" = "Cleachd Face ID airson a’ ghlas a thoirt far na h-aplacaid";

@@ -25,6 +25,9 @@
 /* Label for row in About screen */
 "About.rowRights" = "ඔබගේ අයිතීන්";
 
+/* Label for row in About screen */
+"About.rowTerms" = "භාවිත නියම";
+
 /* Label on About screen */
 "About.safariBullet1" = "ඉහළ රහස්‍යතාවක් සඳහා ලුහුබැඳීම් අවහිරය";
 
@@ -274,8 +277,17 @@
 /* Button label for accepting Content blocker alert */
 "Settings.blockOtherYes2" = "අන්තර්ගත ලුහුබැඳීම් අවහිරය";
 
+/* On the Settings screen, this is the subtitle text for a toggle which controls sending daily usage ping. */
+"Settings.DailyUsagePing.Message" = "මෙය මොසිල්ලා සඳහා සක්‍රිය පරිශ්‍රීලකයින් තක්සේරුවට උපකාරී වේ.";
+
+/* On the Settings screen, this is the title text for a toggle which controls automatically sending daily usage ping. */
+"Settings.DailyUsagePing.Title" = "දෛනික භාවිත හැඬවීම";
+
 /* Dark theme option in settings menu */
 "Settings.darkTheme" = "අඳුරු";
+
+/* Description associated with the Crash Reports toggle on settings screen */
+"Settings.detailTextCrashReports.V2" = "මෙය අපට අතිරික්සුවේ දෝෂ හඳුනාගෙන ඒවා නිරාකරණයට උපකාරී වේ.";
 
 /* Description associated to the Search Suggestions toggle on main screen. %@ is the app name (Focus/Klar) */
 "Settings.detailTextSearchSuggestion" = "ඔබ ලිපින තීරුවේ ලියන දෑ ඔබගේ සෙවුම් යන්ත්‍රයට %@ හරහා යවයි.";
@@ -381,6 +393,9 @@
 
 /* Label for the checkbox to toggle Social trackers */
 "Settings.toggleBlockSocial2" = "සමාජ";
+
+/* Label for Crash Reports toggle on settings screen */
+"Settings.toggleCrashReports" = "බිඳවැටුම් වාර්තා ස්වයංක්‍රීයව යවන්න";
 
 /* Label for toggle on settings screen */
 "Settings.toggleFaceID" = "යෙදුම අගුළු ඇරීමට මුහුණේ හැඳු.";
