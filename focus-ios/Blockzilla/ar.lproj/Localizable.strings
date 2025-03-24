@@ -25,6 +25,9 @@
 /* Label for row in About screen */
 "About.rowRights" = "حقوقك";
 
+/* Label for row in About screen */
+"About.rowTerms" = "شروط الاستخدام";
+
 /* Label on About screen */
 "About.safariBullet1" = "احجب المتعقبات لتحسين الخصوصية";
 
@@ -274,8 +277,14 @@
 /* Button label for accepting Content blocker alert */
 "Settings.blockOtherYes2" = "احجب متعقبات المحتوى";
 
+/* On the Settings screen, this is the subtitle text for a toggle which controls sending daily usage ping. */
+"Settings.DailyUsagePing.Message" = "يساعد هذا Mozilla على تقدير عدد المستخدمين النشطين.";
+
 /* Dark theme option in settings menu */
 "Settings.darkTheme" = "داكنة";
+
+/* Description associated with the Crash Reports toggle on settings screen */
+"Settings.detailTextCrashReports.V2" = "يساعدنا هذا في تشخيص مشكلات المتصفح وإصلاحها.";
 
 /* Description associated to the Search Suggestions toggle on main screen. %@ is the app name (Focus/Klar) */
 "Settings.detailTextSearchSuggestion" = "سيُرسل %@ ما تكتبه في شريط العنوان إلى محرك البحث الذي تُفضّله.";
@@ -381,6 +390,9 @@
 
 /* Label for the checkbox to toggle Social trackers */
 "Settings.toggleBlockSocial2" = "التواصل الاجتماعي";
+
+/* Label for Crash Reports toggle on settings screen */
+"Settings.toggleCrashReports" = "إرسال تقارير الأعطال تلقائيا";
 
 /* Label for toggle on settings screen */
 "Settings.toggleFaceID" = "استخدم معّرف الوجه لإلغاء قفل التطبيق";

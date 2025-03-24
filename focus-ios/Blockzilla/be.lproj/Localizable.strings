@@ -25,6 +25,9 @@
 /* Label for row in About screen */
 "About.rowRights" = "Вашы правы";
 
+/* Label for row in About screen */
+"About.rowTerms" = "Умовы выкарыстання";
+
 /* Label on About screen */
 "About.safariBullet1" = "Блакіруйце трэкеры для павышэння прыватнасці";
 
