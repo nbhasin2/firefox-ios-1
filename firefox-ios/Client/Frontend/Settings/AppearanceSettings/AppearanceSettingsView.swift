@@ -20,9 +20,16 @@ struct AppearanceSettingsView: View, FeatureFlaggable {
     var themeManager
 
     @State private var currentTheme: Theme?
+    @State private var showColorPicker = false
+    @State private var showBackgroundTintPicker = false
+    @State private var showToolbarTintPicker = false
 
     var shouldShowPageZoom: Bool {
         return featureFlags.isFeatureEnabled(.defaultZoomFeature, checking: .buildOnly)
+    }
+
+    private var shouldShowCustomTheming: Bool {
+        themeManager.isCustomThemingEnabled
     }
 
     /// Compute the theme option to display in the ThemeSelectionView.
@@ -47,30 +54,16 @@ struct AppearanceSettingsView: View, FeatureFlaggable {
             guard #available(iOS 26.0, *) else { return 0 }
             return UX.spacing
         }
+        // Debug flag: show free-pick color pickers (accent/background/toolbar).
+        // When false, only curated JSON themes are shown.
+        static let showCustomColorPickers = false
+        // Debug flag: show the curated JSON theme picker section.
+        static let showCuratedThemes = true
     }
 
     var body: some View {
         ScrollView {
-            VStack(spacing: UX.spacingCurrentOS) {
-                // Section for selecting the browser theme.
-                BrowserThemeSection(
-                    theme: currentTheme,
-                    themeOption: themeOption,
-                    onThemeSelected: updateBrowserTheme,
-                    cornerRadius: UX.cornerRadius
-                )
-
-                // Section for toggling website appearance (e.g., dark mode).
-                WebsiteAppearanceSection(theme: currentTheme, onChange: setWebsiteDarkMode, cornerRadius: UX.cornerRadius)
-
-                if shouldShowPageZoom {
-                    PageZoomSection(theme: currentTheme, cornerRadius: UX.cornerRadius) {
-                        delegate?.pressedPageZoom()
-                    }
-                }
-
-                Spacer()
-            }
+            settingsContent
         }
         .modifier(PaddingStyle(theme: currentTheme, spacing: UX.spacing))
         .background(viewBackground)
@@ -80,6 +73,93 @@ struct AppearanceSettingsView: View, FeatureFlaggable {
         .onReceive(NotificationCenter.default.publisher(for: .ThemeDidChange)) { notification in
             guard let uuid = notification.windowUUID, uuid == windowUUID else { return }
             currentTheme = themeManager.getCurrentTheme(for: windowUUID)
+        }
+        .sheet(isPresented: $showColorPicker) {
+            ColorPickerSheet(themeManager: themeManager)
+        }
+        .sheet(isPresented: $showBackgroundTintPicker) {
+            BackgroundTintColorPickerSheet(themeManager: themeManager)
+        }
+        .sheet(isPresented: $showToolbarTintPicker) {
+            ToolbarTintColorPickerSheet(themeManager: themeManager)
+        }
+    }
+
+    // MARK: - Settings Content
+
+    @ViewBuilder
+    private var settingsContent: some View {
+        VStack(spacing: UX.spacingCurrentOS) {
+            themeSections
+            customizationSections
+            Spacer()
+        }
+    }
+
+    @ViewBuilder
+    private var themeSections: some View {
+        BrowserThemeSection(
+            theme: currentTheme,
+            themeOption: themeOption,
+            onThemeSelected: updateBrowserTheme,
+            cornerRadius: UX.cornerRadius
+        )
+
+        if shouldShowCustomTheming && UX.showCustomColorPickers {
+            AccentColorSectionView(
+                theme: currentTheme,
+                themeManager: themeManager,
+                cornerRadius: UX.cornerRadius,
+                showColorPicker: $showColorPicker
+            )
+        }
+
+        if shouldShowCustomTheming && UX.showCustomColorPickers {
+            BackgroundTintSectionView(
+                theme: currentTheme,
+                themeManager: themeManager,
+                cornerRadius: UX.cornerRadius,
+                showColorPicker: $showBackgroundTintPicker
+            )
+        }
+
+        if shouldShowCustomTheming && UX.showCustomColorPickers {
+            ToolbarTintSectionView(
+                theme: currentTheme,
+                themeManager: themeManager,
+                cornerRadius: UX.cornerRadius,
+                showColorPicker: $showToolbarTintPicker
+            )
+        }
+
+        if shouldShowCustomTheming && UX.showCuratedThemes {
+            CuratedThemesSectionView(
+                theme: currentTheme,
+                themeManager: themeManager,
+                cornerRadius: UX.cornerRadius
+            )
+        }
+    }
+
+    @ViewBuilder
+    private var customizationSections: some View {
+        if shouldShowCustomTheming {
+            UnsplashWallpaperSectionView(
+                theme: currentTheme,
+                cornerRadius: UX.cornerRadius
+            )
+        }
+
+        WebsiteAppearanceSection(
+            theme: currentTheme,
+            onChange: setWebsiteDarkMode,
+            cornerRadius: UX.cornerRadius
+        )
+
+        if shouldShowPageZoom {
+            PageZoomSection(theme: currentTheme, cornerRadius: UX.cornerRadius) {
+                delegate?.pressedPageZoom()
+            }
         }
     }
 

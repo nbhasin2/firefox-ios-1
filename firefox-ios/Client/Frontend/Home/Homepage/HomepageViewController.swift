@@ -149,6 +149,7 @@ final class HomepageViewController: UIViewController,
     override func viewDidLoad() {
         super.viewDidLoad()
         configureWallpaperView()
+        configureUnsplashWallpaper()
         configureCollectionView()
         setupLayout()
         configureDataSource()
@@ -176,6 +177,7 @@ final class HomepageViewController: UIViewController,
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        UnsplashRefreshManager.shared.checkAndRefreshIfNeeded()
         store.dispatch(
             HomepageAction(
                 windowUUID: windowUUID,
@@ -432,6 +434,53 @@ final class HomepageViewController: UIViewController,
         // Height is authoritative from state and already includes the window-relative content offset.
         wallpaperHeightConstraint?.constant = availableWallpaperHeight
         wallpaperTopConstraint?.constant = -viewTopOffset
+    }
+
+    /// Sets up the wallpaper view: loads saved selection and listens for wallpaper and provider changes.
+    private func configureUnsplashWallpaper() {
+        // Load previously saved wallpaper (provider-agnostic via WallpaperKeys.currentPhotoId)
+        if let photoId = UserDefaults.standard.string(forKey: WallpaperKeys.currentPhotoId),
+           let image = WallpaperProviderManager.shared.activeProvider.loadSavedImage(photoId: photoId) {
+            wallpaperView.unsplashImage = image
+        }
+
+        // Listen for wallpaper selection changes from the Appearance settings
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(unsplashWallpaperDidChange(_:)),
+            name: .UnsplashWallpaperDidChange,
+            object: nil
+        )
+
+        // Clear wallpaper when the active provider is switched
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(wallpaperProviderDidChange),
+            name: .wallpaperProviderDidChange,
+            object: nil
+        )
+    }
+
+    @objc
+    private func wallpaperProviderDidChange() {
+        wallpaperView.unsplashImage = nil
+        reloadSectionHeaders()
+    }
+
+    @objc
+    private func unsplashWallpaperDidChange(_ notification: Notification) {
+        if let clear = notification.userInfo?["clear"] as? Bool, clear {
+            wallpaperView.unsplashImage = nil
+        } else if let image = notification.userInfo?["image"] as? UIImage {
+            wallpaperView.unsplashImage = image
+        }
+        reloadSectionHeaders()
+    }
+
+    /// Reloads all supplementary header views so blur/background pills update immediately.
+    private func reloadSectionHeaders() {
+        collectionView?.collectionViewLayout.invalidateLayout()
+        collectionView?.reloadData()
     }
 
     private func setupLayout() {
@@ -700,6 +749,25 @@ final class HomepageViewController: UIViewController,
         return newsAffordanceHeaderView
     }
 
+    /// Returns `true` when any wallpaper (legacy or provider-based) is selected or visible on the homepage.
+    /// Checks UserDefaults via WallpaperKeys so headers show the background even before
+    /// the async image finishes loading.
+    private var hasActiveWallpaper: Bool {
+        let hasLegacyWallpaper = homepageState.wallpaperState.wallpaperConfiguration.hasImage
+        let hasProviderWallpaper = UserDefaults.standard.string(
+            forKey: WallpaperKeys.currentPhotoId
+        ) != nil
+        return hasLegacyWallpaper || hasProviderWallpaper
+    }
+
+    /// Returns a copy of the given `SectionHeaderConfiguration` with `showsBlurBackground`
+    /// set according to whether a wallpaper is currently active.
+    private func wallpaperAwareHeaderState(_ state: SectionHeaderConfiguration) -> SectionHeaderConfiguration {
+        var updated = state
+        updated.showsBlurBackground = hasActiveWallpaper
+        return updated
+    }
+
     private func configureSectionHeader(
         for section: HomepageSection,
         with sectionLabelCell: LabelButtonHeaderView
@@ -707,7 +775,7 @@ final class HomepageViewController: UIViewController,
         switch section {
         case .topSites(let textColor, _, _):
             sectionLabelCell.configure(
-                state: homepageState.topSitesState.sectionHeaderState,
+                state: wallpaperAwareHeaderState(homepageState.topSitesState.sectionHeaderState),
                 moreButtonAction: { [weak self] _ in
                     self?.navigateToShortcutsLibrary()
                 },
@@ -717,7 +785,7 @@ final class HomepageViewController: UIViewController,
             return sectionLabelCell
         case .jumpBackIn(let textColor, _):
             sectionLabelCell.configure(
-                state: homepageState.jumpBackInState.sectionHeaderState,
+                state: wallpaperAwareHeaderState(homepageState.jumpBackInState.sectionHeaderState),
                 moreButtonAction: { [weak self] _ in
                     self?.navigateToTabTray(with: .tabs)
                 },
@@ -728,7 +796,7 @@ final class HomepageViewController: UIViewController,
             return sectionLabelCell
         case .bookmarks(let textColor):
             sectionLabelCell.configure(
-                state: homepageState.bookmarkState.sectionHeaderState,
+                state: wallpaperAwareHeaderState(homepageState.bookmarkState.sectionHeaderState),
                 moreButtonAction: { [weak self] _ in
                     self?.navigateToBookmarksPanel()
                 },
@@ -738,7 +806,7 @@ final class HomepageViewController: UIViewController,
             return sectionLabelCell
         case .pocket(let textColor):
             sectionLabelCell.configure(
-                state: homepageState.merinoState.sectionHeaderState,
+                state: wallpaperAwareHeaderState(homepageState.merinoState.sectionHeaderState),
                 moreButtonAction: { [weak self] _ in
                     self?.navigateToStoriesFeed()
                 },
@@ -1144,7 +1212,7 @@ final class HomepageViewController: UIViewController,
         else { return }
 
         jumpBackInContextualHintViewController.configure(
-            anchor: headerView.titleLabel,
+            anchor: headerView.titleButton,
             withArrowDirection: .down,
             andDelegate: self,
             presentedUsing: { [weak self] in

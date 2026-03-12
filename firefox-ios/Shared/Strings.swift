@@ -3118,6 +3118,39 @@ extension String {
                     value: "Reset Site Settings",
                     comment: "Button to reset specific zoom site levels back to default")
             }
+            public struct AccentColor {
+                public static let SectionHeader = MZLocalizedString(
+                    key: "Settings.Appearance.AccentColor.SectionHeader.v148",
+                    tableName: "Settings",
+                    value: "Accent Color",
+                    comment: "Header for the accent color selection section in Appearance settings")
+            }
+            public struct BackgroundTint {
+                public static let SectionHeader = MZLocalizedString(
+                    key: "Settings.Appearance.BackgroundTint.SectionHeader.v148",
+                    tableName: "Settings",
+                    value: "Background Color",
+                    comment: "Header for the background tint color selection section in Appearance settings")
+            }
+            public struct ToolbarTint {
+                public static let SectionHeader = MZLocalizedString(
+                    key: "Settings.Appearance.ToolbarTint.SectionHeader.v148",
+                    tableName: "Settings",
+                    value: "Toolbar Color",
+                    comment: "Header for the toolbar tint color selection section in Appearance settings")
+            }
+            public struct UnsplashWallpaper {
+                public static let SectionHeader = MZLocalizedString(
+                    key: "Settings.Appearance.UnsplashWallpaper.SectionHeader.v148",
+                    tableName: "Settings",
+                    value: "Wallpaper",
+                    comment: "Header for the Unsplash wallpaper selection section in Appearance settings")
+                public static let SearchPlaceholder = MZLocalizedString(
+                    key: "Settings.Appearance.UnsplashWallpaper.SearchPlaceholder.v148",
+                    tableName: "Settings",
+                    value: "Search wallpapers…",
+                    comment: "Placeholder text for the wallpaper search field in Appearance settings")
+            }
             public struct NavigationToolbar {
                 public static let SectionHeader = MZLocalizedString(
                     key: "Settings.Appearance.NavigationToolbar.SectionHeader.v145",

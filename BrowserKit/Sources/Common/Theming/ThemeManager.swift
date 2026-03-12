@@ -25,10 +25,44 @@ public protocol ThemeManager {
     /// instead of having to call the nimbus API each time. This should be removed once experiment is over.
     var isNewAppearanceMenuOn: Bool { get }
 
+    /// Whether the advanced custom theming system (accent color, background tint,
+    /// toolbar tint, Unsplash wallpapers) is enabled via Nimbus or debug toggle.
+    var isCustomThemingEnabled: Bool { get }
+
     // System theme and brightness settings
     var systemThemeIsOn: Bool { get }
     var automaticBrightnessIsOn: Bool { get }
     var automaticBrightnessValue: Float { get }
+
+    // Accent color
+    var accentColor: AccentColor { get }
+    @MainActor
+    func setAccentColor(_ color: AccentColor)
+    var customAccentColors: [String] { get }
+    @MainActor
+    func addCustomAccentColor(_ hex: String)
+    @MainActor
+    func removeCustomAccentColor(_ hex: String)
+
+    // Background tint color
+    var backgroundTintColor: AccentColor { get }
+    @MainActor
+    func setBackgroundTintColor(_ color: AccentColor)
+    var customBackgroundTintColors: [String] { get }
+    @MainActor
+    func addCustomBackgroundTintColor(_ hex: String)
+    @MainActor
+    func removeCustomBackgroundTintColor(_ hex: String)
+
+    // Toolbar tint color
+    var toolbarTintColor: AccentColor { get }
+    @MainActor
+    func setToolbarTintColor(_ color: AccentColor)
+    var customToolbarTintColors: [String] { get }
+    @MainActor
+    func addCustomToolbarTintColor(_ hex: String)
+    @MainActor
+    func removeCustomToolbarTintColor(_ hex: String)
 
     @MainActor
     func setSystemTheme(isOn: Bool)

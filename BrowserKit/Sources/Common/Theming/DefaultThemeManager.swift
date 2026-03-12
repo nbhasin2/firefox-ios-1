@@ -12,6 +12,12 @@ public final class DefaultThemeManager: ThemeManager, Notifiable {
         static let themeName = "prefKeyThemeName"
         static let systemThemeIsOn = "prefKeySystemThemeSwitchOnOff"
         static let hasMigratedToNewAppearanceMenu = "prefKeyhasMigratedToNewAppearanceMenu"
+        static let accentColor = "prefKeyAccentColor"
+        static let backgroundTintColor = "prefKeyBackgroundTintColor"
+        static let toolbarTintColor = "prefKeyToolbarTintColor"
+        static let customAccentColors = "prefKeyCustomAccentColors"
+        static let customBackgroundTintColors = "prefKeyCustomBackgroundTintColors"
+        static let customToolbarTintColors = "prefKeyCustomToolbarTintColors"
 
         enum AutomaticBrightness {
             static let isOn = "prefKeyAutomaticSwitchOnOff"
@@ -35,6 +41,7 @@ public final class DefaultThemeManager: ThemeManager, Notifiable {
     private var sharedContainerIdentifier: String
 
     private var isNewAppearanceMenuOnClosure: () -> Bool
+    private var isCustomThemingEnabledClosure: () -> Bool
 
     private var nightModeIsOn: Bool {
         return userDefaults.bool(forKey: ThemeKeys.NightMode.isOn)
@@ -56,8 +63,39 @@ public final class DefaultThemeManager: ThemeManager, Notifiable {
         return isNewAppearanceMenuOnClosure()
     }
 
+    public var isCustomThemingEnabled: Bool {
+        return isCustomThemingEnabledClosure()
+    }
+
     public var hasMigratedToNewAppearanceMenu: Bool {
         return userDefaults.bool(forKey: ThemeKeys.hasMigratedToNewAppearanceMenu)
+    }
+
+    public var accentColor: AccentColor {
+        guard let value = userDefaults.string(forKey: ThemeKeys.accentColor) else { return .blue }
+        return AccentColor.from(persistenceValue: value)
+    }
+
+    public var backgroundTintColor: AccentColor {
+        guard let value = userDefaults.string(forKey: ThemeKeys.backgroundTintColor) else { return .blue }
+        return AccentColor.from(persistenceValue: value)
+    }
+
+    public var toolbarTintColor: AccentColor {
+        guard let value = userDefaults.string(forKey: ThemeKeys.toolbarTintColor) else { return .blue }
+        return AccentColor.from(persistenceValue: value)
+    }
+
+    public var customAccentColors: [String] {
+        userDefaults.array(forKey: ThemeKeys.customAccentColors) as? [String] ?? []
+    }
+
+    public var customBackgroundTintColors: [String] {
+        userDefaults.array(forKey: ThemeKeys.customBackgroundTintColors) as? [String] ?? []
+    }
+
+    public var customToolbarTintColors: [String] {
+        userDefaults.array(forKey: ThemeKeys.customToolbarTintColors) as? [String] ?? []
     }
 
     // MARK: - Initializers
@@ -67,13 +105,15 @@ public final class DefaultThemeManager: ThemeManager, Notifiable {
         notificationCenter: NotificationProtocol = NotificationCenter.default,
         mainQueue: DispatchQueueInterface = DispatchQueue.main,
         sharedContainerIdentifier: String,
-        isNewAppearanceMenuOnClosure: @escaping () -> Bool = { false }
+        isNewAppearanceMenuOnClosure: @escaping () -> Bool = { false },
+        isCustomThemingEnabledClosure: @escaping () -> Bool = { false }
     ) {
         self.userDefaults = userDefaults
         self.notificationCenter = notificationCenter
         self.mainQueue = mainQueue
         self.sharedContainerIdentifier = sharedContainerIdentifier
         self.isNewAppearanceMenuOnClosure = isNewAppearanceMenuOnClosure
+        self.isCustomThemingEnabledClosure = isCustomThemingEnabledClosure
 
         self.userDefaults.register(defaults: [
             ThemeKeys.systemThemeIsOn: true,
@@ -157,6 +197,84 @@ public final class DefaultThemeManager: ThemeManager, Notifiable {
         applyThemeUpdatesToWindows()
     }
 
+    // MARK: - Accent color functions
+    public func setAccentColor(_ color: AccentColor) {
+        userDefaults.set(color.persistenceValue, forKey: ThemeKeys.accentColor)
+        applyThemeUpdatesToWindows()
+    }
+
+    // MARK: - Background tint color functions
+    public func setBackgroundTintColor(_ color: AccentColor) {
+        userDefaults.set(color.persistenceValue, forKey: ThemeKeys.backgroundTintColor)
+        applyThemeUpdatesToWindows()
+    }
+
+    // MARK: - Toolbar tint color functions
+    public func setToolbarTintColor(_ color: AccentColor) {
+        userDefaults.set(color.persistenceValue, forKey: ThemeKeys.toolbarTintColor)
+        applyThemeUpdatesToWindows()
+    }
+
+    // MARK: - Custom accent color functions
+    public func addCustomAccentColor(_ hex: String) {
+        var colors = customAccentColors
+        guard !colors.contains(hex) else { return }
+        colors.append(hex)
+        userDefaults.set(colors, forKey: ThemeKeys.customAccentColors)
+        setAccentColor(.custom(hex: hex))
+    }
+
+    public func removeCustomAccentColor(_ hex: String) {
+        var colors = customAccentColors
+        colors.removeAll { $0 == hex }
+        userDefaults.set(colors, forKey: ThemeKeys.customAccentColors)
+        if accentColor == .custom(hex: hex) {
+            setAccentColor(.blue)
+        } else {
+            applyThemeUpdatesToWindows()
+        }
+    }
+
+    // MARK: - Custom background tint color functions
+    public func addCustomBackgroundTintColor(_ hex: String) {
+        var colors = customBackgroundTintColors
+        guard !colors.contains(hex) else { return }
+        colors.append(hex)
+        userDefaults.set(colors, forKey: ThemeKeys.customBackgroundTintColors)
+        setBackgroundTintColor(.custom(hex: hex))
+    }
+
+    public func removeCustomBackgroundTintColor(_ hex: String) {
+        var colors = customBackgroundTintColors
+        colors.removeAll { $0 == hex }
+        userDefaults.set(colors, forKey: ThemeKeys.customBackgroundTintColors)
+        if backgroundTintColor == .custom(hex: hex) {
+            setBackgroundTintColor(.blue)
+        } else {
+            applyThemeUpdatesToWindows()
+        }
+    }
+
+    // MARK: - Custom toolbar tint color functions
+    public func addCustomToolbarTintColor(_ hex: String) {
+        var colors = customToolbarTintColors
+        guard !colors.contains(hex) else { return }
+        colors.append(hex)
+        userDefaults.set(colors, forKey: ThemeKeys.customToolbarTintColors)
+        setToolbarTintColor(.custom(hex: hex))
+    }
+
+    public func removeCustomToolbarTintColor(_ hex: String) {
+        var colors = customToolbarTintColors
+        colors.removeAll { $0 == hex }
+        userDefaults.set(colors, forKey: ThemeKeys.customToolbarTintColors)
+        if toolbarTintColor == .custom(hex: hex) {
+            setToolbarTintColor(.blue)
+        } else {
+            applyThemeUpdatesToWindows()
+        }
+    }
+
     private func getThemeTypeBasedOnBrightness() -> ThemeType {
         return Float(UIScreen.main.brightness) < automaticBrightnessValue ? .dark : .light
     }
@@ -220,16 +338,39 @@ public final class DefaultThemeManager: ThemeManager, Notifiable {
     }
 
     private func getThemeFrom(type: ThemeType) -> Theme {
+        let baseTheme: Theme
         switch type {
         case .light:
-            return LightTheme()
+            baseTheme = LightTheme()
         case .dark:
-            return DarkTheme()
+            baseTheme = DarkTheme()
         case .nightMode:
-            return NightModeTheme()
+            baseTheme = NightModeTheme()
         case .privateMode:
-            return PrivateModeTheme()
+            baseTheme = PrivateModeTheme()
         }
+
+        // Only apply tinting to light and dark themes.
+        // Private mode and night mode retain their hardcoded palettes.
+        guard type == .light || type == .dark else { return baseTheme }
+
+        let accent = accentColor
+        let bgTint = backgroundTintColor
+        let hasTinting = !accent.isDefault || !bgTint.isDefault
+
+        if hasTinting {
+            let resolvedBgTint: UIColor? = bgTint.isDefault ? nil : bgTint.color(for: type)
+            return TintedTheme(
+                type: type,
+                colors: TintedThemeColourPalette(
+                    base: baseTheme.colors,
+                    accent: accent.isDefault ? baseTheme.colors.actionPrimary : accent.color(for: type),
+                    themeType: type,
+                    backgroundTint: resolvedBgTint
+                )
+            )
+        }
+        return baseTheme
     }
 
     // MARK: - Notifiable

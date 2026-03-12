@@ -21,6 +21,7 @@ final class FeatureFlagsDebugViewController: SettingsTableViewController, Featur
     override func generateSettings() -> [SettingSection] {
         return [
             generateFeatureFlagToggleSettings(),
+            generateUnsplashKeySettings(),
             generateDefaultBrowserStatusDisplay(),
             generateFeatureFlagList()
         ]
@@ -48,6 +49,14 @@ final class FeatureFlagsDebugViewController: SettingsTableViewController, Featur
                 with: .appearanceMenu,
                 titleText: format(string: "Appearance Menu"),
                 statusText: format(string: "Toggle to show the new apperance menu")
+            ) { [weak self] _ in
+                self?.reloadView()
+            },
+            FeatureFlagsBoolSetting(
+                with: .customThemingFeature,
+                titleText: format(string: "Custom Theming"),
+                statusText: format(string: "Toggle to enable advanced accent color, background tint, " +
+                                           "toolbar tint, and Unsplash wallpapers in Appearance settings")
             ) { [weak self] _ in
                 self?.reloadView()
             },
@@ -304,6 +313,39 @@ final class FeatureFlagsDebugViewController: SettingsTableViewController, Featur
         return SettingSection(
             title: nil,
             children: children
+        )
+    }
+
+    private func generateUnsplashKeySettings() -> SettingSection {
+        let providerToggle = WallpaperProviderToggleSetting { [weak self] in
+            self?.reloadView()
+        }
+        let pexelsKey = PexelsKeyTextSetting(
+            title: "Pexels API Key",
+            keyTitle: "Pexels API Key",
+            prefKey: PrefsKeys.CustomTheming.pexelsApiKey
+        ) { [weak self] in
+            self?.reloadView()
+        }
+        let unsplashKeys: [(title: String, prefKey: String)] = [
+            ("Unsplash App ID", PrefsKeys.CustomTheming.unsplashAppId),
+            ("Unsplash Access Key", PrefsKeys.CustomTheming.unsplashAccessKey),
+            ("Unsplash Secret Key", PrefsKeys.CustomTheming.unsplashSecretKey)
+        ]
+        let unsplashRows: [Setting] = unsplashKeys.map { item in
+            let saved = UserDefaults.standard.string(forKey: item.prefKey) ?? ""
+            let display = saved.isEmpty ? "(not set)" : saved
+            return UnsplashKeyTextSetting(
+                title: format(string: "\(item.title): \(display)"),
+                keyTitle: item.title,
+                prefKey: item.prefKey
+            ) { [weak self] in
+                self?.reloadView()
+            }
+        }
+        return SettingSection(
+            title: NSAttributedString(string: "Wallpaper Provider"),
+            children: [providerToggle, pexelsKey] + unsplashRows
         )
     }
 
