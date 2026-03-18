@@ -1546,8 +1546,8 @@ settings_menu:
     expires: never
 
 # BrowserKit data import/export (iOS 26.4+)
-browser_kit:
-  import_started:
+browser_kit_import:
+  started:
     type: event
     description: |
       Recorded when the user initiates a BrowserKit browser data import
@@ -1560,7 +1560,7 @@ browser_kit:
     notification_emails:
       - fx-ios-data-stewards@mozilla.com
     expires: "2027-01-01"
-  import_completed:
+  completed:
     type: event
     description: |
       Recorded when a BrowserKit browser data import finishes successfully.
@@ -1582,7 +1582,7 @@ browser_kit:
       reading_list_count:
         type: quantity
         description: Number of reading list items imported.
-  import_failed:
+  failed:
     type: event
     description: |
       Recorded when a BrowserKit browser data import fails with an error.

@@ -61,7 +61,7 @@ final class BrowserKitImportViewModel {
     // importBrowserData(withToken:importBlock:) is marked NS_REFINED_FOR_SWIFT.
     // The Swift API is importBrowserData(token:) returning AsyncThrowingStream<BEBrowserData, Error>.
     func handleImport(token: UUID) async {
-        GleanMetrics.BrowserKit.importStarted.record()
+        GleanMetrics.BrowserKitImport.started.record()
         do {
             for try await data in importManager.importBrowserData(token: token) {
                 await process(data)
@@ -71,8 +71,8 @@ final class BrowserKitImportViewModel {
             if !pendingExtensions.isEmpty {
                 await promptForExtensions()
             }
-            GleanMetrics.BrowserKit.importCompleted.record(
-                GleanMetrics.BrowserKit.ImportCompletedExtra(
+            GleanMetrics.BrowserKitImport.completed.record(
+                GleanMetrics.BrowserKitImport.CompletedExtra(
                     bookmarksCount: Int64(progress.bookmarks),
                     historyCount: Int64(progress.history),
                     readingListCount: Int64(progress.readingList)
@@ -81,8 +81,8 @@ final class BrowserKitImportViewModel {
             onComplete?()
         } catch {
             let nsError = error as NSError
-            GleanMetrics.BrowserKit.importFailed.record(
-                GleanMetrics.BrowserKit.ImportFailedExtra(
+            GleanMetrics.BrowserKitImport.failed.record(
+                GleanMetrics.BrowserKitImport.FailedExtra(
                     errorCode: Int64(nsError.code),
                     errorDomain: nsError.domain
                 )
