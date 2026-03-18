@@ -168,6 +168,10 @@ class AppSettingsTableViewController: SettingsTableViewController,
             authenticateUserFor(route: route)
         case .rateApp:
             RatingPromptManager.goToAppStoreReview()
+        case .browserKitImport:
+            if #available(iOS 26.4, *) {
+                parentCoordinator?.pressedImportBrowsingData()
+            }
         default:
             break
         }
@@ -403,6 +407,17 @@ class AppSettingsTableViewController: SettingsTableViewController,
 
         if featureFlags.isFeatureEnabled(.translation, checking: .buildOnly) {
             generalSettings.append(TranslationSetting(settings: self, settingsDelegate: parentCoordinator))
+        }
+
+        // BrowserKit import (iOS 26.4+, feature flagged)
+        if #available(iOS 26.4, *),
+           featureFlags.isFeatureEnabled(.browserKitDataTransfer, checking: .buildOnly) {
+            generalSettings.append(
+                ImportBrowsingDataSetting(
+                    settings: self,
+                    settingsDelegate: parentCoordinator
+                )
+            )
         }
 
         generalSettings += [
