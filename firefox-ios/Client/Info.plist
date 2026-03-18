@@ -129,6 +129,9 @@
 	<array>
 		<string>QuickActionIntent</string>
 		<string>org.mozilla.ios.firefox.browsing</string>
+		<!-- BrowserKit data transfer (iOS 26.4+) -->
+		<string>BEBrowserDataExchangeExportActivity</string>
+		<string>BEBrowserDataExchangeImportActivity</string>
 	</array>
 	<key>NimbusURL</key>
 	<string>$(NIMBUS_URL)</string>
