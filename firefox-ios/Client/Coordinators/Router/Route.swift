@@ -80,11 +80,12 @@ enum Route {
     }
 
     /// Represents a BrowserKit data exchange route (iOS 26.4+).
+    /// Note: @available cannot be applied to enum cases with associated values in Swift.
+    /// Callers must guard with `if #available(iOS 26.4, *)` before constructing or handling this case.
     ///
     /// - Parameters:
     ///   - direction: Whether this is an import or export operation.
     ///   - token: The UUID token from the NSUserActivity userInfo.
-    @available(iOS 26.4, *)
     case browserKitExchange(_ direction: BrowserKitExchangeDirection, token: UUID)
 
     /// An enumeration representing different sections of the home panel.
