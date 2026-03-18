@@ -1545,6 +1545,63 @@ settings_menu:
       - fx-ios-data-stewards@mozilla.com
     expires: never
 
+# BrowserKit data import/export (iOS 26.4+)
+browser_kit:
+  import_started:
+    type: event
+    description: |
+      Recorded when the user initiates a BrowserKit browser data import
+      by tapping the Import Browsing Data setting row and receiving a
+      valid import token from the system sheet.
+    bugs:
+      - https://github.com/mozilla-mobile/firefox-ios/issues/DMA-258
+    data_reviews:
+      - https://github.com/mozilla-mobile/firefox-ios/issues/DMA-258
+    notification_emails:
+      - fx-ios-data-stewards@mozilla.com
+    expires: "2027-01-01"
+  import_completed:
+    type: event
+    description: |
+      Recorded when a BrowserKit browser data import finishes successfully.
+      Extra fields capture the counts of imported items per data type.
+    bugs:
+      - https://github.com/mozilla-mobile/firefox-ios/issues/DMA-258
+    data_reviews:
+      - https://github.com/mozilla-mobile/firefox-ios/issues/DMA-258
+    notification_emails:
+      - fx-ios-data-stewards@mozilla.com
+    expires: "2027-01-01"
+    extra_keys:
+      bookmarks_count:
+        type: quantity
+        description: Number of bookmarks imported.
+      history_count:
+        type: quantity
+        description: Number of history entries imported.
+      reading_list_count:
+        type: quantity
+        description: Number of reading list items imported.
+  import_failed:
+    type: event
+    description: |
+      Recorded when a BrowserKit browser data import fails with an error.
+      Extra fields capture the error domain and code for diagnosis.
+    bugs:
+      - https://github.com/mozilla-mobile/firefox-ios/issues/DMA-258
+    data_reviews:
+      - https://github.com/mozilla-mobile/firefox-ios/issues/DMA-258
+    notification_emails:
+      - fx-ios-data-stewards@mozilla.com
+    expires: "2027-01-01"
+    extra_keys:
+      error_domain:
+        type: string
+        description: Error domain string from the NSError or Swift error.
+      error_code:
+        type: quantity
+        description: Integer error code from the NSError.
+
 # Sync
 sync:
   open_tab:
