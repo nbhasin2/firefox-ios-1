@@ -410,6 +410,13 @@ class AppSettingsTableViewController: SettingsTableViewController,
         }
 
         // BrowserKit import (iOS 26.4+, feature flagged)
+        // Note: We intentionally do NOT call BEAvailability.checkAvailability() here.
+        // BEAvailability is an async eligibility API (iOS 18.4+) that checks whether the
+        // device/account is permitted to exchange browser data. We show the setting row
+        // unconditionally once the OS version and feature-flag criteria are met; the
+        // system-presented BEBrowserDataImportManager sheet enforces eligibility at tap time.
+        // Doing an async eligibility probe on every settings render would be expensive and
+        // is unnecessary — the sheet will gracefully handle ineligible devices.
         if #available(iOS 26.4, *),
            featureFlags.isFeatureEnabled(.browserKitDataTransfer, checking: .buildOnly) {
             generalSettings.append(
