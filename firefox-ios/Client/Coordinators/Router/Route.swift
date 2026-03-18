@@ -73,6 +73,20 @@ enum Route {
     ///   - shareMessage: An optional plain text share message to be shared.
     case sharesheet(shareType: ShareType, shareMessage: ShareMessage?)
 
+    /// Represents the direction of a BrowserKit data exchange.
+    enum BrowserKitExchangeDirection {
+        case `import`
+        case export
+    }
+
+    /// Represents a BrowserKit data exchange route (iOS 26.4+).
+    ///
+    /// - Parameters:
+    ///   - direction: Whether this is an import or export operation.
+    ///   - token: The UUID token from the NSUserActivity userInfo.
+    @available(iOS 26.4, *)
+    case browserKitExchange(_ direction: BrowserKitExchangeDirection, token: UUID)
+
     /// An enumeration representing different sections of the home panel.
     enum HomepanelSection: String, CaseIterable, Equatable {
         case bookmarks
@@ -110,6 +124,7 @@ enum Route {
         case search
         case relayMask
         case browser
+        case browserKitImport = "browserkit-import"
         case theme
         case toolbar
         case topSites
