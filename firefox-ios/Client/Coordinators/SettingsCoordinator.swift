@@ -468,6 +468,21 @@ final class SettingsCoordinator: BaseCoordinator,
         router.push(viewController)
     }
 
+    func pressedImportBrowsingData() {
+        guard #available(iOS 26.4, *) else { return }
+        let viewModel = BrowserKitImportViewModel(profile: profile)
+        let viewController = BrowserKitImportViewController(viewModel: viewModel, windowUUID: windowUUID)
+        router.push(viewController)
+    }
+
+    // MARK: - BrowserKit (iOS 26.4+)
+
+    @available(iOS 26.4, *)
+    func handleBrowserKitExport(token: UUID) {
+        let viewController = BrowserKitExportViewController(token: token, profile: profile, windowUUID: windowUUID)
+        router.present(viewController)
+    }
+
     // MARK: AccountSettingsDelegate
 
     func pressedConnectSetting() {
