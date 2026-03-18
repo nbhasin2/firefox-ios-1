@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
+import BrowserKit
 import CoreSpotlight
 import Foundation
 import Glean
@@ -204,6 +205,23 @@ final class RouteBuilder: FeatureFlaggable, @unchecked Sendable {
                 return nil
             }
             return .search(url: url, isPrivate: false)
+        }
+
+        // BrowserKit data transfer (iOS 26.4+)
+        if #available(iOS 26.4, *) {
+            if userActivity.activityType == BEBrowserDataImportManager.userActivityType {
+                guard let tokenUUID = userActivity.userInfo?[BEBrowserDataImportManager.importTokenUserInfoKey] as? UUID else {
+                    return nil
+                }
+                return .browserKitExchange(.import, token: tokenUUID)
+            }
+
+            if userActivity.activityType == BEBrowserDataExportManager.userActivityType {
+                guard let tokenUUID = userActivity.userInfo?[BEBrowserDataExportManager.exportTokenUserInfoKey] as? UUID else {
+                    return nil
+                }
+                return .browserKitExchange(.export, token: tokenUUID)
+            }
         }
 
         // If the user activity does not match any of the above criteria, return nil to indicate that
