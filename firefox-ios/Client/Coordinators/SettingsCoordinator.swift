@@ -478,6 +478,15 @@ final class SettingsCoordinator: BaseCoordinator,
     // MARK: - BrowserKit (iOS 26.4+)
 
     @available(iOS 26.4, *)
+    func handleBrowserKitImportToken(token: UUID) async {
+        // Find BrowserKitImportViewController on the navigation stack if present
+        if let importVC = router.navigationController.viewControllers
+            .compactMap({ $0 as? BrowserKitImportViewController }).last {
+            await importVC.viewModel.handleImport(token: token)
+        }
+    }
+
+    @available(iOS 26.4, *)
     func handleBrowserKitExport(token: UUID) {
         let viewController = BrowserKitExportViewController(token: token, profile: profile, windowUUID: windowUUID)
         router.present(viewController)

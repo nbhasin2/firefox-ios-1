@@ -303,6 +303,9 @@ final class BrowserCoordinator: BaseCoordinator,
             return true
         case let .settings(section):
             return canHandleSettings(with: section)
+        case .browserKitExchange:
+            if #available(iOS 26.4, *) { return true }
+            return false
         }
     }
 
@@ -356,6 +359,11 @@ final class BrowserCoordinator: BaseCoordinator,
                 applicationHelper.openSettings()
             case .tutorial:
                 startLaunch(with: .defaultBrowser)
+            }
+
+        case let .browserKitExchange(direction, token):
+            if #available(iOS 26.4, *) {
+                handleBrowserKitExchange(direction: direction, token: token)
             }
         }
     }
@@ -425,6 +433,19 @@ final class BrowserCoordinator: BaseCoordinator,
             toastContainer: browserViewController.contentContainer,
             popoverArrowDirection: .any
         )
+    }
+
+    @available(iOS 26.4, *)
+    private func handleBrowserKitExchange(direction: BrowserKitExchangeDirection, token: UUID) {
+        let settingsCoordinator = childCoordinators[SettingsCoordinator.self]
+        switch direction {
+        case .import:
+            guard let settingsCoordinator else { return }
+            Task { await settingsCoordinator.handleBrowserKitImportToken(token: token) }
+        case .export:
+            guard let settingsCoordinator else { return }
+            settingsCoordinator.handleBrowserKitExport(token: token)
+        }
     }
 
     private func canHandleSettings(with section: Route.SettingsSection) -> Bool {
