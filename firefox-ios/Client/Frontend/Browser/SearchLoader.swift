@@ -92,13 +92,14 @@ final class SearchLoader: Loader<Cursor<Site>, SearchViewModel>, FeatureFlaggabl
 
             getBookmarksAsSites(matchingSearchQuery: query, limit: 5) { bookmarks in
                 ensureMainThread { [weak self] in
-                    guard let query = self?.query else { return }
+                    guard let self else { return }
+                    guard let query = self.query else { return }
 
-                    self?.getHistoryAsSites(matchingSearchQuery: query, limit: 100) { history in
-                        ensureMainThread { [weak self] in
+                    self.getHistoryAsSites(matchingSearchQuery: query, limit: 100) { history in
+                        ensureMainThread { [self] in
                             // Build queries entirely on main thread to satisfy Swift 6 Sendable checking
                             let queries = [bookmarks, history]
-                            self?.updateUIWithBookmarksAsSitesResults(
+                            self.updateUIWithBookmarksAsSitesResults(
                                 queries: queries,
                                 timerid: timerid,
                                 oldValue: oldValue
