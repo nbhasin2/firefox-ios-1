@@ -4,6 +4,10 @@
 
 import BrowserKit
 import Common
+import class MozillaAppServices.BookmarkFolderData
+import class MozillaAppServices.BookmarkItemData
+import class MozillaAppServices.BookmarkNodeData
+import struct MozillaAppServices.VisitTransitionSet
 import Storage
 import UIKit
 
@@ -40,14 +44,19 @@ final class BrowserKitExportViewController: UIViewController {
     // MARK: - Export flow
 
     private func startExport() async {
-        // TODO: Query profile.places for real counts before shipping
+        // Fetch real item counts so the system sheet can display accurate numbers.
         // IMPORTANT: parameter label is supportForExportToFiles (not supportingExportToFiles as docs say)
+        async let bookmarkCount = fetchBookmarkCount()
+        async let historyCount = fetchHistoryCount()
+        async let readingListCount = fetchReadingListCount()
+        let counts = await (bookmarks: bookmarkCount, history: historyCount, readingList: readingListCount)
+
         let metadata = BEExportMetadata(
             supportForExportToFiles: false,
-            bookmarksCount: 0,
-            readingListCount: 0,
-            historyCount: 0,
-            extensionsCount: 0
+            bookmarksCount: counts.bookmarks,
+            readingListCount: counts.readingList,
+            historyCount: counts.history,
+            extensionsCount: 0   // Firefox iOS has no exportable extensions
         )
 
         guard let options = try? await requestExport(metadata: metadata) else { return }
@@ -70,22 +79,151 @@ final class BrowserKitExportViewController: UIViewController {
         }
     }
 
-    // MARK: - Data streaming stubs (Task 16)
+    // MARK: - Count prefetch helpers
+
+    private func fetchBookmarkCount() async -> Int {
+        await withCheckedContinuation { continuation in
+            profile.places.getBookmarksTree(
+                rootGUID: BookmarkRoots.MobileFolderGUID,
+                recursive: true
+            ) { result in
+                guard let root = try? result.get() as? BookmarkFolderData else {
+                    continuation.resume(returning: 0)
+                    return
+                }
+                continuation.resume(returning: countBookmarkNodes(root))
+            }
+        }
+    }
+
+    private func countBookmarkNodes(_ node: BookmarkNodeData) -> Int {
+        if let folder = node as? BookmarkFolderData {
+            return (folder.children ?? []).reduce(0) { $0 + countBookmarkNodes($1) }
+        }
+        return 1
+    }
+
+    private func fetchHistoryCount() async -> Int {
+        // Use a large page to approximate total; exact count is not exposed directly.
+        await withCheckedContinuation { continuation in
+            profile.places.getSitesWithBound(
+                limit: 10_000,
+                offset: 0,
+                excludedTypes: VisitTransitionSet(0)
+            ).upon { result in
+                continuation.resume(returning: result.successValue?.asArray().count ?? 0)
+            }
+        }
+    }
+
+    private func fetchReadingListCount() async -> Int {
+        await withCheckedContinuation { continuation in
+            profile.readingList.getAvailableRecords(completion: { records in
+                continuation.resume(returning: records.count)
+            })
+        }
+    }
+
+    // MARK: - Data streaming
 
     private func streamBookmarks() async {
-        // TODO (Task 16): Query profile.places.getBookmarksTree(rootGUID: BookmarkRoots.MobileFolderGUID, recursive: true)
-        // Walk tree, call exportManager?.exportBrowserData() for each node
+        await withCheckedContinuation { continuation in
+            profile.places.getBookmarksTree(
+                rootGUID: BookmarkRoots.MobileFolderGUID,
+                recursive: true
+            ) { [weak self] result in
+                guard let self, let root = try? result.get() else {
+                    continuation.resume()
+                    return
+                }
+                Task {
+                    await self.exportBookmarkNode(root)
+                    continuation.resume()
+                }
+            }
+        }
+    }
+
+    private func exportBookmarkNode(_ node: BookmarkNodeData) async {
+        if let folder = node as? BookmarkFolderData {
+            let data = BEBrowserDataBookmark()
+            data.isFolder = true
+            data.title = folder.title
+            data.identifier = folder.guid
+            data.parentIdentifier = folder.parentGUID
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                exportManager?.exportBrowserData(data) { _ in continuation.resume() }
+            }
+            for child in folder.children ?? [] {
+                await exportBookmarkNode(child)
+            }
+        } else if let item = node as? BookmarkItemData {
+            let data = BEBrowserDataBookmark()
+            data.isFolder = false
+            data.title = item.title
+            data.url = URL(string: item.url)
+            data.identifier = item.guid
+            data.parentIdentifier = item.parentGUID
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                exportManager?.exportBrowserData(data) { _ in continuation.resume() }
+            }
+        }
     }
 
     private func streamHistory() async {
-        // TODO (Task 16): Query profile.places history
-        // Create BEBrowserDataHistoryVisit per entry
-        // Call exportManager?.exportBrowserData() for each
+        await withCheckedContinuation { continuation in
+            profile.places.getSitesWithBound(
+                limit: 10_000,
+                offset: 0,
+                excludedTypes: VisitTransitionSet(0)
+            ).upon { [weak self] result in
+                guard let self else {
+                    continuation.resume()
+                    return
+                }
+                let sites = result.successValue?.asArray() ?? []
+                Task {
+                    for site in sites {
+                        guard let url = URL(string: site.url),
+                              let visit = site.latestVisit else { continue }
+                        let data = BEBrowserDataHistoryVisit()
+                        data.url = url
+                        data.title = site.title
+                        data.httpGet = visit.type == .link
+                        // Visit.date is microseconds since epoch; BEBrowserDataHistoryVisit.dateOfLastVisit is Date
+                        data.dateOfLastVisit = Date(timeIntervalSince1970: Double(visit.date) / 1_000_000)
+                        data.loadedSuccessfully = true
+                        await withCheckedContinuation { (c: CheckedContinuation<Void, Never>) in
+                            self.exportManager?.exportBrowserData(data) { _ in c.resume() }
+                        }
+                    }
+                    continuation.resume()
+                }
+            }
+        }
     }
 
     private func streamReadingList() async {
-        // TODO (Task 16): Query profile.readingList.getAvailableRecords()
-        // Create BEBrowserDataReadingListItem per record
-        // Call exportManager?.exportBrowserData() for each
+        await withCheckedContinuation { continuation in
+            profile.readingList.getAvailableRecords { [weak self] records in
+                guard let self else {
+                    continuation.resume()
+                    return
+                }
+                Task {
+                    for record in records {
+                        guard let url = URL(string: record.url) else { continue }
+                        let data = BEBrowserDataReadingListItem()
+                        data.url = url
+                        data.title = record.title
+                        data.sourceApplicationBundleIdentifier = record.addedBy
+                        await withCheckedContinuation { (c: CheckedContinuation<Void, Never>) in
+                            self.exportManager?.exportBrowserData(data) { _ in c.resume() }
+                        }
+                    }
+                    continuation.resume()
+                }
+            }
+        }
     }
 }
