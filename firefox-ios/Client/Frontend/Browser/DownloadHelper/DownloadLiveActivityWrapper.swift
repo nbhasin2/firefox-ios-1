@@ -22,7 +22,9 @@ class DownloadLiveActivityWrapper: DownloadProgressDelegate {
 
     let throttler: ConcurrencyThrottlerProtocol = ConcurrencyThrottler(seconds: UX.updateCooldown)
 
-    var downloadLiveActivity: Activity<DownloadLiveActivityAttributes>?
+    // `Activity` manages its own internal synchronization; nonisolated(unsafe) suppresses
+    // the false-positive Sendable warning when passing it across the MainActor boundary.
+    nonisolated(unsafe) var downloadLiveActivity: Activity<DownloadLiveActivityAttributes>?
 
     var downloadProgressManager: DownloadProgressManager
 
@@ -57,14 +59,16 @@ class DownloadLiveActivityWrapper: DownloadProgressDelegate {
             let contentState = DownloadLiveActivityAttributes.ContentState(downloads: downloadsStates)
             await update()
             try await Task.sleep(nanoseconds: durationToDismissal.rawValue)
-            await downloadLiveActivity?.end(using: contentState, dismissalPolicy: .immediate)
+            let activity = downloadLiveActivity
+            await activity?.end(using: contentState, dismissalPolicy: .immediate)
         }
     }
 
     private func update() async {
         let downloadsStates = DownloadLiveActivityUtil.buildContentState(downloads: downloadProgressManager.downloads)
         let contentState = DownloadLiveActivityAttributes.ContentState(downloads: downloadsStates)
-        await self.downloadLiveActivity?.update(using: contentState)
+        let activity = downloadLiveActivity
+        await activity?.update(using: contentState)
     }
 
     func updateCombinedBytesDownloaded(value: Int64) {
