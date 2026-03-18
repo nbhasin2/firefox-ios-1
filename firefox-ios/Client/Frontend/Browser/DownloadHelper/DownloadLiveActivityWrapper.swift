@@ -52,7 +52,7 @@ class DownloadLiveActivityWrapper: DownloadProgressDelegate {
     }
 
     func end(durationToDismissal: DurationToDismissal) {
-        Task {
+        Task { @MainActor in
             let downloadsStates = DownloadLiveActivityUtil.buildContentState(downloads: downloadProgressManager.downloads)
             let contentState = DownloadLiveActivityAttributes.ContentState(downloads: downloadsStates)
             await update()
