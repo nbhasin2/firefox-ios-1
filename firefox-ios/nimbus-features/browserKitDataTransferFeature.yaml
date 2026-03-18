@@ -1,0 +1,23 @@
+# The configuration for the browserKitDataTransfer feature
+features:
+  browser-kit-data-transfer:
+    description: >
+      Enables BrowserKit-based browser-to-browser data import/export (iOS 26.4+).
+      Includes the "Import Browsing Data" settings entry and NSUserActivity handlers
+      for both import and export directions. Kill-switch defaults to false on release.
+    variables:
+      enabled:
+        description: >
+          Kill-switch for the entire BrowserKit data transfer feature.
+        type: Boolean
+        default: false
+    defaults:
+      - channel: release
+        value:
+          enabled: false
+      - channel: beta
+        value:
+          enabled: true
+      - channel: developer
+        value:
+          enabled: true

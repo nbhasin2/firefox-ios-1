@@ -18,6 +18,7 @@ include:
   - nimbus-features/adsClient.yaml
   - nimbus-features/aiKillSwitchFeature.yaml
   - nimbus-features/appIconSelectionFeature.yaml
+  - nimbus-features/browserKitDataTransferFeature.yaml
   - nimbus-features/appleSummarizerFeature.yaml
   - nimbus-features/deeplinkOptimizationRefactorFeature.yaml
   - nimbus-features/defaultZoomFeature.yaml

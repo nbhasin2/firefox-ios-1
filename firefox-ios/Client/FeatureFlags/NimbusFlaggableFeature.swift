@@ -17,6 +17,7 @@ enum NimbusFeatureFlagID: String, CaseIterable {
     case appearanceMenu
     case appIconSelection
     case bottomSearchBar
+    case browserKitDataTransfer
     case deeplinkOptimizationRefactor
     case defaultZoomFeature
     case downloadLiveActivities
@@ -167,6 +168,7 @@ struct NimbusFlaggableFeature: HasNimbusSearchBar {
                 .addressAutofillEdit,
                 .addressBarMenu,
                 .adsClient,
+                .browserKitDataTransfer,
                 .deeplinkOptimizationRefactor,
                 .defaultZoomFeature,
                 .downloadLiveActivities,
