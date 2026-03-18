@@ -716,6 +716,10 @@ struct AccessibilityIdentifiers {
             static let title = "YourRights"
         }
 
+        struct ImportBrowsingData {
+            static let title = "ImportBrowsingDataSettings"
+        }
+
         struct Siri {
             static let title = "SiriSettings"
         }

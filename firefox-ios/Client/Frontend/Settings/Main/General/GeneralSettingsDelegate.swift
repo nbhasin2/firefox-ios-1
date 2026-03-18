@@ -38,4 +38,7 @@ protocol GeneralSettingsDelegate: AnyObject {
 
     @MainActor
     func pressedAutoFillsPasswords()
+
+    @MainActor
+    func pressedImportBrowsingData()
 }

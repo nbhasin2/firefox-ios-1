@@ -865,6 +865,9 @@
 /* General settings section title */
 "Settings.General.SectionName" = "General";
 
+/* Title for the import browsing data setting row in General Settings. Tapping opens the iOS BrowserKit import sheet (iOS 26.4+). */
+"Settings.ImportBrowsingData.Title.v140" = "Import Browsing Data";
+
 /* Label used as an item in Settings. When touched it will open a dialog to configure the home page and its uses. */
 "Settings.HomePage.SectionName" = "Homepage";
 

@@ -2779,6 +2779,15 @@ extension String {
         }
 
         public struct General {
+            public struct ImportBrowsingData {
+                public static let Title = MZLocalizedString(
+                    key: "Settings.ImportBrowsingData.Title.v140",
+                    tableName: "Settings",
+                    value: "Import Browsing Data",
+                    comment: "Title for the import browsing data setting row in General Settings. Tapping opens the iOS BrowserKit import sheet (iOS 26.4+)."
+                )
+            }
+
             public struct ScrollToHideTabAndAddressBar {
                 public static let Title = MZLocalizedString(
                     key: "Settings.ScrollToHideTabAndAddressBar.Title.v138",
