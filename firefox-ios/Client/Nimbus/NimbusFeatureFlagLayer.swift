@@ -34,6 +34,9 @@ final class NimbusFeatureFlagLayer: Sendable {
         case .bottomSearchBar:
             return checkAwesomeBarFeature(for: featureID, from: nimbus)
 
+        case .browserKitDataTransfer:
+            return checkBrowserKitDataTransferFeature(from: nimbus)
+
         case .deeplinkOptimizationRefactor:
             return checkDeeplinkOptimizationRefactorFeature(from: nimbus)
 
@@ -239,6 +242,11 @@ final class NimbusFeatureFlagLayer: Sendable {
     private func checkSentFromFirefoxFeatureTreatmentA(from nimbus: FxNimbus) -> Bool {
         let config = nimbus.features.sentFromFirefoxFeature.value()
         return config.isTreatmentA
+    }
+
+    private func checkBrowserKitDataTransferFeature(from nimbus: FxNimbus) -> Bool {
+        let config = nimbus.features.browserKitDataTransfer.value()
+        return config.enabled
     }
 
     private func checkAwesomeBarFeature(for featureID: NimbusFeatureFlagID,
