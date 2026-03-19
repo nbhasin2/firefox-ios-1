@@ -68,7 +68,7 @@ final class BrowserKitExportViewController: UIViewController {
 
         // Signal completion to the system (NS_REFINED_FOR_SWIFT — call via ObjC name with __)
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            exportManager?.__exportFinishedWithCompletionHandler { _ in continuation.resume() }
+            exportManager?.__exportFinished(completionHandler: { _ in continuation.resume() })
         }
     }
 
@@ -109,7 +109,7 @@ final class BrowserKitExportViewController: UIViewController {
                     continuation.resume(returning: 0)
                     return
                 }
-                continuation.resume(returning: countBookmarkNodes(root))
+                continuation.resume(returning: self.countBookmarkNodes(root))
             }
         }
     }

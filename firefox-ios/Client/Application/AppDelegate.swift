@@ -112,23 +112,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate, FeatureFlaggable {
     }
 
     private func startRecordingStartupOpenURLTime() {
+        final class TokenBox: @unchecked Sendable {
+            var completeToken: ActionToken?
+            var cancelledToken: ActionToken?
+        }
         shareTelemetry.recordOpenDeeplinkTime()
-        var recordCompleteToken: ActionToken?
-        var recordCancelledToken: ActionToken?
-        recordCompleteToken = AppEventQueue.wait(for: .recordStartupTimeOpenDeeplinkComplete) { [weak self] in
+        let tokens = TokenBox()
+        tokens.completeToken = AppEventQueue.wait(for: .recordStartupTimeOpenDeeplinkComplete) { [weak self] in
             ensureMainThread { [weak self] in
                 self?.shareTelemetry.sendOpenDeeplinkTimeRecord()
-                guard let recordCancelledToken, let recordCompleteToken  else { return }
-                AppEventQueue.cancelAction(token: recordCancelledToken)
-                AppEventQueue.cancelAction(token: recordCompleteToken)
+                guard let cancelledToken = tokens.cancelledToken,
+                      let completeToken = tokens.completeToken else { return }
+                AppEventQueue.cancelAction(token: cancelledToken)
+                AppEventQueue.cancelAction(token: completeToken)
             }
         }
-        recordCancelledToken = AppEventQueue.wait(for: .recordStartupTimeOpenDeeplinkCancelled) { [weak self] in
+        tokens.cancelledToken = AppEventQueue.wait(for: .recordStartupTimeOpenDeeplinkCancelled) { [weak self] in
             ensureMainThread { [weak self] in
                 self?.shareTelemetry.cancelOpenURLTimeRecord()
-                guard let recordCancelledToken, let recordCompleteToken  else { return }
-                AppEventQueue.cancelAction(token: recordCancelledToken)
-                AppEventQueue.cancelAction(token: recordCompleteToken)
+                guard let cancelledToken = tokens.cancelledToken,
+                      let completeToken = tokens.completeToken else { return }
+                AppEventQueue.cancelAction(token: cancelledToken)
+                AppEventQueue.cancelAction(token: completeToken)
             }
         }
     }

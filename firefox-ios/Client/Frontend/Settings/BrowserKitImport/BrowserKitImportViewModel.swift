@@ -29,7 +29,9 @@ final class BrowserKitImportViewModel {
     }
 
     private var progress = ImportProgress()
-    private var guidMap: [String: String] = [:]
+    // nonisolated(unsafe): mutated only from the sequential importBookmark(_:) async calls;
+    // no concurrent access is possible since importBookmark is awaited serially.
+    nonisolated(unsafe) private var guidMap: [String: String] = [:]
     private var pendingExtensions: [BEBrowserDataExtension] = []
 
     // Note: ViewModel does NOT need windowUUID — that's for the ViewController's Themeable.
