@@ -13,6 +13,7 @@ import Storage
 @MainActor
 final class BrowserKitImportViewModel {
     private let profile: Profile
+    private let logger: Logger
     // importManager must be initialized with the window scene so the system knows
     // which window to present the browser data transfer UI on.
     private var importManager: BEBrowserDataImportManager?
@@ -37,17 +38,22 @@ final class BrowserKitImportViewModel {
     private var pendingExtensions: [BEBrowserDataExtension] = []
 
     // Note: ViewModel does NOT need windowUUID — that's for the ViewController's Themeable.
-    init(profile: Profile) {
+    init(profile: Profile, logger: Logger = DefaultLogger.shared) {
         self.profile = profile
+        self.logger = logger
     }
 
     // MARK: - Step 1: Show system import sheet
 
     func requestImport(from scene: UIWindowScene) async {
+        logger.log("[BrowserKit] requestImport: initializing BEBrowserDataImportManager with scene \(scene.session.persistentIdentifier)",
+                   level: .info, category: .lifecycle)
         // Initialize the manager with the scene so it can present the transfer UI
         let manager = BEBrowserDataImportManager(scene: scene)
         self.importManager = manager
         let metadata = BEImportMetadata(supportForImportFromFiles: false)
+        logger.log("[BrowserKit] requestImport: calling requestImport(for:) — system sheet should appear",
+                   level: .info, category: .lifecycle)
         do {
             let options = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<BEImportOptions, Error>) in
                 manager.requestImport(for: metadata) { options, error in
@@ -55,11 +61,17 @@ final class BrowserKitImportViewModel {
                     else if let options { continuation.resume(returning: options) }
                 }
             }
+            logger.log("[BrowserKit] requestImport: system sheet completed — importFromFiles=\(options.importFromFiles)",
+                       level: .info, category: .lifecycle)
             if !options.importFromFiles {
                 // browser-to-browser path — token arrives via NSUserActivity
                 // nothing to do here; wait for the activity to call handleImport(token:)
+                logger.log("[BrowserKit] requestImport: browser-to-browser path selected — waiting for NSUserActivity token",
+                           level: .info, category: .lifecycle)
             }
         } catch {
+            logger.log("[BrowserKit] requestImport: FAILED — \(error.localizedDescription)",
+                       level: .warning, category: .lifecycle)
             onError?(error)
         }
     }
@@ -69,17 +81,29 @@ final class BrowserKitImportViewModel {
     // importBrowserData(withToken:importBlock:) is marked NS_REFINED_FOR_SWIFT.
     // The Swift API is importBrowserData(token:) returning AsyncThrowingStream<BEBrowserData, Error>.
     func handleImport(token: UUID) async {
+        logger.log("[BrowserKit] handleImport: received token \(token.uuidString)",
+                   level: .info, category: .lifecycle)
         guard let importManager else {
+            logger.log("[BrowserKit] handleImport: FAILED — importManager is nil (requestImport not called yet)",
+                       level: .warning, category: .lifecycle)
             onError?(NSError(domain: "BEImport", code: -1,
                              userInfo: [NSLocalizedDescriptionKey: "Import manager not initialized — call requestImport(from:) first"]))
             return
         }
         GleanMetrics.BrowserKitImport.started.record()
+        logger.log("[BrowserKit] handleImport: starting importBrowserData stream",
+                   level: .info, category: .lifecycle)
         do {
+            var itemCount = 0
             for try await data in importManager.importBrowserData(token: token) {
+                itemCount += 1
+                logger.log("[BrowserKit] handleImport: received item #\(itemCount) — type=\(type(of: data))",
+                           level: .debug, category: .lifecycle)
                 await process(data)
                 onProgressUpdate?(progress)
             }
+            logger.log("[BrowserKit] handleImport: stream complete — bookmarks=\(progress.bookmarks) history=\(progress.history) readingList=\(progress.readingList) extensions=\(progress.extensions)",
+                       level: .info, category: .lifecycle)
             // After stream ends, prompt once for any collected extensions
             if !pendingExtensions.isEmpty {
                 await promptForExtensions()
@@ -94,6 +118,8 @@ final class BrowserKitImportViewModel {
             onComplete?()
         } catch {
             let nsError = error as NSError
+            logger.log("[BrowserKit] handleImport: FAILED — domain=\(nsError.domain) code=\(nsError.code) msg=\(error.localizedDescription)",
+                       level: .warning, category: .lifecycle)
             GleanMetrics.BrowserKitImport.failed.record(
                 GleanMetrics.BrowserKitImport.FailedExtra(
                     errorCode: Int32(nsError.code),

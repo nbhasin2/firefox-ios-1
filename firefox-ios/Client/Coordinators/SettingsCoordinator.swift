@@ -470,29 +470,35 @@ final class SettingsCoordinator: BaseCoordinator,
         router.push(viewController)
     }
 
-    func pressedImportBrowsingData() {
-        guard #available(iOS 26.4, *) else { return }
-        let viewModel = BrowserKitImportViewModel(profile: profile)
-        let viewController = BrowserKitImportViewController(viewModel: viewModel, windowUUID: windowUUID)
-        router.push(viewController)
-    }
+     func pressedImportBrowsingData() {
+         guard #available(iOS 26.4, *) else { return }
+         print("[BrowserKit] SettingsCoordinator: pressedImportBrowsingData — pushing BrowserKitImportViewController")
+         let viewModel = BrowserKitImportViewModel(profile: profile)
+         let viewController = BrowserKitImportViewController(viewModel: viewModel, windowUUID: windowUUID)
+         router.push(viewController)
+     }
 
-    // MARK: - BrowserKit (iOS 26.4+)
+     // MARK: - BrowserKit (iOS 26.4+)
 
-    @available(iOS 26.4, *)
-    func handleBrowserKitImportToken(token: UUID) async {
-        // Find BrowserKitImportViewController on the navigation stack if present
-        if let importVC = router.navigationController.viewControllers
-            .compactMap({ $0 as? BrowserKitImportViewController }).last {
-            await importVC.viewModel.handleImport(token: token)
-        }
-    }
+     @available(iOS 26.4, *)
+     func handleBrowserKitImportToken(token: UUID) async {
+         print("[BrowserKit] SettingsCoordinator: handleBrowserKitImportToken token=\(token.uuidString)")
+         // Find BrowserKitImportViewController on the navigation stack if present
+         if let importVC = router.navigationController.viewControllers
+             .compactMap({ $0 as? BrowserKitImportViewController }).last {
+             print("[BrowserKit] SettingsCoordinator: found BrowserKitImportViewController — calling handleImport")
+             await importVC.viewModel.handleImport(token: token)
+         } else {
+             print("[BrowserKit] SettingsCoordinator: WARNING — no BrowserKitImportViewController on stack; token dropped")
+         }
+     }
 
-    @available(iOS 26.4, *)
-    func handleBrowserKitExport(token: UUID) {
-        let viewController = BrowserKitExportViewController(token: token, profile: profile, windowUUID: windowUUID)
-        router.present(viewController)
-    }
+     @available(iOS 26.4, *)
+     func handleBrowserKitExport(token: UUID) {
+         print("[BrowserKit] SettingsCoordinator: handleBrowserKitExport token=\(token.uuidString) — presenting BrowserKitExportViewController")
+         let viewController = BrowserKitExportViewController(token: token, profile: profile, windowUUID: windowUUID)
+         router.present(viewController)
+     }
 
     // MARK: AccountSettingsDelegate
 

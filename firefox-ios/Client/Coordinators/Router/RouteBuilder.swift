@@ -210,16 +210,22 @@ final class RouteBuilder: FeatureFlaggable, @unchecked Sendable {
         // BrowserKit data transfer (iOS 26.4+)
         if #available(iOS 26.4, *) {
             if userActivity.activityType == BEBrowserDataImportManager.userActivityType {
+                print("[BrowserKit] RouteBuilder: received IMPORT NSUserActivity type=\(userActivity.activityType)")
                 guard let tokenUUID = userActivity.userInfo?[BEBrowserDataImportManager.importTokenUserInfoKey] as? UUID else {
+                    print("[BrowserKit] RouteBuilder: IMPORT activity missing token in userInfo — returning nil")
                     return nil
                 }
+                print("[BrowserKit] RouteBuilder: IMPORT token=\(tokenUUID.uuidString) — routing to .browserKitExchange(.import)")
                 return .browserKitExchange(.import, token: tokenUUID)
             }
 
             if userActivity.activityType == BEBrowserDataExportManager.userActivityType {
+                print("[BrowserKit] RouteBuilder: received EXPORT NSUserActivity type=\(userActivity.activityType)")
                 guard let tokenUUID = userActivity.userInfo?[BEBrowserDataExportManager.exportTokenUserInfoKey] as? UUID else {
+                    print("[BrowserKit] RouteBuilder: EXPORT activity missing token in userInfo — returning nil")
                     return nil
                 }
+                print("[BrowserKit] RouteBuilder: EXPORT token=\(tokenUUID.uuidString) — routing to .browserKitExchange(.export)")
                 return .browserKitExchange(.export, token: tokenUUID)
             }
         }

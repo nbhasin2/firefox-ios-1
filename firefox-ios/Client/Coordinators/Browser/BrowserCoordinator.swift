@@ -436,17 +436,26 @@ final class BrowserCoordinator: BaseCoordinator,
     }
 
     @available(iOS 26.4, *)
-    private func handleBrowserKitExchange(direction: Route.BrowserKitExchangeDirection, token: UUID) {
-        let settingsCoordinator = childCoordinators[SettingsCoordinator.self]
-        switch direction {
-        case .import:
-            guard let settingsCoordinator else { return }
-            Task { await settingsCoordinator.handleBrowserKitImportToken(token: token) }
-        case .export:
-            guard let settingsCoordinator else { return }
-            settingsCoordinator.handleBrowserKitExport(token: token)
-        }
-    }
+     private func handleBrowserKitExchange(direction: Route.BrowserKitExchangeDirection, token: UUID) {
+         print("[BrowserKit] BrowserCoordinator: handleBrowserKitExchange direction=\(direction) token=\(token.uuidString)")
+         let settingsCoordinator = childCoordinators[SettingsCoordinator.self]
+         switch direction {
+         case .import:
+             guard let settingsCoordinator else {
+                 print("[BrowserKit] BrowserCoordinator: WARNING — no SettingsCoordinator child; IMPORT token dropped")
+                 return
+             }
+             print("[BrowserKit] BrowserCoordinator: forwarding IMPORT token to SettingsCoordinator")
+             Task { await settingsCoordinator.handleBrowserKitImportToken(token: token) }
+         case .export:
+             guard let settingsCoordinator else {
+                 print("[BrowserKit] BrowserCoordinator: WARNING — no SettingsCoordinator child; EXPORT token dropped")
+                 return
+             }
+             print("[BrowserKit] BrowserCoordinator: forwarding EXPORT token to SettingsCoordinator")
+             settingsCoordinator.handleBrowserKitExport(token: token)
+         }
+     }
 
     private func canHandleSettings(with section: Route.SettingsSection) -> Bool {
         guard !childCoordinators.contains(where: { $0 is SettingsCoordinator }) else {
