@@ -436,7 +436,7 @@ final class BrowserCoordinator: BaseCoordinator,
     }
 
     @available(iOS 26.4, *)
-    private func handleBrowserKitExchange(direction: BrowserKitExchangeDirection, token: UUID) {
+    private func handleBrowserKitExchange(direction: Route.BrowserKitExchangeDirection, token: UUID) {
         let settingsCoordinator = childCoordinators[SettingsCoordinator.self]
         switch direction {
         case .import:

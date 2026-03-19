@@ -227,6 +227,8 @@ final class SettingsCoordinator: BaseCoordinator,
             return TranslationSettingsViewController(prefs: profile.prefs, windowUUID: windowUUID)
         case .general, .rateApp:
             return nil // Return nil since we're already at the general page
+        case .browserKitImport:
+            return nil // BrowserKit import is handled via pressedImportBrowsingData()
         }
     }
 
