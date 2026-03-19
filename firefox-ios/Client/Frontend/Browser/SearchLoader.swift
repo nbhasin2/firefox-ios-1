@@ -93,7 +93,7 @@ final class SearchLoader: Loader<Cursor<Site>, SearchViewModel>, FeatureFlaggabl
             getBookmarksAsSites(matchingSearchQuery: query, limit: 5) { bookmarks in
                 ensureMainThread { [weak self] in
                     guard let self else { return }
-                    guard let query = self.query else { return }
+                    let query = self.query
 
                     self.getHistoryAsSites(matchingSearchQuery: query, limit: 100) { history in
                         ensureMainThread { [self] in
