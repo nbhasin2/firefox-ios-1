@@ -134,7 +134,12 @@ class SceneDelegate: UIResponder,
 
     /// Use this method to handle Handoff-related data or other activities.
     func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
-        guard let route = routeBuilder.makeRoute(userActivity: userActivity) else { return }
+        print("[BrowserKit] SceneDelegate: scene(_:continue:) called — activityType=\(userActivity.activityType)")
+        guard let route = routeBuilder.makeRoute(userActivity: userActivity) else {
+            print("[BrowserKit] SceneDelegate: routeBuilder returned nil for activityType=\(userActivity.activityType)")
+            return
+        }
+        print("[BrowserKit] SceneDelegate: routing \(route)")
         handle(route: route)
     }
 
@@ -196,9 +201,14 @@ class SceneDelegate: UIResponder,
             handle(route: route)
         }
 
-        if let activity = connectionOptions.userActivities.first,
-           let route = routeBuilder.makeRoute(userActivity: activity) {
-            handle(route: route)
+        if let activity = connectionOptions.userActivities.first {
+            print("[BrowserKit] SceneDelegate: willConnectTo has userActivity — activityType=\(activity.activityType)")
+            if let route = routeBuilder.makeRoute(userActivity: activity) {
+                print("[BrowserKit] SceneDelegate: willConnectTo routing \(route)")
+                handle(route: route)
+            } else {
+                print("[BrowserKit] SceneDelegate: willConnectTo routeBuilder returned nil for activityType=\(activity.activityType)")
+            }
         }
 
         if let shortcut = connectionOptions.shortcutItem,
