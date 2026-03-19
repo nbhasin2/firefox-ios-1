@@ -13,7 +13,9 @@ import Storage
 @MainActor
 final class BrowserKitImportViewModel {
     private let profile: Profile
-    private let importManager = BEBrowserDataImportManager()
+    // importManager must be initialized with the window scene so the system knows
+    // which window to present the browser data transfer UI on.
+    private var importManager: BEBrowserDataImportManager?
 
     // MARK: - Progress tracking callbacks
 
@@ -42,10 +44,13 @@ final class BrowserKitImportViewModel {
     // MARK: - Step 1: Show system import sheet
 
     func requestImport(from scene: UIWindowScene) async {
+        // Initialize the manager with the scene so it can present the transfer UI
+        let manager = BEBrowserDataImportManager(scene: scene)
+        self.importManager = manager
         let metadata = BEImportMetadata(supportForImportFromFiles: false)
         do {
             let options = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<BEImportOptions, Error>) in
-                importManager.requestImport(for: metadata) { options, error in
+                manager.requestImport(for: metadata) { options, error in
                     if let error { continuation.resume(throwing: error) }
                     else if let options { continuation.resume(returning: options) }
                 }
@@ -64,6 +69,11 @@ final class BrowserKitImportViewModel {
     // importBrowserData(withToken:importBlock:) is marked NS_REFINED_FOR_SWIFT.
     // The Swift API is importBrowserData(token:) returning AsyncThrowingStream<BEBrowserData, Error>.
     func handleImport(token: UUID) async {
+        guard let importManager else {
+            onError?(NSError(domain: "BEImport", code: -1,
+                             userInfo: [NSLocalizedDescriptionKey: "Import manager not initialized — call requestImport(from:) first"]))
+            return
+        }
         GleanMetrics.BrowserKitImport.started.record()
         do {
             for try await data in importManager.importBrowserData(token: token) {
