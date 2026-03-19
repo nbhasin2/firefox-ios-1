@@ -59,16 +59,26 @@ class DownloadLiveActivityWrapper: DownloadProgressDelegate {
             let contentState = DownloadLiveActivityAttributes.ContentState(downloads: downloadsStates)
             await update()
             try await Task.sleep(nanoseconds: durationToDismissal.rawValue)
-            let activity = downloadLiveActivity
-            await activity?.end(using: contentState, dismissalPolicy: .immediate)
+            await endActivity(contentState: contentState)
         }
+    }
+
+    // nonisolated so that accessing downloadLiveActivity (nonisolated(unsafe)) and awaiting
+    // Activity methods doesn't cross a @MainActor isolation boundary.
+    private nonisolated func endActivity(contentState: DownloadLiveActivityAttributes.ContentState) async {
+        await downloadLiveActivity?.end(using: contentState, dismissalPolicy: .immediate)
     }
 
     private func update() async {
         let downloadsStates = DownloadLiveActivityUtil.buildContentState(downloads: downloadProgressManager.downloads)
         let contentState = DownloadLiveActivityAttributes.ContentState(downloads: downloadsStates)
-        let activity = downloadLiveActivity
-        await activity?.update(using: contentState)
+        await updateActivity(contentState: contentState)
+    }
+
+    // nonisolated so that accessing downloadLiveActivity (nonisolated(unsafe)) and awaiting
+    // Activity methods doesn't cross a @MainActor isolation boundary.
+    private nonisolated func updateActivity(contentState: DownloadLiveActivityAttributes.ContentState) async {
+        await downloadLiveActivity?.update(using: contentState)
     }
 
     func updateCombinedBytesDownloaded(value: Int64) {
