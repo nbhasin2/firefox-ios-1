@@ -7,6 +7,7 @@ import Common
 import class MozillaAppServices.BookmarkFolderData
 import class MozillaAppServices.BookmarkItemData
 import class MozillaAppServices.BookmarkNodeData
+import enum MozillaAppServices.BookmarkRoots
 import struct MozillaAppServices.VisitTransitionSet
 import Storage
 import UIKit
@@ -45,7 +46,6 @@ final class BrowserKitExportViewController: UIViewController {
 
     private func startExport() async {
         // Fetch real item counts so the system sheet can display accurate numbers.
-        // IMPORTANT: parameter label is supportForExportToFiles (not supportingExportToFiles as docs say)
         async let bookmarkCount = fetchBookmarkCount()
         async let historyCount = fetchHistoryCount()
         async let readingListCount = fetchReadingListCount()
@@ -61,20 +61,38 @@ final class BrowserKitExportViewController: UIViewController {
 
         guard let options = try? await requestExport(metadata: metadata) else { return }
 
-        if options.dataTypes.contains(.bookmarks)   { await streamBookmarks() }
-        if options.dataTypes.contains(.history)     { await streamHistory() }
-        if options.dataTypes.contains(.readingList) { await streamReadingList() }
+        // exportBrowserData(_:) takes an AsyncStream<BEBrowserData> containing ALL items to export.
+        // We build a single stream and pass it once; the system calls our continuation per item.
+        let stream = buildExportStream(options: options)
+        try? await exportManager?.exportBrowserData(stream)
 
-        await withCheckedContinuation { continuation in
-            exportManager?.exportFinished { _ in continuation.resume() }
+        // Signal completion to the system (NS_REFINED_FOR_SWIFT — call via ObjC name with __)
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            exportManager?.__exportFinishedWithCompletionHandler { _ in continuation.resume() }
         }
     }
 
     private func requestExport(metadata: BEExportMetadata) async throws -> BEExportOptions {
-        try await withCheckedThrowingContinuation { continuation in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<BEExportOptions, Error>) in
             exportManager?.requestExport(for: metadata, token: token) { options, error in
                 if let error { continuation.resume(throwing: error) }
                 else if let options { continuation.resume(returning: options) }
+                else { continuation.resume(throwing: NSError(domain: "BEExport", code: -1)) }
+            }
+        }
+    }
+
+    // MARK: - AsyncStream builder
+
+    /// Builds a single AsyncStream<BEBrowserData> combining bookmarks + history + reading list.
+    /// The stream is passed as a whole to exportBrowserData(_:).
+    private func buildExportStream(options: BEExportOptions) -> AsyncStream<BEBrowserData> {
+        AsyncStream { continuation in
+            Task {
+                if options.dataTypes.contains(.bookmarks)   { await streamBookmarks(to: continuation) }
+                if options.dataTypes.contains(.history)     { await streamHistory(to: continuation) }
+                if options.dataTypes.contains(.readingList) { await streamReadingList(to: continuation) }
+                continuation.finish()
             }
         }
     }
@@ -104,7 +122,6 @@ final class BrowserKitExportViewController: UIViewController {
     }
 
     private func fetchHistoryCount() async -> Int {
-        // Use a large page to approximate total; exact count is not exposed directly.
         await withCheckedContinuation { continuation in
             profile.places.getSitesWithBound(
                 limit: 10_000,
@@ -118,110 +135,106 @@ final class BrowserKitExportViewController: UIViewController {
 
     private func fetchReadingListCount() async -> Int {
         await withCheckedContinuation { continuation in
-            profile.readingList.getAvailableRecords(completion: { records in
+            profile.readingList.getAvailableRecords { records in
                 continuation.resume(returning: records.count)
-            })
+            }
         }
     }
 
-    // MARK: - Data streaming
+    // MARK: - Data streaming into AsyncStream.Continuation
 
-    private func streamBookmarks() async {
-        await withCheckedContinuation { continuation in
+    private func streamBookmarks(to continuation: AsyncStream<BEBrowserData>.Continuation) async {
+        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
             profile.places.getBookmarksTree(
                 rootGUID: BookmarkRoots.MobileFolderGUID,
                 recursive: true
-            ) { [weak self] result in
-                guard let self, let root = try? result.get() else {
-                    continuation.resume()
+            ) { result in
+                guard let root = try? result.get() else {
+                    cont.resume()
                     return
                 }
                 Task {
-                    await self.exportBookmarkNode(root)
-                    continuation.resume()
+                    await self.yieldBookmarkNode(root, to: continuation)
+                    cont.resume()
                 }
             }
         }
     }
 
-    private func exportBookmarkNode(_ node: BookmarkNodeData) async {
+    private func yieldBookmarkNode(_ node: BookmarkNodeData,
+                                   to continuation: AsyncStream<BEBrowserData>.Continuation) async {
         if let folder = node as? BookmarkFolderData {
-            let data = BEBrowserDataBookmark()
-            data.isFolder = true
-            data.title = folder.title
-            data.identifier = folder.guid
-            data.parentIdentifier = folder.parentGUID
-            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-                exportManager?.exportBrowserData(data) { _ in continuation.resume() }
-            }
+            let data = BEBrowserDataBookmark(
+                isFolder: true,
+                title: folder.title ?? "",
+                identifier: folder.guid,
+                url: nil,
+                parentIdentifier: folder.parentGUID
+            )
+            continuation.yield(data)
             for child in folder.children ?? [] {
-                await exportBookmarkNode(child)
+                await yieldBookmarkNode(child, to: continuation)
             }
         } else if let item = node as? BookmarkItemData {
-            let data = BEBrowserDataBookmark()
-            data.isFolder = false
-            data.title = item.title
-            data.url = URL(string: item.url)
-            data.identifier = item.guid
-            data.parentIdentifier = item.parentGUID
-            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-                exportManager?.exportBrowserData(data) { _ in continuation.resume() }
-            }
+            let data = BEBrowserDataBookmark(
+                isFolder: false,
+                title: item.title ?? "",
+                identifier: item.guid,
+                url: URL(string: item.url),
+                parentIdentifier: item.parentGUID
+            )
+            continuation.yield(data)
         }
     }
 
-    private func streamHistory() async {
-        await withCheckedContinuation { continuation in
+    private func streamHistory(to continuation: AsyncStream<BEBrowserData>.Continuation) async {
+        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
             profile.places.getSitesWithBound(
                 limit: 10_000,
                 offset: 0,
                 excludedTypes: VisitTransitionSet(0)
-            ).upon { [weak self] result in
-                guard let self else {
-                    continuation.resume()
-                    return
-                }
+            ).upon { result in
                 let sites = result.successValue?.asArray() ?? []
                 Task {
                     for site in sites {
                         guard let url = URL(string: site.url),
                               let visit = site.latestVisit else { continue }
-                        let data = BEBrowserDataHistoryVisit()
-                        data.url = url
-                        data.title = site.title
-                        data.httpGet = visit.type == .link
                         // Visit.date is microseconds since epoch; BEBrowserDataHistoryVisit.dateOfLastVisit is Date
-                        data.dateOfLastVisit = Date(timeIntervalSince1970: Double(visit.date) / 1_000_000)
-                        data.loadedSuccessfully = true
-                        await withCheckedContinuation { (c: CheckedContinuation<Void, Never>) in
-                            self.exportManager?.exportBrowserData(data) { _ in c.resume() }
-                        }
+                        let date = Date(timeIntervalSince1970: Double(visit.date) / 1_000_000)
+                        let data = BEBrowserDataHistoryVisit(
+                            url: url,
+                            dateOfLastVisit: date,
+                            title: site.title,
+                            loadedSuccessfully: true,
+                            httpGet: visit.type == .link,
+                            redirectSourceURL: nil,
+                            redirectSourceDateOfVisit: nil,
+                            redirectDestinationURL: nil,
+                            redirectDestinationDateOfVisit: nil,
+                            visitCount: 1
+                        )
+                        continuation.yield(data)
                     }
-                    continuation.resume()
+                    cont.resume()
                 }
             }
         }
     }
 
-    private func streamReadingList() async {
-        await withCheckedContinuation { continuation in
-            profile.readingList.getAvailableRecords { [weak self] records in
-                guard let self else {
-                    continuation.resume()
-                    return
-                }
+    private func streamReadingList(to continuation: AsyncStream<BEBrowserData>.Continuation) async {
+        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+            profile.readingList.getAvailableRecords { records in
                 Task {
                     for record in records {
                         guard let url = URL(string: record.url) else { continue }
-                        let data = BEBrowserDataReadingListItem()
-                        data.url = url
-                        data.title = record.title
-                        data.sourceApplicationBundleIdentifier = record.addedBy
-                        await withCheckedContinuation { (c: CheckedContinuation<Void, Never>) in
-                            self.exportManager?.exportBrowserData(data) { _ in c.resume() }
-                        }
+                        let data = BEBrowserDataReadingListItem(
+                            title: record.title,
+                            url: url,
+                            dateOfLastVisit: nil
+                        )
+                        continuation.yield(data)
                     }
-                    continuation.resume()
+                    cont.resume()
                 }
             }
         }

@@ -8,10 +8,15 @@ import UIKit
 
 @available(iOS 26.4, *)
 final class BrowserKitImportViewController: UIViewController, Themeable {
+    // MARK: - Themeable / ThemeUUIDIdentifiable
     var themeManager: ThemeManager
-    var themeObserver: NSObjectProtocol?
+    var themeListenerCancellable: Any?
     var notificationCenter: NotificationProtocol
+    // windowUUID is stored non-optional; currentWindowUUID satisfies ThemeUUIDIdentifiable (optional)
     let windowUUID: WindowUUID
+    var currentWindowUUID: WindowUUID? { windowUUID }
+
+    // MARK: - ViewModel
 
     let viewModel: BrowserKitImportViewModel
 
@@ -59,9 +64,9 @@ final class BrowserKitImportViewController: UIViewController, Themeable {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = .Settings.ImportBrowsingData.Title
+        title = .Settings.General.ImportBrowsingData.Title
         setupLayout()
-        listenForThemeChange(view)
+        listenForThemeChanges(withNotificationCenter: notificationCenter)
         applyTheme()
         bindViewModel()
     }

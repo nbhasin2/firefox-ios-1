@@ -6,6 +6,7 @@ import BrowserKit
 import Common
 import Foundation
 import Glean
+import MozillaAppServices
 import Storage
 
 @available(iOS 26.4, *)
@@ -41,7 +42,7 @@ final class BrowserKitImportViewModel {
     func requestImport(from scene: UIWindowScene) async {
         let metadata = BEImportMetadata(supportForImportFromFiles: false)
         do {
-            let options = try await withCheckedThrowingContinuation { continuation in
+            let options = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<BEImportOptions, Error>) in
                 importManager.requestImport(for: metadata) { options, error in
                     if let error { continuation.resume(throwing: error) }
                     else if let options { continuation.resume(returning: options) }
@@ -73,9 +74,9 @@ final class BrowserKitImportViewModel {
             }
             GleanMetrics.BrowserKitImport.completed.record(
                 GleanMetrics.BrowserKitImport.CompletedExtra(
-                    bookmarksCount: Int64(progress.bookmarks),
-                    historyCount: Int64(progress.history),
-                    readingListCount: Int64(progress.readingList)
+                    bookmarksCount: Int32(progress.bookmarks),
+                    historyCount: Int32(progress.history),
+                    readingListCount: Int32(progress.readingList)
                 )
             )
             onComplete?()
@@ -83,7 +84,7 @@ final class BrowserKitImportViewModel {
             let nsError = error as NSError
             GleanMetrics.BrowserKitImport.failed.record(
                 GleanMetrics.BrowserKitImport.FailedExtra(
-                    errorCode: Int64(nsError.code),
+                    errorCode: Int32(nsError.code),
                     errorDomain: nsError.domain
                 )
             )
@@ -136,11 +137,12 @@ final class BrowserKitImportViewModel {
                     parentGUID: parentGUID,
                     title: bookmark.title,
                     position: nil
-                ) { [weak self] result in
+                ) { [self] result in
                     // Store mapping: source identifier → new GUID for child resolution
-                    if let guid = try? result.get(),
-                       let sourceID = bookmark.identifier {
-                        self?.guidMap[sourceID] = guid
+                    // bookmark.identifier is NSString nonnull, bridged to non-optional String
+                    if let guid = try? result.get() {
+                        let sourceID = bookmark.identifier
+                        self.guidMap[sourceID] = guid
                     }
                     continuation.resume()
                 }
