@@ -561,7 +561,9 @@ extension PreviewModel {
             },
             onMultipleChoiceActionTap: { _, _ in },
             onComplete: { _, _ in }
-        )
+        ),
+        pageControlAccessibilityId: "Onboarding.PageControl",
+        closeButtonAccessibilityId: "Onboarding.CloseButton"
     )
 }
 
@@ -577,7 +579,9 @@ extension PreviewModel {
             },
             onMultipleChoiceActionTap: { _, _ in },
             onComplete: { _, _ in }
-        )
+        ),
+        pageControlAccessibilityId: "Onboarding.PageControl",
+        closeButtonAccessibilityId: "Onboarding.CloseButton"
     )
     .preferredColorScheme(.dark)
 }
@@ -594,7 +598,9 @@ extension PreviewModel {
             },
             onMultipleChoiceActionTap: { _, _ in },
             onComplete: { _, _ in }
-        )
+        ),
+        pageControlAccessibilityId: "Onboarding.PageControl",
+        closeButtonAccessibilityId: "Onboarding.CloseButton"
     )
 }
 
@@ -610,7 +616,9 @@ extension PreviewModel {
             },
             onMultipleChoiceActionTap: { _, _ in },
             onComplete: { _, _ in }
-        )
+        ),
+        pageControlAccessibilityId: "Onboarding.PageControl",
+        closeButtonAccessibilityId: "Onboarding.CloseButton"
     )
 }
 
