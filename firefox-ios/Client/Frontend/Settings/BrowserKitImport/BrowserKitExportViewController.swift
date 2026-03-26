@@ -79,8 +79,9 @@ final class BrowserKitExportViewController: UIViewController {
                     continuation.resume(throwing: error)
                 } else if let options {
                     continuation.resume(returning: options)
+                } else {
+                    continuation.resume(throwing: NSError(domain: "BEExport", code: -1))
                 }
-                else { continuation.resume(throwing: NSError(domain: "BEExport", code: -1)) }
             }
         }
     }

@@ -61,8 +61,8 @@ final class BrowserKitImportViewModel {
             category: .lifecycle
         )
         do {
-            let options = try await withCheckedThrowingContinuation {
-                (continuation: CheckedContinuation<BEImportOptions, Error>) in
+            typealias ImportContinuation = CheckedContinuation<BEImportOptions, Error>
+            let options = try await withCheckedThrowingContinuation { (continuation: ImportContinuation) in
                 manager.requestImport(for: metadata) { options, error in
                     if let error {
                         continuation.resume(throwing: error)
