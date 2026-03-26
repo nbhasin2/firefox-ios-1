@@ -211,7 +211,8 @@ final class RouteBuilder: FeatureFlaggable, @unchecked Sendable {
         if #available(iOS 26.4, *) {
             if userActivity.activityType == BEBrowserDataImportManager.userActivityType {
                 print("[BrowserKit] RouteBuilder: received IMPORT NSUserActivity type=\(userActivity.activityType)")
-                guard let tokenUUID = userActivity.userInfo?[BEBrowserDataImportManager.importTokenUserInfoKey] as? UUID else {
+                let importKey = BEBrowserDataImportManager.importTokenUserInfoKey
+                guard let tokenUUID = userActivity.userInfo?[importKey] as? UUID else {
                     print("[BrowserKit] RouteBuilder: IMPORT activity missing token in userInfo — returning nil")
                     return nil
                 }
@@ -221,7 +222,8 @@ final class RouteBuilder: FeatureFlaggable, @unchecked Sendable {
 
             if userActivity.activityType == BEBrowserDataExportManager.userActivityType {
                 print("[BrowserKit] RouteBuilder: received EXPORT NSUserActivity type=\(userActivity.activityType)")
-                guard let tokenUUID = userActivity.userInfo?[BEBrowserDataExportManager.exportTokenUserInfoKey] as? UUID else {
+                let exportKey = BEBrowserDataExportManager.exportTokenUserInfoKey
+                guard let tokenUUID = userActivity.userInfo?[exportKey] as? UUID else {
                     print("[BrowserKit] RouteBuilder: EXPORT activity missing token in userInfo — returning nil")
                     return nil
                 }

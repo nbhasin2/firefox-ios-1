@@ -65,7 +65,7 @@ class DownloadLiveActivityWrapper: DownloadProgressDelegate {
 
     // nonisolated so that accessing downloadLiveActivity (nonisolated(unsafe)) and awaiting
     // Activity methods doesn't cross a @MainActor isolation boundary.
-    private nonisolated func endActivity(contentState: DownloadLiveActivityAttributes.ContentState) async {
+    nonisolated private func endActivity(contentState: DownloadLiveActivityAttributes.ContentState) async {
         await downloadLiveActivity?.end(using: contentState, dismissalPolicy: .immediate)
     }
 
@@ -77,7 +77,7 @@ class DownloadLiveActivityWrapper: DownloadProgressDelegate {
 
     // nonisolated so that accessing downloadLiveActivity (nonisolated(unsafe)) and awaiting
     // Activity methods doesn't cross a @MainActor isolation boundary.
-    private nonisolated func updateActivity(contentState: DownloadLiveActivityAttributes.ContentState) async {
+    nonisolated private func updateActivity(contentState: DownloadLiveActivityAttributes.ContentState) async {
         await downloadLiveActivity?.update(using: contentState)
     }
 

@@ -9,7 +9,6 @@ import Common
 @available(iOS 26.4, *)
 @MainActor
 class BrowserKitImportViewModelTests: XCTestCase {
-
     private var profile: MockProfile!
 
     override func setUp() async throws {

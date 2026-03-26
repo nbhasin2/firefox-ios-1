@@ -404,7 +404,9 @@ extension ContentBlocker {
                             DispatchQueue.main.async {
                                 listsCompiledCount += 1
                                 errorCount += (error == nil ? 0 : 1)
-                                self?.compileContentRuleListCompletion(dispatchGroup: dispatchGroup, rule: rule, error: error)
+                                self?.compileContentRuleListCompletion(
+                                    dispatchGroup: dispatchGroup, rule: rule, error: error
+                                )
                             }
                         }
                     }

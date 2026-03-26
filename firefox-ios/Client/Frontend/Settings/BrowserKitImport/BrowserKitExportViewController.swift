@@ -75,8 +75,11 @@ final class BrowserKitExportViewController: UIViewController {
     private func requestExport(metadata: BEExportMetadata) async throws -> BEExportOptions {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<BEExportOptions, Error>) in
             exportManager?.requestExport(for: metadata, token: token) { options, error in
-                if let error { continuation.resume(throwing: error) }
-                else if let options { continuation.resume(returning: options) }
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if let options {
+                    continuation.resume(returning: options)
+                }
                 else { continuation.resume(throwing: NSError(domain: "BEExport", code: -1)) }
             }
         }
@@ -89,9 +92,15 @@ final class BrowserKitExportViewController: UIViewController {
     private func buildExportStream(options: BEExportOptions) -> AsyncStream<BEBrowserData> {
         AsyncStream { continuation in
             Task {
-                if options.dataTypes.contains(.bookmarks)   { await streamBookmarks(to: continuation) }
-                if options.dataTypes.contains(.history)     { await streamHistory(to: continuation) }
-                if options.dataTypes.contains(.readingList) { await streamReadingList(to: continuation) }
+                if options.dataTypes.contains(.bookmarks) {
+                    await streamBookmarks(to: continuation)
+                }
+                if options.dataTypes.contains(.history) {
+                    await streamHistory(to: continuation)
+                }
+                if options.dataTypes.contains(.readingList) {
+                    await streamReadingList(to: continuation)
+                }
                 continuation.finish()
             }
         }
