@@ -11,6 +11,11 @@ protocol GeneratedPasswordStorageProtocol: AnyObject {
 }
 
 class GeneratedPasswordStorage: GeneratedPasswordStorageProtocol {
+    /// One cache for the whole app, as the Redux middleware's single long-lived instance was.
+    /// `LoginsHelper` clears entries through it when a login is saved.
+    @MainActor
+    static let shared = GeneratedPasswordStorage()
+
     private var originToPasswordMapping: [String: String] =  [:]
 
     func deletePasswordForOrigin(origin: String) {

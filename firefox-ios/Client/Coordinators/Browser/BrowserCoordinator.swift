@@ -1395,13 +1395,6 @@ final class BrowserCoordinator: BaseCoordinator,
                                                             currentTab: tab,
                                                             frameContext: frameContext)
 
-        let action = PasswordGeneratorAction(
-            windowUUID: windowUUID,
-            actionType: PasswordGeneratorActionType.showPasswordGenerator,
-            frameContext: frameContext
-        )
-        store.dispatch(action)
-
         let bottomSheetVM = BottomSheetViewModel(
             shouldDismissForTapOutside: true,
             closeButtonA11yLabel: .PasswordGenerator.CloseButtonA11yLabel,

@@ -17,7 +17,6 @@ enum AppComponent {
     case trackingProtection
     case toolbar
     case searchEngineSelection
-    case passwordGenerator
     case nativeErrorPage
     case shortcutsLibrary
     case translationSettings

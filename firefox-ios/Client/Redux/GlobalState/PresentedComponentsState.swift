@@ -19,7 +19,6 @@ enum ComponentState: Sendable, Equatable {
     case trackingProtection(TrackingProtectionState)
     case toolbar(ToolbarState)
     case searchEngineSelection(SearchEngineSelectionState)
-    case passwordGenerator(PasswordGeneratorState)
     case nativeErrorPage(NativeErrorPageState)
     case shortcutsLibrary(ShortcutsLibraryState)
     case translationSettings(TranslationSettingsState)
@@ -53,8 +52,6 @@ enum ComponentState: Sendable, Equatable {
             return .toolbar(ToolbarState.reducer.modernReducer(state, action, actionWindowUUID))
         case .searchEngineSelection(let state):
             return .searchEngineSelection(SearchEngineSelectionState.reducer.modernReducer(state, action, actionWindowUUID))
-        case .passwordGenerator(let state):
-            return .passwordGenerator(PasswordGeneratorState.reducer.modernReducer(state, action, actionWindowUUID))
         case .nativeErrorPage(let state):
             return .nativeErrorPage(NativeErrorPageState.reducer.modernReducer(state, action, actionWindowUUID))
         case .shortcutsLibrary(let state):
@@ -90,8 +87,6 @@ enum ComponentState: Sendable, Equatable {
             return .toolbar(ToolbarState.reducer.legacyReducer(state, action))
         case .searchEngineSelection(let state):
             return .searchEngineSelection(SearchEngineSelectionState.reducer.legacyReducer(state, action))
-        case .passwordGenerator(let state):
-            return .passwordGenerator(PasswordGeneratorState.reducer.legacyReducer(state, action))
         case .nativeErrorPage(let state):
             return .nativeErrorPage(NativeErrorPageState.reducer.legacyReducer(state, action))
         case .shortcutsLibrary(let state):
@@ -117,7 +112,6 @@ enum ComponentState: Sendable, Equatable {
         case .trackingProtection: return .trackingProtection
         case .toolbar: return .toolbar
         case .searchEngineSelection: return .searchEngineSelection
-        case .passwordGenerator: return .passwordGenerator
         case .nativeErrorPage: return .nativeErrorPage
         case .shortcutsLibrary: return .shortcutsLibrary
         case .translationSettings: return .translationSettings
@@ -138,7 +132,6 @@ enum ComponentState: Sendable, Equatable {
         case .trackingProtection(let state): return state.windowUUID
         case .toolbar(let state): return state.windowUUID
         case .searchEngineSelection(let state): return state.windowUUID
-        case .passwordGenerator(let state): return state.windowUUID
         case .nativeErrorPage(let state): return state.windowUUID
         case .shortcutsLibrary(let state): return state.windowUUID
         case .translationSettings(let state): return state.windowUUID
@@ -217,8 +210,6 @@ struct PresentedComponentsState: Sendable, Equatable {
                 components.append(.toolbar(ToolbarState(windowUUID: uuid)))
             case .searchEngineSelection:
                 components.append(.searchEngineSelection(SearchEngineSelectionState(windowUUID: uuid)))
-            case .passwordGenerator:
-                components.append(.passwordGenerator(PasswordGeneratorState(windowUUID: uuid)))
             case .nativeErrorPage:
                 components.append(.nativeErrorPage(NativeErrorPageState(windowUUID: uuid)))
             case .shortcutsLibrary:
