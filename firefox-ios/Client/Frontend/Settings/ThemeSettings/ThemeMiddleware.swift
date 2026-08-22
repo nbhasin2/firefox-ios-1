@@ -40,7 +40,6 @@ final class ThemeManagerMiddleware: ThemeManagerProvider {
         }
     }
 
-
     func updatePrivateMode(with action: PrivateModeAction) {
         guard let privateModeState = action.isPrivate else { return }
         themeManager.setPrivateTheme(isOn: privateModeState, for: action.windowUUID)

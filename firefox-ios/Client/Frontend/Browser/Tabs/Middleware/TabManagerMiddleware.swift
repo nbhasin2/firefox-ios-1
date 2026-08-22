@@ -629,7 +629,6 @@ final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark
         }
     }
 
-
     private func getIsBookmarked(
         url: String,
         dataQueue: DispatchQueue,
@@ -702,8 +701,6 @@ final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark
                 }
             }
     }
-
-
 
     private func preserveTabs(uuid: WindowUUID) {
         tabManager(for: uuid)?.preserveTabs()

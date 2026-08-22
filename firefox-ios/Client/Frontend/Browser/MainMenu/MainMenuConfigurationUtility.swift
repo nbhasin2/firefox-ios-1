@@ -204,8 +204,8 @@ final class MainMenuConfigurationUtility: FeatureFlaggable {
                     a11yHint: "",
                     a11yId: AccessibilityIdentifiers.MainMenu.settings,
                     action: { [weak self] in
-                    self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(.settings))
-                }
+                        self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(.settings))
+                    }
                 ),
         ])
     }
@@ -264,11 +264,11 @@ final class MainMenuConfigurationUtility: FeatureFlaggable {
                     a11yId: AccessibilityIdentifiers.MainMenu.saveAsPDF,
                     isOptional: true,
                     action: { [weak self] in
-                    self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(
-                                    .saveAsPDF,
-                                    url: tabInfo.canonicalURL
-                                ))
-                }
+                        self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(
+                                        .saveAsPDF,
+                                        url: tabInfo.canonicalURL
+                                    ))
+                    }
                 ),
                 MenuElement(
                     title: .MainMenu.Submenus.Tools.Print,
@@ -280,11 +280,11 @@ final class MainMenuConfigurationUtility: FeatureFlaggable {
                     a11yId: AccessibilityIdentifiers.MainMenu.print,
                     isOptional: true,
                     action: { [weak self] in
-                    self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(
-                                    .printSheet,
-                                    url: tabInfo.canonicalURL
-                                ))
-                }
+                        self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(
+                                        .printSheet,
+                                        url: tabInfo.canonicalURL
+                                    ))
+                    }
                 ),
                 MenuElement(
                     title: .MainMenu.Submenus.Tools.Share,
@@ -296,11 +296,11 @@ final class MainMenuConfigurationUtility: FeatureFlaggable {
                     a11yId: AccessibilityIdentifiers.MainMenu.share,
                     isOptional: true,
                     action: { [weak self] in
-                    self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(
-                                    .shareSheet,
-                                    url: tabInfo.canonicalURL
-                                ))
-                }
+                        self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(
+                                        .shareSheet,
+                                        url: tabInfo.canonicalURL
+                                    ))
+                    }
                 ),
             ])
         }
@@ -326,11 +326,11 @@ final class MainMenuConfigurationUtility: FeatureFlaggable {
             a11yId: AccessibilityIdentifiers.MainMenu.reportBrokenSite,
             isOptional: true,
             action: { [weak self] in
-                    self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(
-                            .reportBrokenSite,
-                            url: tabInfo.url
-                        ))
-                }
+                self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(
+                        .reportBrokenSite,
+                        url: tabInfo.url
+                    ))
+            }
         )
     }
 
@@ -358,7 +358,7 @@ final class MainMenuConfigurationUtility: FeatureFlaggable {
                     self?.actionHandler?.tapEditBookmark()
                 } else {
                     self?.actionHandler?.tapAddToBookmarks()
-                }
+            }
             }
         )
     }
@@ -431,8 +431,8 @@ final class MainMenuConfigurationUtility: FeatureFlaggable {
             a11yId: AccessibilityIdentifiers.MainMenu.translatePage,
             infoTitle: infoTitle,
             action: { [weak self] in
-                    self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(.translatePage))
-                }
+                self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(.translatePage))
+            }
         )
     }
 
@@ -570,7 +570,6 @@ final class MainMenuConfigurationUtility: FeatureFlaggable {
         let icon = tabInfo.isPinned ? Icons.removeFromShortcuts : Icons.addToShortcuts
         let a11yLabel = tabInfo.isPinned ? A11y.RemoveFromShortcuts : A11y.AddToShortcuts
 
-
         return MenuElement(
             title: title,
             iconName: icon,
@@ -585,7 +584,7 @@ final class MainMenuConfigurationUtility: FeatureFlaggable {
                     self?.actionHandler?.tapRemoveFromShortcuts()
                 } else {
                     self?.actionHandler?.tapAddToShortcuts()
-                }
+            }
             }
         )
     }
