@@ -983,6 +983,7 @@
 		8A454D322CB8170D009436D9 /* MerinoManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A454D312CB8170D009436D9 /* MerinoManager.swift */; };
 		8A454D362CB86993009436D9 /* MerinoStoryConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A454D352CB86993009436D9 /* MerinoStoryConfiguration.swift */; };
 		8A454D3F2CB9B8A0009436D9 /* TopSitesSectionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A454D3E2CB9B8A0009436D9 /* TopSitesSectionState.swift */; };
+		F8A6EE1D09E9592C4A13FA6C /* TopSitesSectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B9F66E2C542B15A2135E1FE /* TopSitesSectionViewModel.swift */; };
 		8A454D412CB9B8AA009436D9 /* TopSitesAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A454D402CB9B8AA009436D9 /* TopSitesAction.swift */; };
 		8A454D432CB9B8F5009436D9 /* TopSitesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A454D422CB9B8F5009436D9 /* TopSitesManager.swift */; };
 		CEAACDE62ADADB1B84949546 /* TopSitesTelemetryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9C9143939E36331EBC7B70C /* TopSitesTelemetryService.swift */; };
@@ -1186,6 +1187,7 @@
 		5D58424844FA1603A74BC17F /* MessageCardViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1402BF2899A3D84B185D1F8 /* MessageCardViewModelTests.swift */; };
 		EAFCA47230E84D1BF644BDB0 /* SearchBarViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 932818F6A2A278030F2C754E /* SearchBarViewModelTests.swift */; };
 		A2BEF550109F503F8A8FB548 /* HeaderViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14CC106D448B1F7597ADF91B /* HeaderViewModelTests.swift */; };
+		DD5F728AEA4B6E87A7C2B253 /* TopSitesSectionViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25464092C50CF26F92FE3E8F /* TopSitesSectionViewModelTests.swift */; };
 		71A8E1D3443F5E788922C730 /* TopSitesServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE0CC50FD04EEA63186FA108 /* TopSitesServiceTests.swift */; };
 		28835067A47172DDB9F011DF /* TopSitesTelemetryServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D522D21DEBB0E96863C06936 /* TopSitesTelemetryServiceTests.swift */; };
 		2F52446185D135727F34583C /* WallpaperViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B59B74D87C13F21E0D9F4472 /* WallpaperViewModelTests.swift */; };
@@ -1283,7 +1285,6 @@
 		8AEE62C92756BA34003207D1 /* LoginsHelper.js in Resources */ = {isa = PBXBuildFile; fileRef = 8AEE62C62756BA34003207D1 /* LoginsHelper.js */; };
 		8AEE62CA2756BA34003207D1 /* TrackingProtectionStats.js in Resources */ = {isa = PBXBuildFile; fileRef = 8AEE62C72756BA34003207D1 /* TrackingProtectionStats.js */; };
 		8AEE62CB2756BA34003207D1 /* DownloadHelper.js in Resources */ = {isa = PBXBuildFile; fileRef = 8AEE62C82756BA34003207D1 /* DownloadHelper.js */; };
-		8AEF41602D15D6290013925D /* TopSitesSectionStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE9381A2CD91FDB0020E6CF /* TopSitesSectionStateTests.swift */; };
 		8AEF41642D15EE1D0013925D /* MockTopSitesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEF41632D15EE190013925D /* MockTopSitesManager.swift */; };
 		8AF10D8A29D713F50086351D /* LaunchScreenViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AF10D8929D713F50086351D /* LaunchScreenViewModelTests.swift */; };
 		8AF10D8F29D774090086351D /* SceneSetupHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AF10D8E29D774090086351D /* SceneSetupHelper.swift */; };
@@ -9729,6 +9730,7 @@
 		8A454D312CB8170D009436D9 /* MerinoManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerinoManager.swift; sourceTree = "<group>"; };
 		8A454D352CB86993009436D9 /* MerinoStoryConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerinoStoryConfiguration.swift; sourceTree = "<group>"; };
 		8A454D3E2CB9B8A0009436D9 /* TopSitesSectionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesSectionState.swift; sourceTree = "<group>"; };
+		6B9F66E2C542B15A2135E1FE /* TopSitesSectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesSectionViewModel.swift; sourceTree = "<group>"; };
 		8A454D402CB9B8AA009436D9 /* TopSitesAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesAction.swift; sourceTree = "<group>"; };
 		8A454D422CB9B8F5009436D9 /* TopSitesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesManager.swift; sourceTree = "<group>"; };
 		A9C9143939E36331EBC7B70C /* TopSitesTelemetryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesTelemetryService.swift; sourceTree = "<group>"; };
@@ -9922,6 +9924,7 @@
 		D1402BF2899A3D84B185D1F8 /* MessageCardViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCardViewModelTests.swift; sourceTree = "<group>"; };
 		932818F6A2A278030F2C754E /* SearchBarViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchBarViewModelTests.swift; sourceTree = "<group>"; };
 		14CC106D448B1F7597ADF91B /* HeaderViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderViewModelTests.swift; sourceTree = "<group>"; };
+		25464092C50CF26F92FE3E8F /* TopSitesSectionViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesSectionViewModelTests.swift; sourceTree = "<group>"; };
 		DE0CC50FD04EEA63186FA108 /* TopSitesServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesServiceTests.swift; sourceTree = "<group>"; };
 		D522D21DEBB0E96863C06936 /* TopSitesTelemetryServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesTelemetryServiceTests.swift; sourceTree = "<group>"; };
 		B59B74D87C13F21E0D9F4472 /* WallpaperViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperViewModelTests.swift; sourceTree = "<group>"; };
@@ -10005,7 +10008,6 @@
 		8AE80BB42891AE6700BC12EA /* MockDispatchGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDispatchGroup.swift; sourceTree = "<group>"; };
 		8AE89C4D2F118CF50002E9C1 /* UnifiedAdsUserDataRemover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedAdsUserDataRemover.swift; sourceTree = "<group>"; };
 		8AE938182CD91D5A0020E6CF /* TopSiteConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSiteConfiguration.swift; sourceTree = "<group>"; };
-		8AE9381A2CD91FDB0020E6CF /* TopSitesSectionStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesSectionStateTests.swift; sourceTree = "<group>"; };
 		8AE9FD252CF662FF001053EE /* UnifiedAdsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedAdsProvider.swift; sourceTree = "<group>"; };
 		8AEAD9F22C3D7B3E001A2C5A /* FeatureFlagsSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlagsSettings.swift; sourceTree = "<group>"; };
 		8AEAD9F42C3D7BA9001A2C5A /* FeatureFlagsDebugViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlagsDebugViewController.swift; sourceTree = "<group>"; };
@@ -14020,6 +14022,7 @@
 				D1402BF2899A3D84B185D1F8 /* MessageCardViewModelTests.swift */,
 				932818F6A2A278030F2C754E /* SearchBarViewModelTests.swift */,
 				14CC106D448B1F7597ADF91B /* HeaderViewModelTests.swift */,
+				25464092C50CF26F92FE3E8F /* TopSitesSectionViewModelTests.swift */,
 				DE0CC50FD04EEA63186FA108 /* TopSitesServiceTests.swift */,
 				D522D21DEBB0E96863C06936 /* TopSitesTelemetryServiceTests.swift */,
 				B59B74D87C13F21E0D9F4472 /* WallpaperViewModelTests.swift */,
@@ -14283,6 +14286,7 @@
 				8AB8572A27D944B70075C173 /* DataManagement */,
 				EDDB13862D3184EB00C4B165 /* Site+createSponsoredSite.swift */,
 				8A454D3E2CB9B8A0009436D9 /* TopSitesSectionState.swift */,
+				6B9F66E2C542B15A2135E1FE /* TopSitesSectionViewModel.swift */,
 				8A454D422CB9B8F5009436D9 /* TopSitesManager.swift */,
 				8A454D402CB9B8AA009436D9 /* TopSitesAction.swift */,
 				A9C9143939E36331EBC7B70C /* TopSitesTelemetryService.swift */,
@@ -14346,7 +14350,6 @@
 				8A552AC52CB43AB300564C98 /* HomepageStateTests.swift */,
 				8A552AD12CB43AB400564C98 /* HomepageTelemetryStateTests.swift */,
 				8A09A9E22D77552C0069B005 /* HomepageMiddlewareTests.swift */,
-				8AE9381A2CD91FDB0020E6CF /* TopSitesSectionStateTests.swift */,
 			);
 			path = Redux;
 			sourceTree = "<group>";
@@ -20569,6 +20572,7 @@
 				E17798A22BD804D300F6F0EB /* AddressToolbarContainerModel.swift in Sources */,
 				2122EE572DDD75D600D42716 /* GenericButtonCellView.swift in Sources */,
 				8A454D3F2CB9B8A0009436D9 /* TopSitesSectionState.swift in Sources */,
+				F8A6EE1D09E9592C4A13FA6C /* TopSitesSectionViewModel.swift in Sources */,
 				9609F4CA26B57CE800F81493 /* Calendar+Extension.swift in Sources */,
 				E663D5781BB341C4001EF30E /* ToggleButton.swift in Sources */,
 				ED7A08DF2CF674BA0035EC8F /* ShareTab.swift in Sources */,
@@ -20777,7 +20781,6 @@
 				96A5F736298D8EDF00234E5F /* MockSearchEngineProvider.swift in Sources */,
 				8A5D1CA02A30C9D7005AD35C /* MockAppSettingsDelegate.swift in Sources */,
 				8CF40B482DFC22C200DCB7F0 /* OnboardingServiceTests.swift in Sources */,
-				8AEF41602D15D6290013925D /* TopSitesSectionStateTests.swift in Sources */,
 				1D7B789F2AE088930011E9F2 /* EventQueueTests.swift in Sources */,
 				21A1C3C72996AFF800181B7C /* OverlayModeManagerTests.swift in Sources */,
 				ED07C0F52CCB020B006C0627 /* SearchEngineSelectionMiddlewareTests.swift in Sources */,
@@ -21209,6 +21212,7 @@
 				5D58424844FA1603A74BC17F /* MessageCardViewModelTests.swift in Sources */,
 				EAFCA47230E84D1BF644BDB0 /* SearchBarViewModelTests.swift in Sources */,
 				A2BEF550109F503F8A8FB548 /* HeaderViewModelTests.swift in Sources */,
+				DD5F728AEA4B6E87A7C2B253 /* TopSitesSectionViewModelTests.swift in Sources */,
 				71A8E1D3443F5E788922C730 /* TopSitesServiceTests.swift in Sources */,
 				28835067A47172DDB9F011DF /* TopSitesTelemetryServiceTests.swift in Sources */,
 				2F52446185D135727F34583C /* WallpaperViewModelTests.swift in Sources */,

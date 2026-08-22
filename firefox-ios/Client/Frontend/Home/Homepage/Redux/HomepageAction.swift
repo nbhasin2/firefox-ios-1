@@ -16,14 +16,12 @@ struct HomepageAction: Action {
     let actionType: ActionType
     let isSearchBarEnabled: Bool?
     let shouldShowSpacer: Bool?
-    let numberOfTopSitesPerRow: Int?
     let telemetryExtras: HomepageTelemetryExtras?
     let isZeroSearch: Bool?
 
     init(
         isSearchBarEnabled: Bool? = nil,
         shouldShowSpacer: Bool? = nil,
-        numberOfTopSitesPerRow: Int? = nil,
         telemetryExtras: HomepageTelemetryExtras? = nil,
         isZeroSearch: Bool? = nil,
         windowUUID: WindowUUID,
@@ -33,7 +31,6 @@ struct HomepageAction: Action {
         self.actionType = actionType
         self.isSearchBarEnabled = isSearchBarEnabled
         self.shouldShowSpacer = shouldShowSpacer
-        self.numberOfTopSitesPerRow = numberOfTopSitesPerRow
         self.telemetryExtras = telemetryExtras
         self.isZeroSearch = isZeroSearch
     }
@@ -46,7 +43,6 @@ enum HomepageActionType: ActionType {
     case viewWillAppear
     case viewDidAppear
     case viewWillDisappear
-    case viewDidLayoutSubviews
     case didSelectItem
     case embeddedHomepage
     case sectionSeen

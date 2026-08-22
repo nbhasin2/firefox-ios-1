@@ -265,34 +265,24 @@ final class HomepageViewController: UIViewController,
             didFinishFirstLayout = true
             store.dispatch(
                 HomepageAction(
-                    numberOfTopSitesPerRow: numberOfTilesPerRow(for: availableWidth),
                     windowUUID: windowUUID,
                     actionType: HomepageActionType.initialize
                 )
             )
+            homepageViewModel.topSites.setNumberOfTilesPerRow(numberOfTilesPerRow(for: availableWidth))
             homepageViewModel.viewDidLoad()
         }
 
-        let numberOfTilesPerRow = numberOfTilesPerRow(for: availableWidth)
-        guard homepageState.topSitesState.numberOfTilesPerRow != numberOfTilesPerRow else {
-            return
-        }
-
-        store.dispatch(
-            HomepageAction(
-                numberOfTopSitesPerRow: numberOfTilesPerRow,
-                windowUUID: windowUUID,
-                actionType: HomepageActionType.viewDidLayoutSubviews
-            )
-        )
+        // The view model drops the update when the count is unchanged.
+        homepageViewModel.topSites.setNumberOfTilesPerRow(numberOfTilesPerRow(for: availableWidth))
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         wallpaperView.updateImageForOrientationChange()
+        homepageViewModel.topSites.setNumberOfTilesPerRow(numberOfTilesPerRow(for: size.width))
         store.dispatch(
             HomepageAction(
-                numberOfTopSitesPerRow: numberOfTilesPerRow(for: size.width),
                 windowUUID: windowUUID,
                 actionType: HomepageActionType.viewWillTransition
             )

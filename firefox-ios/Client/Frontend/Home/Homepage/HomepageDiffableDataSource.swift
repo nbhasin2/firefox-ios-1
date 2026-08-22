@@ -139,7 +139,7 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
             snapshot.appendItems([.messageCard(configuration)], toSection: .messageCard)
         }
 
-        if let topSitesSnapshotData = getTopSites(with: state.topSitesState, and: textColor) {
+        if let topSitesSnapshotData = getTopSites(with: viewModel.topSites.state, and: textColor) {
             let topSitesSection = HomeSection.topSites(
                 textColor,
                 topSitesSnapshotData.numberOfTilesPerRow,

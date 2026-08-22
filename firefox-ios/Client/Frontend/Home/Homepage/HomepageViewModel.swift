@@ -24,6 +24,7 @@ final class HomepageViewModel: Notifiable {
     let header: HeaderViewModel
     let wallpaper: WallpaperViewModel
     let topSitesService: TopSitesService
+    let topSites: TopSitesSectionViewModel
 
     /// Fired when any owned section changes and the snapshot needs re-applying.
     var onSectionChange: (() -> Void)?
@@ -40,6 +41,7 @@ final class HomepageViewModel: Notifiable {
          searchBar: SearchBarViewModel? = nil,
          header: HeaderViewModel? = nil,
          wallpaper: WallpaperViewModel? = nil,
+         topSites: TopSitesSectionViewModel? = nil,
          topSitesService: TopSitesService = .shared,
          notificationCenter: NotificationProtocol = NotificationCenter.default) {
         self.windowUUID = windowUUID
@@ -51,6 +53,10 @@ final class HomepageViewModel: Notifiable {
         self.header = header ?? HeaderViewModel(windowUUID: windowUUID)
         self.wallpaper = wallpaper ?? WallpaperViewModel()
         self.topSitesService = topSitesService
+        self.topSites = topSites ?? TopSitesSectionViewModel(
+            windowUUID: windowUUID,
+            topSitesService: topSitesService
+        )
         self.notificationCenter = notificationCenter
         bindSections()
         // The migrated sections observe their own refresh triggers. `HomepageMiddleware` still
@@ -106,6 +112,10 @@ final class HomepageViewModel: Notifiable {
                 self.bookmarks.setSectionEnabled(isEnabled)
             case .merino:
                 self.merino.setSectionEnabled(isEnabled)
+            case .topSites:
+                // TopSitesSectionViewModel observes the notification itself; it needs the row
+                // count too, which this switch does not carry.
+                break
             case nil:
                 break
             }
@@ -178,6 +188,9 @@ final class HomepageViewModel: Notifiable {
         header.onChange = { [weak self] in
             self?.onSectionChange?()
         }
+        topSites.onChange = { [weak self] in
+            self?.onSectionChange?()
+        }
     }
 }
 
@@ -195,24 +208,29 @@ enum HomepageSectionSettingsNotification {
     static let windowUUIDKey = "windowUUID"
     static let sectionKey = "section"
     static let isEnabledKey = "isEnabled"
+    /// Only the top sites section carries this; it has a row-count setting as well as a toggle.
+    static let numberOfRowsKey = "numberOfRows"
 
     enum Section: String {
         case trackerBlockerModule
         case bookmarks
         case merino
+        case topSites
     }
 
     @MainActor
     static func post(section: Section,
-                     isEnabled: Bool,
+                     isEnabled: Bool? = nil,
+                     numberOfRows: Int? = nil,
                      windowUUID: WindowUUID,
                      notificationCenter: NotificationProtocol = NotificationCenter.default) {
+        var userInfo: [String: Any] = [windowUUIDKey: windowUUID, sectionKey: section.rawValue]
+        userInfo[isEnabledKey] = isEnabled
+        userInfo[numberOfRowsKey] = numberOfRows
         notificationCenter.post(
             name: .homepageSectionSettingsChanged,
             withObject: nil,
-            withUserInfo: [windowUUIDKey: windowUUID,
-                           sectionKey: section.rawValue,
-                           isEnabledKey: isEnabled]
+            withUserInfo: userInfo
         )
     }
 }

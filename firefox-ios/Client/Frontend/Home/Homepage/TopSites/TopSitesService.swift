@@ -21,8 +21,14 @@ final class TopSitesService {
 
     private(set) var topSites: [TopSiteConfiguration] = []
 
-    /// Fired after every successful fetch, for consumers that own their state.
-    var onSitesChange: (([TopSiteConfiguration]) -> Void)?
+    private struct SitesObserverBox {
+        weak var observer: AnyObject?
+        let handler: ([TopSiteConfiguration]) -> Void
+    }
+
+    /// Held weakly and swept before each delivery, like the action bus. There is one service for
+    /// the app but a homepage per window, so a single callback would not do.
+    private var sitesObservers: [ObjectIdentifier: SitesObserverBox] = [:]
 
     private let topSitesManager: TopSitesManagerInterface
     private let featureFlagsProvider: FeatureFlagProviding
@@ -44,6 +50,16 @@ final class TopSitesService {
             searchEnginesManager: searchEnginesManager
         )
         self.featureFlagsProvider = featureFlagsProvider
+    }
+
+    // MARK: - Observing
+
+    func addSitesObserver(_ observer: AnyObject, handler: @escaping ([TopSiteConfiguration]) -> Void) {
+        sitesObservers[ObjectIdentifier(observer)] = SitesObserverBox(observer: observer, handler: handler)
+    }
+
+    func removeSitesObserver(_ observer: AnyObject) {
+        sitesObservers.removeValue(forKey: ObjectIdentifier(observer))
     }
 
     // MARK: - Fetching
@@ -95,7 +111,8 @@ final class TopSitesService {
 
     private func publish(_ sites: [TopSiteConfiguration], for windowUUID: WindowUUID) {
         topSites = sites
-        onSitesChange?(sites)
+        sitesObservers = sitesObservers.filter { $0.value.observer != nil }
+        sitesObservers.values.forEach { $0.handler(sites) }
         store.dispatch(
             TopSitesAction(
                 topSites: sites,

@@ -214,8 +214,14 @@ class ShortcutsLibraryViewController: UIViewController,
         let layout = UICollectionViewCompositionalLayout { [weak self ](sectionIndex, environment)
             -> NSCollectionLayoutSection? in
             guard let self else { return nil }
-            let homepageState = store.state.componentState(HomepageState.self, for: .homepage, window: windowUUID)
-            let numberOfTilesPerRow = homepageState?.topSitesState.numberOfTilesPerRow ?? 4
+            // Read the homepage's tiles-per-row out of the store before; computed from this
+            // screen's own width now, which is what it should have been measuring all along.
+            let numberOfTilesPerRow = HomepageDimensionCalculator.numberOfTopSitesPerRow(
+                availableWidth: environment.container.contentSize.width,
+                leadingInset: HomepageSectionLayoutProvider.UX.leadingInset(
+                    traitCollection: environment.traitCollection
+                )
+            )
             let section = TopSitesSectionLayoutProvider.createTopSitesSectionLayout(
                 for: environment.traitCollection,
                 numberOfTilesPerRow: numberOfTilesPerRow

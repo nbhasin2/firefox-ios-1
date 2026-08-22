@@ -570,3 +570,17 @@ The five notifications that used to reach the middleware through
 `.DefaultSearchEngineUpdated`, `.ProfileDidFinishSyncing`, `.FirefoxAccountChanged`) are now
 observed by `HomepageViewModel` per window, replacing `HomepageMiddleware`'s fan-out over every
 window. None of them is new, so the D-017 budget is untouched.
+
+## D-026 — Settings screens must not resolve the container in test-visible defaults
+
+`TopSitesSectionState`'s convenience init briefly resolved `FeatureFlagProviding` from
+`AppContainer`, and `TopSitesService.shared`'s lazy initialiser resolves three services. Both are
+reached through default arguments, so any test that constructed a `HomepageViewModel` without
+injecting them resolved the container at whatever moment the default happened to be evaluated —
+which crashed hard (`Fatal error: No definition registered`) rather than failing an assertion,
+taking the whole test process with it.
+
+The rule this leaves: a view model that a test constructs must take every collaborator as an
+injectable parameter, and the test helpers must pass them. `HomepageViewControllerTests` and
+`HomepageDiffableDataSourceTests` now build a stubbed `HomepageViewModel` in every case rather
+than letting `createSubject` fall through to the production defaults.

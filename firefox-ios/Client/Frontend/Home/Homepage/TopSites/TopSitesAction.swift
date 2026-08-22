@@ -9,30 +9,19 @@ struct TopSitesAction: Action {
     let windowUUID: WindowUUID
     let actionType: ActionType
     let topSites: [TopSiteConfiguration]?
-    let numberOfRows: Int?
-    let isEnabled: Bool?
     let shouldShowAddShortcutTile: Bool?
 
     init(
         topSites: [TopSiteConfiguration]? = nil,
-        numberOfRows: Int? = nil,
-        isEnabled: Bool? = nil,
         shouldShowAddShortcutTile: Bool? = nil,
         windowUUID: WindowUUID,
         actionType: any ActionType
     ) {
         self.windowUUID = windowUUID
         self.actionType = actionType
-        self.isEnabled = isEnabled
         self.shouldShowAddShortcutTile = shouldShowAddShortcutTile
         self.topSites = topSites
-        self.numberOfRows = numberOfRows
     }
-}
-
-enum TopSitesActionType: ActionType {
-    case updatedNumberOfRows
-    case toggleShowSectionSetting
 }
 
 enum TopSitesMiddlewareActionType: ActionType {

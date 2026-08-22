@@ -124,6 +124,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
     private let searchBarIsVisible: () -> Bool
     private let headerState: () -> HeaderState?
     private let availableContentHeight: () -> CGFloat
+    private let topSitesState: () -> TopSitesSectionState?
 
     init(windowUUID: WindowUUID,
          logger: Logger = DefaultLogger.shared,
@@ -133,7 +134,8 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
                                              shouldShowSection: Bool) = { ([], false) },
          searchBarIsVisible: @escaping () -> Bool = { false },
          headerState: @escaping () -> HeaderState? = { nil },
-         availableContentHeight: @escaping () -> CGFloat = { 0 }) {
+         availableContentHeight: @escaping () -> CGFloat = { 0 },
+         topSitesState: @escaping () -> TopSitesSectionState? = { nil }) {
         self.windowUUID = windowUUID
         self.logger = logger
         self.trackerBlockerModuleIsVisible = trackerBlockerModuleIsVisible
@@ -142,6 +144,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
         self.searchBarIsVisible = searchBarIsVisible
         self.headerState = headerState
         self.availableContentHeight = availableContentHeight
+        self.topSitesState = topSitesState
     }
 
     func createLayoutSection(
@@ -620,10 +623,8 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
 
     /// Creates a "dummy" top sites section and returns its height
     private func getShortcutsSectionHeight(environment: NSCollectionLayoutEnvironment) -> CGFloat {
-        guard let state = store.state.componentState(HomepageState.self, for: .homepage, window: windowUUID),
-              state.topSitesState.shouldShowSection else { return 0 }
+        guard let topSitesState = topSitesState(), topSitesState.shouldShowSection else { return 0 }
         var totalHeight: CGFloat = 0
-        let topSitesState = state.topSitesState
         let containerWidth = normalizedDimension(environment.container.contentSize.width)
         let contentSizeCategory = environment.traitCollection.preferredContentSizeCategory
         let measurementKey = HomepageLayoutMeasurementCache.TopSitesMeasurement.Key(
