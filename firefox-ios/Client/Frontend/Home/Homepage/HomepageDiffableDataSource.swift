@@ -108,8 +108,11 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
         }
     }
 
+    /// `viewModel` carries the sections that have moved off Redux; `state` carries the rest.
+    /// The `state` parameter goes away when the last section migrates.
     func updateSnapshot(
         state: HomepageState,
+        viewModel: HomepageViewModel,
         selectedNewsfeedCategoryID: String? = nil,
         jumpBackInDisplayConfig: JumpBackInSectionLayoutConfiguration,
         showiPadSetup: ShowiPadSetup = false,
@@ -131,7 +134,7 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
             snapshot.appendItems([.privacyNotice], toSection: .privacyNotice)
         }
 
-        if let configuration = state.messageState.messageCardConfiguration {
+        if let configuration = viewModel.messageCard.configuration {
             snapshot.appendSections([.messageCard])
             snapshot.appendItems([.messageCard(configuration)], toSection: .messageCard)
         }
@@ -146,10 +149,10 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
             snapshot.appendItems(topSitesSnapshotData.items, toSection: topSitesSection)
         }
 
-        if state.trackerBlockerModuleState.shouldShowSection {
+        if viewModel.trackerBlockerModule.shouldShowSection {
             snapshot.appendSections([.trackerBlockerModule])
             snapshot.appendItems(
-                [.trackerBlockerModule(state.trackerBlockerModuleState.blockedTrackerCount)],
+                [.trackerBlockerModule(viewModel.trackerBlockerModule.blockedTrackerCount)],
                 toSection: .trackerBlockerModule
             )
         }

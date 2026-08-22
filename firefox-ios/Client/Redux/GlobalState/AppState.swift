@@ -67,7 +67,6 @@ extension AppState {
 
 @MainActor
 let middlewares = [
-    MessageCardMiddleware().messageCardProvider,
     MicrosurveyPromptMiddleware().microsurveyProvider,
     RemoteTabsPanelMiddleware().remoteTabsPanelProvider,
     TabManagerMiddleware().tabsPanelProvider,
@@ -77,7 +76,6 @@ let middlewares = [
     MerinoMiddleware().pocketSectionProvider,
     WallpaperMiddleware().wallpaperProvider,
     BookmarksMiddleware().bookmarksProvider,
-    TrackerBlockerModuleMiddleware().trackerBlockerModuleProvider,
     HomepageMiddleware(notificationCenter: NotificationCenter.default).homepageProvider,
     QuickAnswersMiddleware().quickAnswersProvider,
     StartAtHomeMiddleware().startAtHomeProvider,

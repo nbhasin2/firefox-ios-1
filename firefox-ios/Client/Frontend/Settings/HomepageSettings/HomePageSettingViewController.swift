@@ -155,13 +155,9 @@ class HomePageSettingViewController: SettingsTableViewController,
                     defaultValue: userPreferences.getPreferenceFor(.homepageTrackerBlockerModule),
                     titleText: .Settings.Homepage.CustomizeFirefoxHome.PrivacyReport
                 ) { value in
-                    store.dispatch(
-                        TrackerBlockerModuleAction(
-                            isEnabled: value,
-                            windowUUID: self.windowUUID,
-                            actionType: TrackerBlockerModuleActionType.toggleShowSectionSetting
-                        )
-                    )
+                    HomepageSectionSettingsNotification.post(section: .trackerBlockerModule,
+                                                             isEnabled: value,
+                                                             windowUUID: self.windowUUID)
                 }
                 sectionItems.append(trackerBlockerModuleSetting)
             }

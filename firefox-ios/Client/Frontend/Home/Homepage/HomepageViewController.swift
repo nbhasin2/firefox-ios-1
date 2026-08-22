@@ -46,7 +46,12 @@ final class HomepageViewController: UIViewController,
     private typealias a11y = AccessibilityIdentifiers.FirefoxHomepage
     private var collectionView: UICollectionView?
     private var dataSource: HomepageDiffableDataSource?
-    private lazy var sectionProvider = HomepageSectionLayoutProvider(windowUUID: windowUUID)
+    private lazy var sectionProvider = HomepageSectionLayoutProvider(
+        windowUUID: windowUUID,
+        trackerBlockerModuleIsVisible: { [weak self] in
+            self?.homepageViewModel.trackerBlockerModule.shouldShowSection ?? false
+        }
+    )
     // Tracks which tab the shared homepage instance is currently representing.
     private var activeTabUUID: TabUUID?
 
@@ -55,6 +60,7 @@ final class HomepageViewController: UIViewController,
     private let jumpBackInContextualHintViewController: ContextualHintViewController
     private let syncTabContextualHintViewController: ContextualHintViewController
     private var homepageState: HomepageState
+    private let homepageViewModel: HomepageViewModel
     private var lastContentOffsetY: CGFloat = 0
     private var didFinishFirstLayout = false
     private var wallpaperTopConstraint: NSLayoutConstraint?
@@ -132,8 +138,12 @@ final class HomepageViewController: UIViewController,
         )
 
         homepageState = HomepageState(windowUUID: windowUUID)
+        homepageViewModel = HomepageViewModel(windowUUID: windowUUID)
         super.init(nibName: nil, bundle: nil)
 
+        homepageViewModel.onSectionChange = { [weak self] in
+            self?.refreshHomepageDataSourceSnapshot()
+        }
         subscribeToRedux()
     }
 
@@ -199,6 +209,7 @@ final class HomepageViewController: UIViewController,
                 actionType: HomepageActionType.viewDidAppear
             )
         )
+        homepageViewModel.refreshOnAppearance()
         trackVisibleItemImpressions()
     }
 
@@ -235,6 +246,7 @@ final class HomepageViewController: UIViewController,
                     actionType: HomepageActionType.initialize
                 )
             )
+            homepageViewModel.viewDidLoad()
         }
 
         let numberOfTilesPerRow = numberOfTilesPerRow(for: availableWidth)
@@ -640,6 +652,12 @@ final class HomepageViewController: UIViewController,
         case .messageCard(let config):
             return configuredCell(cellType: HomepageMessageCardCell.self, at: indexPath) { cell in
                 cell.configure(with: config, windowUUID: windowUUID, theme: currentTheme)
+                cell.onCloseButtonTapped = { [weak self] in
+                    self?.homepageViewModel.messageCard.tappedOnCloseButton()
+                }
+                cell.onActionButtonTapped = { [weak self] in
+                    self?.homepageViewModel.messageCard.tappedOnActionButton()
+                }
             }
         case .topSite(let site, let textColor):
             return configuredCell(cellType: TopSiteCell.self, at: indexPath) { cell in
@@ -1169,6 +1187,7 @@ final class HomepageViewController: UIViewController,
                                                    completion: (() -> Void)? = nil) {
         dataSource?.updateSnapshot(
             state: homepageState,
+            viewModel: homepageViewModel,
             selectedNewsfeedCategoryID: currentHomepageTabState.selectedNewsfeedCategoryID,
             jumpBackInDisplayConfig: getJumpBackInDisplayConfig(),
             showiPadSetup: shouldUseiPadSetup(),

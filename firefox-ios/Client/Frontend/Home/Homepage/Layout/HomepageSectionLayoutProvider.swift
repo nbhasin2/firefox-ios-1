@@ -115,9 +115,17 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
     /// of the inputs differ between layout passes.
     private var measurementsCache = HomepageLayoutMeasurementCache()
 
-    init(windowUUID: WindowUUID, logger: Logger = DefaultLogger.shared) {
+    /// Reads the tracker-blocker section's visibility from its view model rather than the store,
+    /// which no longer holds it. Injected as a closure so the provider does not need to own the
+    /// view model.
+    private let trackerBlockerModuleIsVisible: () -> Bool
+
+    init(windowUUID: WindowUUID,
+         logger: Logger = DefaultLogger.shared,
+         trackerBlockerModuleIsVisible: @escaping () -> Bool = { false }) {
         self.windowUUID = windowUUID
         self.logger = logger
+        self.trackerBlockerModuleIsVisible = trackerBlockerModuleIsVisible
     }
 
     func createLayoutSection(
@@ -775,9 +783,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
     }
 
     private func getTrackerBlockerModuleSectionHeight() -> CGFloat {
-        guard let state = store.state.componentState(HomepageState.self, for: .homepage, window: windowUUID),
-              state.trackerBlockerModuleState.shouldShowSection else { return 0 }
-
+        guard trackerBlockerModuleIsVisible() else { return 0 }
         return UX.TrackerBlockerModuleConstants.height + UX.spacingBetweenSections
     }
 

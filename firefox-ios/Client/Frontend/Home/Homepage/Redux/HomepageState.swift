@@ -12,11 +12,9 @@ struct HomepageState: ScreenState, Equatable {
 
     // Homepage sections state in the order they appear on the collection view
     let headerState: HeaderState
-    let messageState: MessageCardState
     let topSitesState: TopSitesSectionState
     let searchState: SearchBarState
     let jumpBackInState: JumpBackInSectionState
-    let trackerBlockerModuleState: TrackerBlockerModuleState
     let bookmarkState: BookmarksSectionState
     let merinoState: MerinoState
     let wallpaperState: WallpaperState
@@ -40,11 +38,9 @@ struct HomepageState: ScreenState, Equatable {
         self.init(
             windowUUID: homepageState.windowUUID,
             headerState: homepageState.headerState,
-            messageState: homepageState.messageState,
             topSitesState: homepageState.topSitesState,
             searchState: homepageState.searchState,
             jumpBackInState: homepageState.jumpBackInState,
-            trackerBlockerModuleState: homepageState.trackerBlockerModuleState,
             bookmarkState: homepageState.bookmarkState,
             merinoState: homepageState.merinoState,
             wallpaperState: homepageState.wallpaperState,
@@ -57,11 +53,9 @@ struct HomepageState: ScreenState, Equatable {
         self.init(
             windowUUID: windowUUID,
             headerState: HeaderState(windowUUID: windowUUID),
-            messageState: MessageCardState(windowUUID: windowUUID),
             topSitesState: TopSitesSectionState(windowUUID: windowUUID),
             searchState: SearchBarState(windowUUID: windowUUID),
             jumpBackInState: JumpBackInSectionState(windowUUID: windowUUID),
-            trackerBlockerModuleState: TrackerBlockerModuleState(windowUUID: windowUUID),
             bookmarkState: BookmarksSectionState(windowUUID: windowUUID),
             merinoState: MerinoState(windowUUID: windowUUID),
             wallpaperState: WallpaperState(windowUUID: windowUUID),
@@ -73,11 +67,9 @@ struct HomepageState: ScreenState, Equatable {
     private init(
         windowUUID: WindowUUID,
         headerState: HeaderState,
-        messageState: MessageCardState,
         topSitesState: TopSitesSectionState,
         searchState: SearchBarState,
         jumpBackInState: JumpBackInSectionState,
-        trackerBlockerModuleState: TrackerBlockerModuleState,
         bookmarkState: BookmarksSectionState,
         merinoState: MerinoState,
         wallpaperState: WallpaperState,
@@ -86,11 +78,9 @@ struct HomepageState: ScreenState, Equatable {
     ) {
         self.windowUUID = windowUUID
         self.headerState = headerState
-        self.messageState = messageState
         self.topSitesState = topSitesState
         self.searchState = searchState
         self.jumpBackInState = jumpBackInState
-        self.trackerBlockerModuleState = trackerBlockerModuleState
         self.bookmarkState = bookmarkState
         self.merinoState = merinoState
         self.wallpaperState = wallpaperState
@@ -132,12 +122,9 @@ struct HomepageState: ScreenState, Equatable {
         return state
             .resetTransientState()
             .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
-            .copy(messageState: MessageCardState.reducer.legacyReducer(state.messageState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
             .copy(searchState: SearchBarState.reducer.legacyReducer(state.searchState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
-            .copy(trackerBlockerModuleState: TrackerBlockerModuleState.reducer
-                                             .legacyReducer(state.trackerBlockerModuleState, action))
             .copy(bookmarkState: BookmarksSectionState.reducer.legacyReducer(state.bookmarkState, action))
             .copy(merinoState: MerinoState.reducer.legacyReducer(state.merinoState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
@@ -149,12 +136,9 @@ struct HomepageState: ScreenState, Equatable {
         return state
             .resetTransientState()
             .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
-            .copy(messageState: MessageCardState.reducer.legacyReducer(state.messageState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
             .copy(searchState: SearchBarState.reducer.legacyReducer(state.searchState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
-            .copy(trackerBlockerModuleState: TrackerBlockerModuleState.reducer
-                                             .legacyReducer(state.trackerBlockerModuleState, action))
             .copy(bookmarkState: BookmarksSectionState.reducer.legacyReducer(state.bookmarkState, action))
             .copy(merinoState: MerinoState.reducer.legacyReducer(state.merinoState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
@@ -166,12 +150,9 @@ struct HomepageState: ScreenState, Equatable {
         return state
             .resetTransientState()
             .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
-            .copy(messageState: MessageCardState.reducer.legacyReducer(state.messageState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
             .copy(searchState: SearchBarState.reducer.legacyReducer(state.searchState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
-            .copy(trackerBlockerModuleState: TrackerBlockerModuleState.reducer
-                                             .legacyReducer(state.trackerBlockerModuleState, action))
             .copy(bookmarkState: BookmarksSectionState.reducer.legacyReducer(state.bookmarkState, action))
             .copy(merinoState: MerinoState.reducer.legacyReducer(state.merinoState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
@@ -184,12 +165,9 @@ struct HomepageState: ScreenState, Equatable {
         return state
             .resetTransientState()
             .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
-            .copy(messageState: MessageCardState.reducer.legacyReducer(state.messageState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
             .copy(searchState: SearchBarState.reducer.legacyReducer(state.searchState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
-            .copy(trackerBlockerModuleState: TrackerBlockerModuleState.reducer
-                                             .legacyReducer(state.trackerBlockerModuleState, action))
             .copy(bookmarkState: BookmarksSectionState.reducer.legacyReducer(state.bookmarkState, action))
             .copy(merinoState: MerinoState.reducer.legacyReducer(state.merinoState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
@@ -201,12 +179,9 @@ struct HomepageState: ScreenState, Equatable {
         return state
             .resetTransientState()
             .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
-            .copy(messageState: MessageCardState.reducer.legacyReducer(state.messageState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
             .copy(searchState: SearchBarState.reducer.legacyReducer(state.searchState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
-            .copy(trackerBlockerModuleState: TrackerBlockerModuleState.reducer
-                                             .legacyReducer(state.trackerBlockerModuleState, action))
             .copy(bookmarkState: BookmarksSectionState.reducer.legacyReducer(state.bookmarkState, action))
             .copy(merinoState: MerinoState.reducer.legacyReducer(state.merinoState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
@@ -219,12 +194,9 @@ struct HomepageState: ScreenState, Equatable {
         return state
             .resetTransientState()
             .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
-            .copy(messageState: MessageCardState.reducer.legacyReducer(state.messageState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
             .copy(searchState: SearchBarState.reducer.legacyReducer(state.searchState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
-            .copy(trackerBlockerModuleState: TrackerBlockerModuleState.reducer
-                                             .legacyReducer(state.trackerBlockerModuleState, action))
             .copy(bookmarkState: BookmarksSectionState.reducer.legacyReducer(state.bookmarkState, action))
             .copy(merinoState: MerinoState.reducer.legacyReducer(state.merinoState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
@@ -235,11 +207,9 @@ struct HomepageState: ScreenState, Equatable {
         return HomepageState(
             windowUUID: state.windowUUID,
             headerState: HeaderState.defaultState(from: state.headerState),
-            messageState: MessageCardState.defaultState(from: state.messageState),
             topSitesState: TopSitesSectionState.defaultState(from: state.topSitesState),
             searchState: SearchBarState.defaultState(from: state.searchState),
             jumpBackInState: JumpBackInSectionState.defaultState(from: state.jumpBackInState),
-            trackerBlockerModuleState: TrackerBlockerModuleState.defaultState(from: state.trackerBlockerModuleState),
             bookmarkState: BookmarksSectionState.defaultState(from: state.bookmarkState),
             merinoState: MerinoState.defaultState(from: state.merinoState),
             wallpaperState: WallpaperState.defaultState(from: state.wallpaperState),
