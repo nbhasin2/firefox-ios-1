@@ -242,16 +242,15 @@ class AIControlsModelTests: XCTestCase, StoreTestUtility {
 
     @MainActor
     func testToggleTranslationsFeature() throws {
-        let expectation = XCTestExpectation(description: "toggleTranslationsEnabled dispatched")
-        expectation.expectedFulfillmentCount = 1
-        mockStore.dispatchCalled = { expectation.fulfill() }
-        let aiControlsModel = createSubject(prefs: mockPrefs)
+        let translationService = MockTranslationSettingsService()
+        let aiControlsModel = createSubject(prefs: mockPrefs, translationSettingsService: translationService)
+
         aiControlsModel.toggleTranslationsFeature(to: true)
 
-        wait(for: [expectation], timeout: 1.0)
-        let action = try XCTUnwrap(mockStore.dispatchedActions.last as? TranslationSettingsViewAction)
-        XCTAssertTrue(try XCTUnwrap(action.newSettingValue))
-        XCTAssertTrue(try XCTUnwrap(action.toggledViaAIControls))
+        let call = try XCTUnwrap(translationService.setTranslationsEnabledCalls.last)
+        XCTAssertTrue(call.isEnabled)
+        // AI Controls records its own telemetry, so the service must not record it again.
+        XCTAssertTrue(call.viaAIControls)
 
         // Each settings event gets called twice for the legacy and new change event
         XCTAssertEqual(mockGleanWrapper.recordEventCalled, 2)
@@ -348,7 +347,12 @@ class AIControlsModelTests: XCTestCase, StoreTestUtility {
     }
 
     @MainActor
-    private func createSubject(prefs: Prefs, summarizeFeatureEnabled: Bool = true) -> AIControlsModel {
+    private func createSubject(prefs: Prefs,
+                               summarizeFeatureEnabled: Bool = true,
+                               translationSettingsService: TranslationSettingsServicing? = nil) -> AIControlsModel {
+        // Always inject a stub: the real service resolves remote-settings singletons that the
+        // Redux middleware never touched under test, because `middlewares` is empty in unit tests.
+        let translationService = translationSettingsService ?? MockTranslationSettingsService()
         let summarizeFeatureDefaultValue = prefs.boolForKey(
             PrefsKeys.Summarizer.summarizeContentFeature
         ) ?? true
@@ -359,22 +363,17 @@ class AIControlsModelTests: XCTestCase, StoreTestUtility {
                 summarizeFeatureToggledOn: summarizeFeatureDefaultValue,
                 summarizeFeatureEnabled: summarizeFeatureEnabled
             ),
-            settingsTelemetry: SettingsTelemetry(gleanWrapper: mockGleanWrapper)
+            settingsTelemetry: SettingsTelemetry(gleanWrapper: mockGleanWrapper),
+            translationSettingsService: translationService
         )
         trackForMemoryLeaks(subject)
         return subject
     }
 
     func setupAppState() -> Client.AppState {
-        return AppState(
-            presentedComponents: PresentedComponentsState(
-                components: [
-                    .translationSettings(
-                        TranslationSettingsState(windowUUID: .XCTestDefaultUUID)
-                    )
-                ]
-            )
-        )
+        // Translation settings no longer live in the store; AI Controls still dispatches
+        // QuickAnswersAction, which is why the mock store stays.
+        return AppState(presentedComponents: PresentedComponentsState(components: []))
     }
 
     func setupStore() {

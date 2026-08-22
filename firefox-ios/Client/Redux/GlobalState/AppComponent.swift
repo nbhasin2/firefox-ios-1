@@ -12,7 +12,6 @@ enum AppComponent {
     case remoteTabsPanel
     case tabPeek
     case mainMenu
-    case termsOfUse
     case toolbar
     case searchEngineSelection
     case shortcutsLibrary

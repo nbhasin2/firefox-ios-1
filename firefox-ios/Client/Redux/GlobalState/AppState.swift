@@ -37,7 +37,6 @@ struct AppState: StateType, Sendable {
                 case (.tabsPanel(let state), .tabsPanel): return state as? S
                 case (.tabPeek(let state), .tabPeek): return state as? S
                 case (.tabsTray(let state), .tabsTray): return state as? S
-                case (.termsOfUse(let state), .termsOfUse): return state as? S
                 case (.toolbar(let state), .toolbar): return state as? S
                 case (.searchEngineSelection(let state), .searchEngineSelection): return state as? S
                 case (.shortcutsLibrary(let state), .shortcutsLibrary): return state as? S
@@ -88,7 +87,6 @@ let middlewares = [
     StartAtHomeMiddleware().startAtHomeProvider,
     ShortcutsLibraryMiddleware().shortcutsLibraryProvider,
     SummarizerMiddleware().summarizerProvider,
-    TermsOfUseMiddleware().termsOfUseProvider,
     TranslationsMiddleware().translationsProvider
 ]
 

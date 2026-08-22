@@ -14,7 +14,6 @@ enum ComponentState: Sendable, Equatable {
     case tabsPanel(TabsPanelState)
     case tabPeek(TabPeekState)
     case tabsTray(TabTrayState)
-    case termsOfUse(TermsOfUseState)
     case toolbar(ToolbarState)
     case searchEngineSelection(SearchEngineSelectionState)
     case shortcutsLibrary(ShortcutsLibraryState)
@@ -38,8 +37,6 @@ enum ComponentState: Sendable, Equatable {
             return .tabsTray(TabTrayState.reducer.modernReducer(state, action, actionWindowUUID))
         case .tabsPanel(let state):
             return .tabsPanel(TabsPanelState.reducer.modernReducer(state, action, actionWindowUUID))
-        case .termsOfUse(let state):
-            return .termsOfUse(TermsOfUseState.reducer.modernReducer(state, action, actionWindowUUID))
         case .toolbar(let state):
             return .toolbar(ToolbarState.reducer.modernReducer(state, action, actionWindowUUID))
         case .searchEngineSelection(let state):
@@ -65,8 +62,6 @@ enum ComponentState: Sendable, Equatable {
             return .tabsTray(TabTrayState.reducer.legacyReducer(state, action))
         case .tabsPanel(let state):
             return .tabsPanel(TabsPanelState.reducer.legacyReducer(state, action))
-        case .termsOfUse(let state):
-            return .termsOfUse(TermsOfUseState.reducer.legacyReducer(state, action))
         case .toolbar(let state):
             return .toolbar(ToolbarState.reducer.legacyReducer(state, action))
         case .searchEngineSelection(let state):
@@ -87,7 +82,6 @@ enum ComponentState: Sendable, Equatable {
         case .tabsPanel: return .tabsPanel
         case .tabPeek: return .tabPeek
         case .tabsTray: return .tabsTray
-        case .termsOfUse: return .termsOfUse
         case .toolbar: return .toolbar
         case .searchEngineSelection: return .searchEngineSelection
         case .shortcutsLibrary: return .shortcutsLibrary
@@ -103,7 +97,6 @@ enum ComponentState: Sendable, Equatable {
         case .tabsPanel(let state): return state.windowUUID
         case .tabPeek(let state): return state.windowUUID
         case .tabsTray(let state): return state.windowUUID
-        case .termsOfUse(let state): return state.windowUUID
         case .toolbar(let state): return state.windowUUID
         case .searchEngineSelection(let state): return state.windowUUID
         case .shortcutsLibrary(let state): return state.windowUUID
@@ -172,8 +165,6 @@ struct PresentedComponentsState: Sendable, Equatable {
                 components.append(.tabsPanel(TabsPanelState(windowUUID: uuid)))
             case .tabPeek:
                 components.append(.tabPeek(TabPeekState(windowUUID: uuid)))
-            case .termsOfUse:
-                components.append(.termsOfUse(TermsOfUseState(windowUUID: uuid)))
             case .toolbar:
                 components.append(.toolbar(ToolbarState(windowUUID: uuid)))
             case .searchEngineSelection:

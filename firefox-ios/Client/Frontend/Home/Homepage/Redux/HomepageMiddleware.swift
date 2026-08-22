@@ -14,17 +14,23 @@ final class HomepageMiddleware: FeatureFlaggable, Notifiable {
     private let profile: Profile
     private let homepageTelemetry: HomepageTelemetry
     private let privacyNoticeHelper: PrivacyNoticeHelperProtocol
+    /// The privacy notice is a Terms of Use surface, so its impression and dismissal are ToU
+    /// events. `TermsOfUseMiddleware` used to record them by observing these same two actions on
+    /// the global bus; with that middleware gone, they are recorded here, where the actions live.
+    private let termsOfUseTelemetry: TermsOfUseTelemetry
     private let notificationCenter: NotificationProtocol
     private let windowManager: WindowManager
 
     init(profile: Profile = AppContainer.shared.resolve(),
          homepageTelemetry: HomepageTelemetry = HomepageTelemetry(),
          privacyNoticeHelper: PrivacyNoticeHelperProtocol? = nil,
+         termsOfUseTelemetry: TermsOfUseTelemetry = TermsOfUseTelemetry(),
          notificationCenter: NotificationProtocol,
          windowManager: WindowManager = AppContainer.shared.resolve()) {
         self.profile = profile
         self.homepageTelemetry = homepageTelemetry
         self.privacyNoticeHelper = privacyNoticeHelper ?? PrivacyNoticeHelper(prefs: profile.prefs)
+        self.termsOfUseTelemetry = termsOfUseTelemetry
         self.notificationCenter = notificationCenter
         self.windowManager = windowManager
         observeNotifications()
@@ -63,6 +69,9 @@ final class HomepageMiddleware: FeatureFlaggable, Notifiable {
         case HomepageActionType.sectionSeen:
             self.handleSectionSeenAction(action: action)
 
+        case HomepageActionType.privacyNoticeCloseButtonTapped:
+            self.termsOfUseTelemetry.termsOfUseDismissed(surface: .privacyNotice)
+
         case HomepageActionType.initialize:
             self.dispatchPrivacyNoticeConfigurationAction(action: action)
             self.dispatchSearchBarConfigurationAction(action: action)
@@ -91,6 +100,7 @@ final class HomepageMiddleware: FeatureFlaggable, Notifiable {
 
     private func dispatchPrivacyNoticeConfigurationAction(action: Action) {
         if privacyNoticeHelper.shouldShowPrivacyNotice() {
+            termsOfUseTelemetry.termsOfUseDisplayed(surface: .privacyNotice)
             store.dispatch(
                 HomepageAction(
                     windowUUID: action.windowUUID,

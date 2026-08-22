@@ -83,7 +83,7 @@ final class TranslationSettingsDiffableDataSourceTests: XCTestCase {
             PreferredLanguageDetails(code: "en", mainText: "English", subtitleText: "Device Language"),
             PreferredLanguageDetails(code: "fr", mainText: "français", subtitleText: "French")
         ]
-        let state = TranslationSettingsState(windowUUID: .XCTestDefaultUUID)
+        let state = TranslationSettingsState()
             .copy(preferredLanguages: details)
             .copy(supportedLanguages: ["en", "fr"])
 
@@ -104,7 +104,7 @@ final class TranslationSettingsDiffableDataSourceTests: XCTestCase {
 
     private func makeState(isEnabled: Bool, languages: [String]) -> TranslationSettingsState {
         let details = languages.map { PreferredLanguageDetails(code: $0, mainText: $0, subtitleText: nil) }
-        return TranslationSettingsState(windowUUID: .XCTestDefaultUUID)
+        return TranslationSettingsState()
             .copy(isTranslationsEnabled: isEnabled)
             .copy(preferredLanguages: details)
             .copy(supportedLanguages: languages)
