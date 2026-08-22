@@ -36,8 +36,6 @@ final class HomepageStateTests: XCTestCase {
         let initialState = createSubject()
 
         XCTAssertEqual(initialState.windowUUID, .XCTestDefaultUUID)
-
-        XCTAssertFalse(initialState.headerState.isPrivate)
     }
 
     @MainActor
@@ -54,7 +52,6 @@ final class HomepageStateTests: XCTestCase {
         )
 
         XCTAssertEqual(newState.windowUUID, .XCTestDefaultUUID)
-        XCTAssertFalse(newState.headerState.isPrivate)
     }
 
     @MainActor

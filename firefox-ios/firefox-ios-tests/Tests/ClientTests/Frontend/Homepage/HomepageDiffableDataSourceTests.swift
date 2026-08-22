@@ -85,16 +85,17 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             )
         )
 
+        let viewModel = makeViewModel(merinoResponse: MerinoStoryResponse(stories: createStories()))
         dataSource.updateSnapshot(
             state: updatedState,
-            viewModel: makeViewModel(merinoResponse: MerinoStoryResponse(stories: createStories())),
+            viewModel: viewModel,
             jumpBackInDisplayConfig: mockSectionConfig
         )
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(
             snapshot.itemIdentifiers(inSection: .header).first,
-            HomepageItem.header(updatedState.headerState, .blue, false)
+            HomepageItem.header(viewModel.header.state, .blue, false)
         )
         XCTAssertEqual(snapshot.numberOfItems(inSection: .pocket(.systemCyan)), 20)
         let expectedSections: [HomepageSection] = [

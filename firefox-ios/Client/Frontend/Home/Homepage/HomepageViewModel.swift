@@ -21,6 +21,7 @@ final class HomepageViewModel: Notifiable {
     let bookmarks: BookmarksSectionViewModel
     let merino: MerinoSectionViewModel
     let searchBar: SearchBarViewModel
+    let header: HeaderViewModel
 
     /// Fired when any owned section changes and the snapshot needs re-applying.
     var onSectionChange: (() -> Void)?
@@ -35,6 +36,7 @@ final class HomepageViewModel: Notifiable {
          bookmarks: BookmarksSectionViewModel? = nil,
          merino: MerinoSectionViewModel? = nil,
          searchBar: SearchBarViewModel? = nil,
+         header: HeaderViewModel? = nil,
          notificationCenter: NotificationProtocol = NotificationCenter.default) {
         self.windowUUID = windowUUID
         self.messageCard = messageCard ?? MessageCardViewModel(windowUUID: windowUUID)
@@ -42,6 +44,7 @@ final class HomepageViewModel: Notifiable {
         self.bookmarks = bookmarks ?? BookmarksSectionViewModel()
         self.merino = merino ?? MerinoSectionViewModel()
         self.searchBar = searchBar ?? SearchBarViewModel(windowUUID: windowUUID)
+        self.header = header ?? HeaderViewModel(windowUUID: windowUUID)
         self.notificationCenter = notificationCenter
         bindSections()
         // The migrated sections observe their own refresh triggers. `HomepageMiddleware` still
@@ -101,6 +104,12 @@ final class HomepageViewModel: Notifiable {
         bookmarks.refreshBookmarks()
         merino.refreshStories()
         searchBar.refreshVisibility()
+        header.refresh()
+    }
+
+    /// Homepage `viewWillAppear`.
+    func viewWillAppear() {
+        header.refresh()
     }
 
     /// Homepage `viewDidAppear`, and app foreground.
@@ -140,6 +149,9 @@ final class HomepageViewModel: Notifiable {
             self?.onSectionChange?()
         }
         searchBar.onChange = { [weak self] in
+            self?.onSectionChange?()
+        }
+        header.onChange = { [weak self] in
             self?.onSectionChange?()
         }
     }

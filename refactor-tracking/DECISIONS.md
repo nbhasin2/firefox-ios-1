@@ -497,3 +497,23 @@ the API the retained core is supposed to expose, not a workaround.
   mid-iteration.
 - `MockStoreForMiddleware` mirrors the behaviour, so a test can assert what a view model heard from
   the bus rather than what it dispatched.
+
+## D-020 — Quick Answers settings changes ride the homepage's viewWillAppear, not a notification
+
+`QuickAnswersMiddleware` recomputed `isQuickAnswersEnabled` on three triggers:
+`HomepageActionType.initialize`, `HomepageActionType.viewWillAppear`, and
+`QuickAnswersActionType.didSettingsChange` dispatched by the two settings screens.
+
+The third is redundant. The setting can only be changed from a screen presented over the
+homepage, so returning to the homepage fires `viewWillAppear` and recomputes anyway. Dropping
+it removes an action type, a struct, and two dispatch sites without adding a notification —
+the D-017 budget stays at 3. `HeaderViewModelTests.test_refresh_afterTheSettingChanges_...`
+pins the behaviour.
+
+## D-021 — Header state stays a plain struct
+
+`HeaderState` is the diffable data source's item identity (`HomeItem.header(HeaderState, ...)`)
+and the type `HomepageHeaderCell.configure` takes. Turning it into a view-model-owned
+`HeaderConfiguration` would have churned the cell, the item enum and every measurement path for
+no gain, so only its `StateType` conformance and reducer go. `HeaderViewModel` owns an instance
+and republishes it. Same shape as the wallpaper slice that follows.

@@ -122,6 +122,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
     private let merinoCategories: () -> [MerinoCategoryConfiguration]
     private let bookmarksSnapshot: () -> (bookmarks: [BookmarkConfiguration], shouldShowSection: Bool)
     private let searchBarIsVisible: () -> Bool
+    private let headerState: () -> HeaderState?
 
     init(windowUUID: WindowUUID,
          logger: Logger = DefaultLogger.shared,
@@ -129,13 +130,15 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
          merinoCategories: @escaping () -> [MerinoCategoryConfiguration] = { [] },
          bookmarksSnapshot: @escaping () -> (bookmarks: [BookmarkConfiguration],
                                              shouldShowSection: Bool) = { ([], false) },
-         searchBarIsVisible: @escaping () -> Bool = { false }) {
+         searchBarIsVisible: @escaping () -> Bool = { false },
+         headerState: @escaping () -> HeaderState? = { nil }) {
         self.windowUUID = windowUUID
         self.logger = logger
         self.trackerBlockerModuleIsVisible = trackerBlockerModuleIsVisible
         self.merinoCategories = merinoCategories
         self.bookmarksSnapshot = bookmarksSnapshot
         self.searchBarIsVisible = searchBarIsVisible
+        self.headerState = headerState
     }
 
     func createLayoutSection(
@@ -584,15 +587,13 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
     }
 
     private func getHeaderLogoHeight(environment: NSCollectionLayoutEnvironment) -> CGFloat {
-        guard let state = store.state.componentState(HomepageState.self, for: .homepage, window: windowUUID) else {
-            return 0
-        }
+        guard let headerState = headerState() else { return 0 }
 
         var totalHeight: CGFloat = 0
         let containerWidth = normalizedDimension(environment.container.contentSize.width)
 
         let headerLogoCell = HomepageHeaderCell()
-        headerLogoCell.configure(headerState: state.headerState)
+        headerLogoCell.configure(headerState: headerState)
         // Match createHeaderSectionLayout so spacer calculations include the logo header's top spacing.
         totalHeight += UX.topSpacing
         totalHeight += HomepageDimensionCalculator.fittingHeight(for: headerLogoCell, width: containerWidth)

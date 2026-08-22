@@ -60,6 +60,9 @@ final class HomepageViewController: UIViewController,
         },
         searchBarIsVisible: { [weak self] in
             self?.homepageViewModel.searchBar.shouldShowSearchBar ?? false
+        },
+        headerState: { [weak self] in
+            self?.homepageViewModel.header.state
         }
     )
     // Tracks which tab the shared homepage instance is currently representing.
@@ -209,6 +212,7 @@ final class HomepageViewController: UIViewController,
                 actionType: HomepageActionType.viewWillAppear
             )
         )
+        homepageViewModel.viewWillAppear()
         termsOfUseDelegate?.showTermsOfUse(context: .homepageOpened)
     }
 
@@ -840,11 +844,15 @@ final class HomepageViewController: UIViewController,
             categories: homepageViewModel.merino.availableCategories,
             selectedNewsfeedCategoryID: currentHomepageTabState.selectedNewsfeedCategoryID,
             newsfeedCategoryPickerOffsetX: currentHomepageTabState.newsfeedCategoryPickerOffsetX,
-            onCategoryPickerScroll: updateNewsfeedCategoryPickerOffsetX,
+            onCategoryPickerScroll: { [weak self] offsetX in
+                self?.updateNewsfeedCategoryPickerOffsetX(offsetX)
+            },
             onNewsAffordanceTap: { [weak self] in
                 self?.scrollNewsfeedToTop(onlyIfScrolledPastHeader: false, animated: true)
             },
-            onSelection: updatedSelectedNewsfeedCategory
+            onSelection: { [weak self] selectedNewsfeedCategoryID in
+                self?.updatedSelectedNewsfeedCategory(selectedNewsfeedCategoryID: selectedNewsfeedCategoryID)
+            }
         )
         newsTransitionHeaderCell.setTransitionProgress(newsTransitionProgress())
         return newsTransitionHeaderCell

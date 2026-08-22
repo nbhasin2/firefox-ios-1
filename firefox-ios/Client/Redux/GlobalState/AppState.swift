@@ -75,7 +75,6 @@ let middlewares = [
     TopSitesMiddleware().topSitesProvider,
     WallpaperMiddleware().wallpaperProvider,
     HomepageMiddleware(notificationCenter: NotificationCenter.default).homepageProvider,
-    QuickAnswersMiddleware().quickAnswersProvider,
     StartAtHomeMiddleware().startAtHomeProvider,
     ShortcutsLibraryMiddleware().shortcutsLibraryProvider,
     SummarizerMiddleware().summarizerProvider,

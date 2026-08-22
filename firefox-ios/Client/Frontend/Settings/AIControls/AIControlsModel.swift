@@ -210,9 +210,5 @@ class AIControlsModel: ObservableObject,
 
         quickAnswersEnabled = newValue
         userPreferences.setPreferenceFor(.quickAnswers, to: newValue)
-        store.dispatch(QuickAnswersAction(
-            windowUUID: windowUUID,
-            actionType: QuickAnswersActionType.didSettingsChange
-        ))
     }
 }

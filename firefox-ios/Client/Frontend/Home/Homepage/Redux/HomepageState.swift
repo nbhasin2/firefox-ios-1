@@ -11,7 +11,6 @@ struct HomepageState: ScreenState, Equatable {
     var windowUUID: WindowUUID
 
     // Homepage sections state in the order they appear on the collection view
-    let headerState: HeaderState
     let topSitesState: TopSitesSectionState
     let jumpBackInState: JumpBackInSectionState
     let wallpaperState: WallpaperState
@@ -34,7 +33,6 @@ struct HomepageState: ScreenState, Equatable {
 
         self.init(
             windowUUID: homepageState.windowUUID,
-            headerState: homepageState.headerState,
             topSitesState: homepageState.topSitesState,
             jumpBackInState: homepageState.jumpBackInState,
             wallpaperState: homepageState.wallpaperState,
@@ -46,7 +44,6 @@ struct HomepageState: ScreenState, Equatable {
     init(windowUUID: WindowUUID) {
         self.init(
             windowUUID: windowUUID,
-            headerState: HeaderState(windowUUID: windowUUID),
             topSitesState: TopSitesSectionState(windowUUID: windowUUID),
             jumpBackInState: JumpBackInSectionState(windowUUID: windowUUID),
             wallpaperState: WallpaperState(windowUUID: windowUUID),
@@ -57,7 +54,6 @@ struct HomepageState: ScreenState, Equatable {
 
     private init(
         windowUUID: WindowUUID,
-        headerState: HeaderState,
         topSitesState: TopSitesSectionState,
         jumpBackInState: JumpBackInSectionState,
         wallpaperState: WallpaperState,
@@ -65,7 +61,6 @@ struct HomepageState: ScreenState, Equatable {
         shouldShowPrivacyNotice: Bool
     ) {
         self.windowUUID = windowUUID
-        self.headerState = headerState
         self.topSitesState = topSitesState
         self.jumpBackInState = jumpBackInState
         self.wallpaperState = wallpaperState
@@ -106,7 +101,6 @@ struct HomepageState: ScreenState, Equatable {
     private static func handleInitializeAndViewWillTransitionAction(state: HomepageState, action: Action) -> HomepageState {
         return state
             .resetTransientState()
-            .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
@@ -117,7 +111,6 @@ struct HomepageState: ScreenState, Equatable {
     private static func handleEmbeddedHomepageAction(state: HomepageState, action: Action) -> HomepageState {
         return state
             .resetTransientState()
-            .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
@@ -128,7 +121,6 @@ struct HomepageState: ScreenState, Equatable {
     private static func handlePrivacyNoticeCloseButtonTappedAction(state: HomepageState, action: Action) -> HomepageState {
         return state
             .resetTransientState()
-            .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
@@ -140,7 +132,6 @@ struct HomepageState: ScreenState, Equatable {
     private static func handleDidTabChangeToHomepageAction(state: HomepageState, action: Action) -> HomepageState {
         return state
             .resetTransientState()
-            .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
@@ -151,7 +142,6 @@ struct HomepageState: ScreenState, Equatable {
     private static func handlePrivacyNoticeInitialization(action: Action, state: Self) -> HomepageState {
         return state
             .resetTransientState()
-            .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
@@ -163,7 +153,6 @@ struct HomepageState: ScreenState, Equatable {
     private static func passthroughState(from state: HomepageState, action: Action) -> HomepageState {
         return state
             .resetTransientState()
-            .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
@@ -173,7 +162,6 @@ struct HomepageState: ScreenState, Equatable {
     static func defaultState(from state: HomepageState) -> HomepageState {
         return HomepageState(
             windowUUID: state.windowUUID,
-            headerState: HeaderState.defaultState(from: state.headerState),
             topSitesState: TopSitesSectionState.defaultState(from: state.topSitesState),
             jumpBackInState: JumpBackInSectionState.defaultState(from: state.jumpBackInState),
             wallpaperState: WallpaperState.defaultState(from: state.wallpaperState),

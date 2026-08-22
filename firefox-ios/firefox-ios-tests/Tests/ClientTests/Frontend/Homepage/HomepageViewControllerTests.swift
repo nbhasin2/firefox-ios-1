@@ -580,10 +580,15 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
     /// Merino moved off the store, so the stories that make sections visible come from the view
     /// model. Fetching after the view controller has bound to it is what triggers the snapshot,
     /// which `newState` used to do when the stories arrived in the state.
+    /// The header is owned by the view model now rather than read from the store, so it measures
+    /// for real here rather than collapsing to zero; the quick-answers store is stubbed off so
+    /// TipKit stays out of these tests.
     private func makeViewModel() -> HomepageViewModel {
         return HomepageViewModel(
             windowUUID: .XCTestDefaultUUID,
-            merino: MerinoSectionViewModel(merinoManager: MockMerinoManager())
+            merino: MerinoSectionViewModel(merinoManager: MockMerinoManager()),
+            header: HeaderViewModel(windowUUID: .XCTestDefaultUUID,
+                                    quickAnswersStore: MockQuickAnswersStore())
         )
     }
 
