@@ -24,11 +24,12 @@ struct JumpBackInSectionState: Equatable, Hashable {
         )
     }
 
-    init(userPreferences: UserFeaturePreferring = AppContainer.shared.resolve()) {
+    /// The section default comes from the view model, which owns the preference read; see D-026.
+    init(shouldShowSection: Bool) {
         self.init(
             jumpBackInTabs: [],
             mostRecentSyncedTab: nil,
-            shouldShowSection: userPreferences.getPreferenceFor(.homepageJumpBackinSectionDefault)
+            shouldShowSection: shouldShowSection
         )
     }
 

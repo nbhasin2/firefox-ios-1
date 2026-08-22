@@ -669,3 +669,30 @@ the toolbar's reducers take the value off the action. Deleted with the state.
 so it has no separable boundary until BVC migrates. Recording this so the next pass does not pick
 it up as a small module. Same for `StartAtHomeMiddleware`, which has no state or view of its own —
 it is a browser-lifecycle helper that reacts to BVC actions.
+
+## D-032 — `HomepageAction` deleted; two regressions the full-suite run caught
+
+Running the whole of `ClientTests` after the homepage finale surfaced two things the per-slice
+runs did not, both in `BrowserCoordinatorTests`:
+
+1. **`isZeroSearch` was orphaned.** `BrowserCoordinator` still dispatched
+   `HomepageActionType.embeddedHomepage` carrying it, and nothing read it any more. It is
+   `homepageViewController.setZeroSearch(_:)` now — the coordinator embeds the homepage, so this
+   is an ownership path. With it gone, `HomepageAction`, `HomepageActionType`,
+   `HomepageMiddlewareActionType` and `HomepageTelemetryExtras` have no producer or consumer left
+   and the whole `Homepage/Redux/` directory is deleted.
+
+2. **The available-height push ran before the homepage was embedded.** D-023 turned BVC's dispatch
+   into a direct call guarded on `contentContainer.contentController as? HomepageViewController`.
+   `showHomepage` called it *before* `embedContent`, so on the first presentation the guard failed
+   and the heights stayed at zero; the second presentation set them, which resized the spacer and
+   scrolled the collection view back to the top. Moved after the embed.
+
+The second is a real user-visible bug the old code avoided by accident — its guard
+(`browserViewType == .normalHomepage || contentContainer.hasHomepage`) was loose enough to pass
+before the embed. Worth noting for the modules still to migrate: replacing a store read with an
+ownership check can tighten a guard in ways the call order was not written for.
+
+Also removed a duplicate `AppContainer` resolve: `JumpBackInSectionState`'s convenience init
+resolved `UserFeaturePreferring` that the view model had already resolved and was passing in.
+The second resolve crashed the test process under `BrowserCoordinatorTests` — D-026 again.

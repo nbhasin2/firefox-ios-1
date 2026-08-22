@@ -407,6 +407,12 @@ final class HomepageViewController: UIViewController,
 
     // MARK: - Layout
 
+    /// Called by `BrowserCoordinator`, which embeds the homepage and is the only thing that knows
+    /// whether this is a zero-search presentation.
+    func setZeroSearch(_ isZeroSearch: Bool) {
+        homepageViewModel.setZeroSearch(isZeroSearch)
+    }
+
     /// Called by `BrowserViewController`, which owns the geometry.
     func updateAvailableHeights(content: CGFloat, wallpaper: CGFloat) {
         homepageViewModel.wallpaper.updateAvailableHeights(content: content, wallpaper: wallpaper)

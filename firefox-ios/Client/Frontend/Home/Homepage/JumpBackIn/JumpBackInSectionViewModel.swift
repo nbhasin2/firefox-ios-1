@@ -46,7 +46,9 @@ final class JumpBackInSectionViewModel {
         self.recentTabsProvider = recentTabsProvider ?? DefaultRecentTabsProvider()
         self.syncedTabProvider = syncedTabProvider ?? DefaultSyncedTabProvider()
         self.bus = bus
-        self.state = initialState ?? JumpBackInSectionState(userPreferences: userPreferences)
+        self.state = initialState ?? JumpBackInSectionState(
+            shouldShowSection: userPreferences.getPreferenceFor(.homepageJumpBackinSectionDefault)
+        )
         observeTabEvents()
     }
 

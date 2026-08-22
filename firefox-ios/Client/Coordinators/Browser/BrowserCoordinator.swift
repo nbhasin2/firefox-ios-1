@@ -159,31 +159,24 @@ final class BrowserCoordinator: BaseCoordinator,
             statusBarScrollDelegate: statusBarScrollDelegate,
             toastContainer: toastContainer
         )
-        browserViewController.updateHomepageAvailableContentHeight()
         homepageController.termsOfUseDelegate = self
         homepageController.view.accessibilityElementsHidden = false
-        dispatchActionForEmbeddingHomepage(with: isZeroSearch)
+        homepageController.setZeroSearch(isZeroSearch)
         let didEmbed = browserViewController.embedContent(homepageController)
         if !didEmbed {
             logger.log("Unable to embed new homepage", level: .debug, category: .coordinator)
         }
         self.homepageViewController = homepageController
+        // After embedding: the height is measured against the embedded homepage, so running this
+        // first left it unset until the second call, which then resized the spacer and scrolled
+        // the collection view back to the top.
+        browserViewController.updateHomepageAvailableContentHeight()
         homepageController.restoreVerticalScrollOffset(force: didEmbed)
 
         if didEmbed {
             // [FXIOS-13651] Fix for WKWebView memory leak. (See comments on related PR.)
             webviewController?.update(webView: nil)
         }
-    }
-
-    private func dispatchActionForEmbeddingHomepage(with isZeroSearch: Bool) {
-        store.dispatch(
-            HomepageAction(
-                isZeroSearch: isZeroSearch,
-                windowUUID: windowUUID,
-                actionType: HomepageActionType.embeddedHomepage
-            )
-        )
     }
 
     func showPrivateHomepage(overlayManager: OverlayModeManager) {
