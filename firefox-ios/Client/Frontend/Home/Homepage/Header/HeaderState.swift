@@ -16,9 +16,13 @@ struct HeaderState: Equatable, Hashable {
     init(
         windowUUID: WindowUUID,
         isPrivate: Bool = false,
-        quickAnswersStore: QuickAnswersStore = QuickAnswersService()
+        quickAnswersStore: QuickAnswersStore? = nil
     ) {
-        let showQuickAnswersButton = isPrivate ? false : quickAnswersStore.isQuickAnswersEnabled
+        // Constructed lazily: private mode never reads it, and building one resolves two services
+        // out of AppContainer, which is a hazard in tests (D-026).
+        let showQuickAnswersButton = isPrivate
+            ? false
+            : (quickAnswersStore ?? QuickAnswersService()).isQuickAnswersEnabled
         self.init(
             windowUUID: windowUUID,
             isPrivate: isPrivate,
