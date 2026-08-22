@@ -5,16 +5,34 @@ Baseline: `main` @ f2a42cbea7
 
 ## Burn-down
 
+Targets are **not zero**: D-016 retains a reduced Redux core as the browser event bus. The table is
+split so that "Redux is still imported" cannot be misread as "the migration is unfinished".
+
+### Screen state — must reach zero
+
 | Metric | Baseline | Current | Target |
 | - | - | - | - |
-| Files with `import Redux` | 200 | 173 | 0 |
-| `store.dispatch` call sites | 451 | 391 | 0 |
-| `Action` conforming types | 47 | 40 | 0 |
-| Registered middlewares | 28 | 23 | 0 |
-| `StoreSubscriber` screens | 20 | 15 | 0 |
-| Screens in `AppComponent` | 17 | 12 | 0 |
+| Registered middlewares | 28 | 20 | **0** |
+| `StoreSubscriber` screens | 20 | 13 | **0** |
+| Screens in `AppComponent` | 17 | 10 | **0** |
+| Screen `Action` types (non-browser) | 44 | 31 | **0** |
 
-Refresh with `refactor-tracking/burndown.sh`.
+### Retained bus — converges to a budget, not to zero
+
+| Metric | Baseline | Current | Target |
+| - | - | - | - |
+| Files with `import Redux` | 200 | 161 | ≈31 (bus senders + hub subscribers) |
+| `dispatch` call sites | 451 | 363 | ≈18 (browser-level only) |
+| Browser-level action families | 3 | 3 | 3 (`GeneralBrowser`, `NavigationBrowser`, `GeneralBrowserMiddleware`) |
+
+### Guardrails — must not grow
+
+| Metric | Budget | Current | Rule |
+| - | - | - | - |
+| Migration-introduced `NotificationCenter` names | ≤ 2 | 2 | D-017 row three is a last resort; both current entries are scheduled to move to the bus |
+
+Refresh with `refactor-tracking/burndown.sh`, which prints current-vs-target and exits non-zero on a
+guardrail breach.
 
 ## Phase status
 
@@ -22,9 +40,9 @@ Refresh with `refactor-tracking/burndown.sh`.
 | - | - | - |
 | 0 — Analysis & scaffolding | Inventory, both coupling maps, tracking docs, branch | **Done** |
 | 1 — Isolated leaf screens | 5 modules (was 8; see D-012) | **Done** |
-| 2 — Single-coupling screens | 6 modules | Next |
-| 3 — Hub modules | Homepage, Tabs, Toolbar, BVC | Not started |
-| 4 — Global teardown | Delete Redux core + AppState | Not started |
+| 2 — Single-coupling screens | 5 modules (2 done; see D-012, D-015) | **In progress** |
+| 3 — Hub modules | Homepage, Tabs, Toolbar, BVC — each ends with a view model **and** a bus subscription (D-016) | Not started |
+| 4 — Reduce Redux to the bus | Delete `AppState` + screen state; keep `Action`/`Store` as the browser event bus (D-016) | Not started |
 
 ## Module status
 
@@ -46,45 +64,62 @@ TranslationSettings → Phase 2 (pairs with Translations).
 
 ### Phase 2 — single inbound coupling
 
+Numbering matches [PLAN.md](PLAN.md) Phase 2.
+
 | # | Module | LOC | Status | Commit |
 | - | - | - | - | - |
-| 9 | ShortcutsLibrary | 686 | ⬜ | — |
-| 10 | TermsOfUse | 1,481 | ⬜ | — |
-| 11 | QuickAnswers + Summarizer | ~900 | ⬜ | — |
-| 12 | Translations (runtime) | ~700 | ⬜ | — |
-| 13 | MainMenu | 2,369 | ⬜ | — |
-| 14 | FeltPrivacy + ThemeSettings | ~400 | ⬜ | — |
+| 6 | TranslationSettings | ~1,100 | ✅ | `b7215b3655`, `476a9d85f5` |
+| 7 | Translations (runtime) | ~700 | ⬜ | — |
+| 8 | TermsOfUse | 1,481 | ✅ | `6f6f552cc4` |
+| 9 | MainMenu | 2,369 | ⬜ | — |
+| 10 | FeltPrivacy + ThemeSettings | ~400 | ⬜ | — |
+
+Not in Phase 2: **ShortcutsLibrary** moved to Phase 3 by D-012 (its state reduces `TopSitesAction`),
+and **QuickAnswers** / **Summarizer** moved to Phase 3 by D-015 (neither is a screen). Earlier
+revisions of this table listed all three here, contradicting PLAN.md.
 
 ### Phase 3 — hubs
 
-| # | Module | LOC | Status | Commit |
-| - | - | - | - | - |
-| 15 | Homepage — TopSites | — | ⬜ | — |
-| 16 | Homepage — Merino | — | ⬜ | — |
-| 17 | Homepage — MessageCard | — | ⬜ | — |
-| 18 | Homepage — Bookmarks / JumpBackIn | — | ⬜ | — |
-| 19 | Homepage — Wallpaper | — | ⬜ | — |
-| 20 | Homepage — TrackerBlockerModule | — | ⬜ | — |
-| 21 | Homepage — shell + HomepageState | — | ⬜ | — |
-| 22 | Tabs — TabsPanel | — | ⬜ | — |
-| 23 | Tabs — TabTray | — | ⬜ | — |
-| 24 | Tabs — RemoteTabsPanel | — | ⬜ | — |
-| 25 | Tabs — TabPeek | — | ⬜ | — |
-| 26 | Tabs — TabManagerMiddleware teardown | — | ⬜ | — |
-| 27 | Toolbar — AddressBar | — | ⬜ | — |
-| 28 | Toolbar — NavigationBar | — | ⬜ | — |
-| 29 | Toolbar — ToolbarMiddleware teardown | — | ⬜ | — |
-| 30 | MicrosurveyPrompt | — | ⬜ | — |
-| 31 | BrowserViewController | — | ⬜ | — |
+The `#` column is the [PLAN.md](PLAN.md) module number; a module lands as several
+≤500-line commits, one per row. Each hub keeps a bus subscription when it is done (D-016).
 
-### Phase 4 — teardown
+| # | Work item | Status | Commit |
+| - | - | - | - | - |
+| 11 | Homepage — TopSites | ⬜ | — |
+| 11 | Homepage — Merino | ⬜ | — |
+| 11 | Homepage — MessageCard | ⬜ | — |
+| 11 | Homepage — Bookmarks / JumpBackIn | ⬜ | — |
+| 11 | Homepage — Wallpaper | ⬜ | — |
+| 11 | Homepage — TrackerBlockerModule | ⬜ | — |
+| 11 | Homepage — shell + HomepageState + bus subscription | ⬜ | — |
+| 12 | ShortcutsLibrary (moved here by D-012) | ⬜ | — |
+| 13 | Tabs — TabsPanel | ⬜ | — |
+| 13 | Tabs — TabTray | ⬜ | — |
+| 13 | Tabs — RemoteTabsPanel | ⬜ | — |
+| 13 | Tabs — TabPeek | ⬜ | — |
+| 13 | Tabs — TabManagerMiddleware teardown + bus subscription | ⬜ | — |
+| 14 | Toolbar — AddressBar | ⬜ | — |
+| 14 | Toolbar — NavigationBar | ⬜ | — |
+| 14 | Toolbar — ToolbarMiddleware teardown + bus subscription | ⬜ | — |
+| 15 | SearchEngineSelection (moved here by D-012) | ⬜ | — |
+| 16 | MicrosurveyPrompt | ⬜ | — |
+| 17 | StartAtHome (moved here by D-012) | ⬜ | — |
+| 18 | BrowserViewController + bus subscription | ⬜ | — |
+| 18 | QuickAnswers + Summarizer (moved here by D-015) | ⬜ | — |
+
+### Phase 4 — reduce Redux to the bus
+
+Rewritten by D-016: the core is narrowed, not deleted. Items 21 and 22 previously read "delete
+`BrowserKit/Sources/Redux`" and "drop the `Redux` product", which the hybrid end state reverses.
 
 | # | Item | Status | Commit |
 | - | - | - | - |
-| 32 | Delete `Client/Redux/GlobalState/` | ⬜ | — |
-| 33 | Delete `BrowserKit/Sources/Redux` + tests | ⬜ | — |
-| 34 | Drop `Redux` product from `Package.swift` / TestKit | ⬜ | — |
-| 35 | Final lint + `fxios test` + simulator build | ⬜ | — |
+| 19 | Delete `Client/Redux/GlobalState/` (`AppState`, `ScreenState`, `AppComponent`, `PresentedComponentsState`) | ⬜ | — |
+| 20 | Narrow `BrowserKit/Sources/Redux` to `Action` + dispatch/subscribe; delete `Reducer` and the state-tree coupling | ⬜ | — |
+| 21 | Rename the retained surface to `BrowserEventBus`; keep the three browser action families | ⬜ | — |
+| 22 | Move the two D-014 notifications onto the bus, now that dispatching no longer goes through `AppState` (D-017) | ⬜ | — |
+| 23 | Keep the `Redux` product on Client/TestKit; delete only the tests covering the removed reducer API | ⬜ | — |
+| 24 | Final lint + `fxios test` + simulator build | ⬜ | — |
 
 ## Verification log
 
@@ -101,14 +136,18 @@ TranslationSettings → Phase 2 (pairs with Translations).
 | 2026-08-22 | Microsurvey + Toolbar tests (91) | Pass, 0 failures |
 | 2026-08-22 | Fennec build after TrackingProtection | Pass (exit 0), first try |
 | 2026-08-22 | TrackingProtection tests (20) | Pass, 0 failures |
+| 2026-08-22 | Fennec build + tests after TranslationSettings | Pass (`b7215b3655`, `476a9d85f5`) |
+| 2026-08-22 | Fennec build + tests after TermsOfUse | Pass (`6f6f552cc4`); 12 view-model tests replace 26 reducer/middleware tests (D-009) |
 
 ## Notes / blockers
 
 - **Phase 1 is smaller than first planned.** The original ordering used a middleware-only
   coupling map. Reducers consume foreign actions too (D-012), which moved three modules to
   later phases.
-- **`import Redux` will not fall linearly.** 31 files across 14 modules dispatch browser-level
-  actions that cannot be converted until `BrowserViewController` migrates (D-011).
+- **`import Redux` will not fall to zero — by design.** 31 files across 15 module directories
+  dispatch browser-level actions to 5 consumers. D-011 assumed these convert once
+  `BrowserViewController` migrates; **D-016 supersedes that** — they stay on the retained browser
+  event bus permanently, because the alternative is 31 untyped `NotificationCenter` posts.
 - **Shared-file churn is the real bottleneck.** Every module migration edits `AppState.swift`,
   `AppComponent.swift`, and `PresentedComponentsState.swift` at adjacent lines, which is why
   migrations run serially (D-010).

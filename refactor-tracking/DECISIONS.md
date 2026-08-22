@@ -6,6 +6,9 @@ Decisions are numbered and immutable; a superseded decision gets a new entry tha
 
 ## D-001 — Strangler-fig migration, not a big-bang rewrite
 
+> **Partially superseded by D-016.** The strangler-fig method stands; the final-phase deletion of
+> the Redux core does not — a reduced core is retained as the browser event bus.
+
 **Context.** 274 files and ~54k LOC depend on Redux, and `AppState` is a single enum-of-screens
 that every reducer and middleware pattern-matches on. A single atomic swap would be unreviewable
 and unbisectable.
@@ -179,6 +182,9 @@ Serial migration keeps each module's build verifiably green.
 
 ## D-011 — Leaf modules keep `import Redux` for browser-level actions until Phase 3
 
+> **Amended by D-016.** "Until Phase 3" is now "permanently": these dispatches are the retained
+> browser event bus, not debt to be paid off.
+
 **Context.** Analysis of NativeErrorPage and PasswordGenerator surfaced a coupling the
 middleware map did not show: **31 files across 14 modules** dispatch `GeneralBrowserAction`,
 `NavigationBrowserAction`, or `GeneralBrowserMiddlewareAction`. These are not the module's own
@@ -267,6 +273,9 @@ rather than to the architecture change itself.
 
 ## D-014 — Ownerless cross-module signals become notifications, not delegates
 
+> **Narrowed by D-017.** With the bus retained, an ownerless *browser-level* signal goes on the bus;
+> `NotificationCenter` is the last resort. The two signals below move to the bus in Phase 4.
+
 **Context.** D-004 converts cross-module action listening into explicit delegation. TrackingProtection
 broke that rule for two of its inbound edges: `TabContentBlocker` posts a blocked-tracker count
 change and `BrowserViewController` posts a secure-content change, and **neither holds a reference to
@@ -287,3 +296,138 @@ and it will recur. Use the D-004 delegate by default; reach for a notification o
 provably has no reference to the receiver, and always carry the `WindowUUID` so the reducer's window
 guard survives. The `@objc` handler cannot be actor-isolated, so it hops to `@MainActor` before
 touching the delegate.
+
+---
+
+## D-015 — QuickAnswers and Summarizer are sub-features, not modules; they migrate with their host
+
+**Context.** Both were scheduled as Phase 2 modules on the strength of their folder size and their
+own middleware. Analysis shows neither is a screen: neither owns a `ScreenState`, neither appears in
+`AppComponent`, and neither has a `StoreSubscriber`.
+
+- QuickAnswers' state is `HeaderState.showQuickAnswersButton`, a Homepage section state whose
+  reducer consumes `QuickAnswersMiddlewareAction`. `QuickAnswersMiddleware`'s entire job is to turn
+  `HomepageActionType.initialize` / `.viewWillAppear` into that action.
+- Summarizer's state is `BrowserViewControllerState.shouldShowReaderModeBarSummarizerButton`, and
+  `SummarizerMiddleware` consumes `GeneralBrowserAction`, `NavigationBrowserAction` and
+  `ToolbarAction`.
+
+**Decision.** Move both to Phase 3. QuickAnswers migrates with Homepage; Summarizer migrates with
+BrowserViewController and Toolbar.
+
+**Rationale.** Migrating them now would mean either leaving the dispatch in place (achieving
+nothing) or reaching into `HeaderState` and `BrowserViewControllerState` before those migrate —
+the same mistake D-012 caught for SearchEngineSelection. There is no seam to cut at.
+
+**Consequence.** Phase 2 is four items, not six. Both middlewares are *already* services in
+practice: `HeaderState` default-constructs `QuickAnswersMiddleware()` as a `QuickAnswersStore`, and
+`ToolbarMiddleware` and `TabManagerMiddleware` default-construct `SummarizerMiddleware()` as a
+`SummarizerConfigFactory`. When their host migrates, the work is to keep those two protocols,
+rename the implementations to `…Service`, and delete only the Redux plumbing — not to design
+anything new.
+
+---
+
+## D-016 — The end state is MVVM plus a retained browser event bus, not full Redux removal
+
+**Supersedes** the teardown clause of [D-001](#d-001) and the "until Phase 3" qualifier in
+[D-011](#d-011).
+
+**Context.** The goal inherited from the ticket title was "remove Redux". Phases 0–2 produced the
+measurement that tests that goal:
+
+| | Count |
+| - | - |
+| Files dispatching `GeneralBrowserAction` / `NavigationBrowserAction` / `GeneralBrowserMiddlewareAction` | 31 |
+| Distinct module directories those senders live in | 15 |
+| Consumers of those actions | 5 (`HomepageMiddleware`, `BrowserViewControllerState`, `ToolbarState`, `ToolbarMiddleware`, `SummarizeMiddleware`) |
+
+The senders include `LoginsHelper`, `TabScrollController`, `TabContentBlocker`,
+`TabManagerImplementation` and five already-migrated leaf screens. **None of them holds a
+reference to Homepage, Toolbar or BrowserViewController**, and giving them one would mean
+inventing an ownership relationship between subsystems that are deliberately independent.
+
+That is exactly the condition D-014 identified — and D-014 treated it as an exception worth two
+`NotificationCenter` posts. At 31 senders it is not an exception; it is the dominant shape of the
+work that remains. Completing a pure-MVVM migration means converting all 31 into notifications:
+an untyped global broadcast with a hand-written `windowUUID` filter at every receiver. That is
+the same coupling the store already expresses, minus the type checking, minus the single place to
+trace it, minus the compiler's help when a payload changes.
+
+**Decision.** Redux is split into the two distinct jobs it was doing, and only one of them is
+removed.
+
+*Removed (unchanged from the original plan):* `AppState`, `ScreenState`, `AppComponent`,
+`ComponentState`, `PresentedComponentsState`, every per-screen `…State` reducer, and every
+registered middleware. This is where essentially all of the ~54k LOC and all of the ceremony
+lives — the window guards, the `AppComponent` cases, the `as?` cast chains.
+
+*Retained, permanently and by design:* the `Redux` module reduced to a typed, window-keyed
+**browser event bus** — `Action`, `ActionType`, and `Store`'s dispatch/subscribe path — plus the
+three browser-level action families. Screens subscribe to the bus for cross-cutting browser
+events; they do not keep state in it.
+
+**Rationale.** The two jobs have opposite cost/benefit.
+
+1. *Screen state container.* One global tree holding 15 screens' state, pattern-matched by every
+   reducer. Pure overhead for a screen only one object reads — this is what MVVM replaces, and
+   Phase 1 demonstrated the win concretely (Microsurvey stored no state at all; NativeErrorPage's
+   per-window bleed was a bug that ownership made unrepresentable).
+2. *Many-to-many typed broadcast between ownerless peers.* Nothing in MVVM replaces this. The
+   fallback is `NotificationCenter`, which is strictly worse along every axis the migration cares
+   about.
+
+Removing (1) and keeping (2) takes the entire benefit of the migration without paying for it with
+31 untyped notification posts.
+
+**Consequence.**
+- The five migrated Phase 1 leaves need **no rework**. Their residual `import Redux` for browser
+  dispatches was correct, and is now permanent rather than debt to be paid in Phase 3.
+- Phase 4 changes from "delete Redux" to "reduce Redux to the bus" — see PLAN.md.
+- The burn-down targets are no longer 0. They are the retained-bus budget, tracked separately from
+  screen-state usage, so that "Redux still present" cannot silently mean "migration incomplete".
+- The PR title must describe what is happening: *replace Redux screen state with MVVM*, not
+  *remove Redux*. The branch name keeps its ticket slug.
+
+**Rejected alternative — keep full Redux (state + reducers + middleware) inside the four hub
+modules, MVVM everywhere else.** This is the more obvious reading of "hybrid", and it is worse: it
+leaves the 12,163-LOC Homepage stack entirely untouched, keeps two complete architectures alive
+for contributors to learn, and preserves precisely the ceremony the migration exists to delete. The
+hubs' Redux dependency is on the *bus*, not on the *state tree* — so the bus is what to keep.
+
+---
+
+## D-017 — One routing rule for every cross-module signal
+
+**Narrows** [D-014](#d-014), which is now the last resort rather than the second option.
+
+**Context.** With the bus retained (D-016) there are three ways for one module to signal another,
+and the choice was previously made per-case. That is how notification sprawl starts.
+
+**Decision.** The sender's relationship to the receiver picks the mechanism. In order:
+
+| Condition | Mechanism |
+| - | - |
+| The sender owns, or is owned by, the receiver — or a coordinator owns both | **Delegate / injected protocol** (D-004) |
+| No ownership path, and the signal is a browser-level event (navigation, tab lifecycle, page load, content blocking, secure-content, private-mode) | **Browser event bus** (D-016) |
+| No ownership path, and the signal is not browser-level | **`NotificationCenter`**, carrying the `WindowUUID`, justified in the commit message (D-014) |
+
+**Rationale.** The middle row is the one D-014 was missing, because when it was written the bus was
+scheduled for deletion. Restoring it converts the common case — an ownerless *browser* signal —
+from the worst mechanism to the best one, and leaves `NotificationCenter` covering only genuinely
+rare edges.
+
+**Consequence.** The two notifications introduced for TrackingProtection by D-014 are on the wrong
+side of this line: a blocked-tracker count change from `TabContentBlocker` and a secure-content
+change from `BrowserViewController` are both browser-level events with no ownership path — row two,
+not row three.
+
+They are **not** moved yet. Until Phase 4 narrows the core, dispatching through `Store` still runs
+the action through `AppState` and the whole reducer chain — for a screen that no longer has a state
+case in it. That is worse than the notification they replaced. The move is therefore scheduled as
+Phase 4 item 22, once the bus is a bus and not a state tree, and the budget in `burndown.sh` stays
+at 2 until then. New code does not get the same latitude: rows one and two cover every case a
+migration is likely to hit, so a third notification should not appear.
+
+`refactor-tracking/burndown.sh` reports the count of migration-introduced notification posts so that
+row three staying rare is a measured fact rather than an intention.
