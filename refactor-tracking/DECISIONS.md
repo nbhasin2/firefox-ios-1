@@ -463,3 +463,37 @@ already migrated — the settings screen owns its own component, while the runti
 modules have now been re-scoped out of Phase 2 by the same test (D-012, D-015, D-018); the
 lesson is that folder size is a poor proxy for separability, and the coupling maps are the only
 reliable input.
+
+---
+
+## D-019 — The retained bus needed a subscribe side; `ActionObserving` adds it
+
+**Implements** the missing half of [D-016](#d-016).
+
+**Context.** D-016 says each Phase 3 hub "ends with a view model **and** a bus subscription", and
+D-017 routes ownerless browser-level signals to the bus. Neither is possible as written: `Store`
+exposes `dispatch` and `subscribe(_:transform:)`, and the latter is *state-change* notification —
+it hands the subscriber a slice of `AppState`. A screen that has moved its state into a view model
+has no slice left to subscribe to.
+
+Concretely, `SearchBarState` consumes `GeneralBrowserActionType.enteredZeroSearchScreen` and
+`.didUnhideToolbar`. Migrating it means keeping a `ScreenState` in the tree purely to have
+something to hang a subscription off — which is the thing the migration removes.
+
+**Decision.** Add `ActionObserving` to the Redux module: `addActionObserver(_:handler:)` /
+`removeActionObserver(_:)`, with observers held weakly and notified from `Store.executeAction`
+after the reducers and middlewares run. `DefaultDispatchStore` inherits it, so the existing global
+`store` is a bus without a cast.
+
+**Rationale.** This is Phase 4's "narrow Redux to a bus" work, pulled forward because Phase 3
+cannot proceed without it. It is additive — no existing subscriber or reducer changes — and it is
+the API the retained core is supposed to expose, not a workaround.
+
+**Consequence.**
+- Only legacy `Action`s are delivered. `ModernAction` carries its `windowUUID` separately and has
+  no consumer that needs observing yet; adding it later is mechanical.
+- Observers filter on `windowUUID` themselves, exactly as reducers did (D-005).
+- Deallocated observers are swept before each notification, so a handler cannot resurrect one
+  mid-iteration.
+- `MockStoreForMiddleware` mirrors the behaviour, so a test can assert what a view model heard from
+  the bus rather than what it dispatched.

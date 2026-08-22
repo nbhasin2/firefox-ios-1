@@ -12,6 +12,17 @@ import Redux
 /// store implementation (e.g. storing a completion handler for asynchronous middleware actions so you can await expectations
 ///  in your tests).
 class MockStoreForMiddleware<State: StateType>: DefaultDispatchStore {
+    /// Bus observers, so a test can assert on what a view model heard.
+    private(set) var actionObservers: [ObjectIdentifier: @MainActor (Action) -> Void] = [:]
+
+    func addActionObserver(_ observer: AnyObject, handler: @escaping @MainActor (Action) -> Void) {
+        actionObservers[ObjectIdentifier(observer)] = handler
+    }
+
+    func removeActionObserver(_ observer: AnyObject) {
+        actionObservers.removeValue(forKey: ObjectIdentifier(observer))
+    }
+
     private let lock = NSLock()
 
     var state: State
@@ -59,8 +70,11 @@ class MockStoreForMiddleware<State: StateType>: DefaultDispatchStore {
     /// since actions can be dispatch in concurrent tasks
     func dispatch(_ action: Redux.Action) {
         lock.lock()
-        defer { lock.unlock() }
         dispatchedActions.append(action)
+        let observers = actionObservers.values
+        lock.unlock()
+        // Mirror the real store: bus observers see every dispatched legacy action.
+        observers.forEach { $0(action) }
         dispatchCalled?()
     }
 

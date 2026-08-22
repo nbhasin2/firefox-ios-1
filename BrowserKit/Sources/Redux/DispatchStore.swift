@@ -12,7 +12,7 @@ public protocol DispatchStore {
     func dispatch(_ action: ModernAction, forWindowUUID windowUUID: WindowUUID)
 }
 
-public protocol DefaultDispatchStore<State>: DispatchStore where State: StateType {
+public protocol DefaultDispatchStore<State>: DispatchStore, ActionObserving where State: StateType {
     associatedtype State
 
     var state: State { get }

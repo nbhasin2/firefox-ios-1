@@ -9,7 +9,7 @@ import Common
 /// This state can only be modified by dispatching Actions to the store.
 /// Whenever the state of the store changes, the store will notify all store subscriber.
 @MainActor
-public final class Store<State: StateType & Sendable>: DefaultDispatchStore {
+public final class Store<State: StateType & Sendable>: DefaultDispatchStore, ActionObserving {
     typealias SubscriptionType = SubscriptionWrapper<State>
 
     private let logger: Logger
@@ -20,6 +20,14 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore {
 
     private var actionQueue: [(action: Either<Action, ModernAction>, windowUUID: WindowUUID)] = []
     private var isProcessingActions = false
+
+    /// The subscribe half of the browser event bus (see `ActionObserving`). Kept separate from
+    /// `subscriptions`, which is state-change notification.
+    private struct ActionObserverBox {
+        weak var observer: AnyObject?
+        let handler: @MainActor (Action) -> Void
+    }
+    private var actionObservers: [ObjectIdentifier: ActionObserverBox] = [:]
 
     public var state: State {
         didSet {
@@ -130,7 +138,31 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore {
             }
         }
 
+        notifyActionObservers(of: action)
+
         state = newState
+    }
+
+    // MARK: - ActionObserving
+
+    public func addActionObserver(_ observer: AnyObject, handler: @escaping @MainActor (Action) -> Void) {
+        actionObservers[ObjectIdentifier(observer)] = ActionObserverBox(observer: observer, handler: handler)
+    }
+
+    public func removeActionObserver(_ observer: AnyObject) {
+        actionObservers.removeValue(forKey: ObjectIdentifier(observer))
+    }
+
+    /// Only legacy actions carry their own `windowUUID`; observers filter on it themselves, as
+    /// reducers used to.
+    private func notifyActionObservers(of action: Either<Action, ModernAction>) {
+        guard case .legacy(let legacyAction) = action, !actionObservers.isEmpty else { return }
+
+        // Drop deallocated observers first, so a handler cannot resurrect one mid-iteration.
+        actionObservers = actionObservers.filter { $0.value.observer != nil }
+        for box in actionObservers.values {
+            box.handler(legacyAction)
+        }
     }
 
     private func subscribe<SubState, S: StoreSubscriber>(
