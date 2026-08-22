@@ -79,29 +79,6 @@ final class TopSitesMiddlewareTests: XCTestCase, StoreTestUtility {
         XCTAssertTrue(actionsCalled.last?.shouldShowAddShortcutTile == true)
     }
 
-    func test_homepageSectionSeenAction_withUnifiedAds_sendTelemetryData() {
-        let unifiedAdsTelemetry = MockUnifiedAdsCallbackTelemetry()
-        let subject = createSubject(
-            topSitesManager: mockTopSitesManager,
-            unifiedAdsTelemetry: unifiedAdsTelemetry
-        )
-        let config = TopSiteConfiguration(
-            site: Site.createSponsoredSite(fromUnifiedTile: MockSponsoredTileData.defaultSuccessData.first!)
-        )
-        let action = TopSitesAction(
-            telemetryConfig: TopSitesTelemetryConfig(
-                    isZeroSearch: false,
-                    position: 0,
-                    topSiteConfiguration: config
-            ),
-            windowUUID: .XCTestDefaultUUID,
-            actionType: TopSitesActionType.topSitesSeen
-        )
-
-        subject.topSitesProvider.legacyMiddleware(AppState(), action)
-        XCTAssertEqual(unifiedAdsTelemetry.sendImpressionTelemetryCalled, 1)
-    }
-
     func test_fetchTopSitesAction_returnsTopSitesSection() throws {
         let subject = createSubject(topSitesManager: mockTopSitesManager)
         let action = HomepageAction(
@@ -237,78 +214,6 @@ final class TopSitesMiddlewareTests: XCTestCase, StoreTestUtility {
         XCTAssertEqual(topSites.count, 1)
         XCTAssertEqual(topSites.first?.title, "Fallback Site")
         XCTAssertEqual(topSites.first?.isSponsored, false)
-    }
-
-    func test_tappedOnHomepageTopSite_forSponsoredSites_withUnifiedAds_sendsTelemetry() throws {
-        let unifiedAdsTelemetry = MockUnifiedAdsCallbackTelemetry()
-        let subject = createSubject(
-            topSitesManager: mockTopSitesManager,
-            unifiedAdsTelemetry: unifiedAdsTelemetry
-        )
-        let config = TopSiteConfiguration(
-            site: Site.createSponsoredSite(fromUnifiedTile: MockSponsoredTileData.defaultSuccessData.first!)
-        )
-        let action = TopSitesAction(
-            telemetryConfig: TopSitesTelemetryConfig(isZeroSearch: true, position: 0, topSiteConfiguration: config),
-            windowUUID: .XCTestDefaultUUID,
-            actionType: TopSitesActionType.tapOnHomepageTopSitesCell
-        )
-
-        subject.topSitesProvider.legacyMiddleware(appState, action)
-
-        try checkTopSitesPressedMetrics(label: "zero-search", position: "0", tileType: "sponsored")
-
-        XCTAssertEqual(mockGleanWrapper.savedEvents.count, 2)
-        XCTAssertEqual(mockGleanWrapper.incrementLabeledCounterCalled, 1)
-        XCTAssertEqual(mockGleanWrapper.recordEventCalled, 1)
-        XCTAssertEqual(unifiedAdsTelemetry.sendClickTelemetryCalled, 1)
-    }
-
-    func test_tappedOnHomepageTopSite_withoutIsZeroSearch_forSuggestedSites_sendsCorrectTelemetry() throws {
-        let unifiedAdsTelemetry = MockUnifiedAdsCallbackTelemetry()
-        let subject = createSubject(
-            topSitesManager: mockTopSitesManager,
-            unifiedAdsTelemetry: unifiedAdsTelemetry
-        )
-        let config = TopSiteConfiguration(
-            site: Site.createSuggestedSite(
-                url: "www.mozilla.org",
-                title: "Mozilla Site",
-                trackingId: 0
-            )
-        )
-        let action = TopSitesAction(
-            telemetryConfig: TopSitesTelemetryConfig(isZeroSearch: false, position: 1, topSiteConfiguration: config),
-            windowUUID: .XCTestDefaultUUID,
-            actionType: TopSitesActionType.tapOnHomepageTopSitesCell
-        )
-
-        subject.topSitesProvider.legacyMiddleware(appState, action)
-
-        try checkTopSitesPressedMetrics(label: "origin-other", position: "1", tileType: "suggested")
-
-        XCTAssertEqual(mockGleanWrapper.savedEvents.count, 2)
-        XCTAssertEqual(mockGleanWrapper.incrementLabeledCounterCalled, 1)
-        XCTAssertEqual(mockGleanWrapper.recordEventCalled, 1)
-        XCTAssertEqual(unifiedAdsTelemetry.sendImpressionTelemetryCalled, 0)
-    }
-
-    func test_tappedOnHomepageTopSite_withoutConfig_doesNotSendTelemetry() throws {
-        let unifiedAdsTelemetry = MockUnifiedAdsCallbackTelemetry()
-        let subject = createSubject(
-            topSitesManager: mockTopSitesManager,
-            unifiedAdsTelemetry: unifiedAdsTelemetry
-        )
-        let action = TopSitesAction(
-            windowUUID: .XCTestDefaultUUID,
-            actionType: TopSitesActionType.tapOnHomepageTopSitesCell
-        )
-
-        subject.topSitesProvider.legacyMiddleware(appState, action)
-
-        XCTAssertEqual(mockGleanWrapper.savedEvents.count, 0)
-        XCTAssertEqual(mockGleanWrapper.recordEventCalled, 0)
-        XCTAssertEqual(unifiedAdsTelemetry.sendImpressionTelemetryCalled, 0)
     }
 
     // MARK: Context Menu
@@ -590,27 +495,6 @@ final class TopSitesMiddlewareTests: XCTestCase, StoreTestUtility {
         XCTAssertEqual(mockGleanWrapper.recordEventCalled, 1)
         XCTAssert(savedMetric === event, "Received \(savedMetric) instead of \(event)")
         XCTAssertEqual(savedExtras.type, extra)
-    }
-
-    private func checkTopSitesPressedMetrics(label: String, position: String, tileType: String) throws {
-        let firstMetric = GleanMetrics.TopSites.pressedTileOrigin
-        let secondMetric = GleanMetrics.TopSites.tilePressed
-        let firstSavedMetric = try XCTUnwrap(
-            mockGleanWrapper.savedEvents.first as? LabeledMetricType<CounterMetricType>
-        )
-        let secondSavedMetric = try XCTUnwrap(
-            mockGleanWrapper.savedEvents[safe: 1] as? EventMetricType<GleanMetrics.TopSites.TilePressedExtra>
-        )
-        let secondSavedExtras = try XCTUnwrap(
-            mockGleanWrapper.savedExtras.first as? GleanMetrics.TopSites.TilePressedExtra
-        )
-
-        XCTAssert(firstSavedMetric === firstMetric, "Received \(firstSavedMetric) instead of \(firstMetric)")
-        XCTAssert(secondSavedMetric === secondMetric, "Received \(secondSavedMetric) instead of \(secondMetric)")
-
-        XCTAssertEqual(mockGleanWrapper.savedLabel as? String, label)
-        XCTAssertEqual(secondSavedExtras.position, position)
-        XCTAssertEqual(secondSavedExtras.tileType, tileType)
     }
 
     // MARK: StoreTestUtility

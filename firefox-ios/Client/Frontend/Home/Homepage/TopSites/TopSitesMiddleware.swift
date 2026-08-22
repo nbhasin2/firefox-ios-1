@@ -51,11 +51,6 @@ final class TopSitesMiddleware {
             HomepageMiddlewareActionType.topSitesUpdated,
             TopSitesActionType.toggleShowSponsoredSettings:
             self.fetchTopSitesDataAndUpdateState(for: action)
-        case TopSitesActionType.topSitesSeen:
-            self.handleSponsoredImpressionTracking(for: action)
-
-        case TopSitesActionType.tapOnHomepageTopSitesCell:
-            self.handleOpenTopSitesItemTelemetry(for: action)
 
         case ContextMenuActionType.tappedOnPinTopSite:
             guard let site = self.getSite(for: action) else { return }
@@ -163,21 +158,6 @@ final class TopSitesMiddleware {
     }
 
     // MARK: Telemetry
-    private func handleSponsoredImpressionTracking(for action: Action) {
-        guard let telemetryMetadata = (action as? TopSitesAction)?.telemetryConfig else {
-            self.logger.log(
-                "Unable to retrieve telemetryMetadata for \(action.actionType)",
-                level: .warning,
-                category: .homepage
-            )
-            return
-        }
-        telemetry.sendSponsoredImpression(
-            for: telemetryMetadata.topSiteConfiguration,
-            at: telemetryMetadata.position
-        )
-    }
-
     private func sendOpenInPrivateTelemetry(for action: Action) {
         guard case .topSite = (action as? ContextMenuAction)?.menuType else {
             self.logger.log(
@@ -188,21 +168,5 @@ final class TopSitesMiddleware {
             return
         }
         telemetry.sendOpenInPrivateTab()
-    }
-
-    private func handleOpenTopSitesItemTelemetry(for action: Action) {
-        guard let telemetryConfig = (action as? TopSitesAction)?.telemetryConfig else {
-            self.logger.log(
-                "Unable to retrieve config for \(action.actionType)",
-                level: .debug,
-                category: .homepage
-            )
-            return
-        }
-        telemetry.sendTileTapped(
-            telemetryConfig.topSiteConfiguration,
-            at: telemetryConfig.position,
-            isZeroSearch: telemetryConfig.isZeroSearch
-        )
     }
 }

@@ -101,6 +101,7 @@ final class HomepageViewController: UIViewController,
     private let tabManager: TabManager
     private let homepageTabStateStore: HomepageTabStateStoring
     private let overlayManager: OverlayModeManager
+    private let topSitesTelemetry: TopSitesTelemetryService
     private let logger: Logger
     private let toastContainer: UIView
 
@@ -121,6 +122,7 @@ final class HomepageViewController: UIViewController,
          notificationCenter: NotificationProtocol = NotificationCenter.default,
          logger: Logger = DefaultLogger.shared,
          throttler: MainThreadThrottlerProtocol = MainThreadThrottler(seconds: 0.5),
+         topSitesTelemetry: TopSitesTelemetryService = .shared,
          homepageViewModel: HomepageViewModel? = nil
     ) {
         self.windowUUID = windowUUID
@@ -132,6 +134,7 @@ final class HomepageViewController: UIViewController,
         self.overlayManager = overlayManager
         self.statusBarScrollDelegate = statusBarScrollDelegate
         self.toastContainer = toastContainer
+        self.topSitesTelemetry = topSitesTelemetry
         self.logger = logger
         self.trackingImpressionsThrottler = throttler
 
@@ -1172,21 +1175,6 @@ final class HomepageViewController: UIViewController,
         )
     }
 
-    private func dispatchTopSitesAction(at index: Int, config: TopSiteConfiguration, actionType: ActionType) {
-        let config = TopSitesTelemetryConfig(
-            isZeroSearch: homepageState.telemetryState.isZeroSearch,
-            position: index,
-            topSiteConfiguration: config
-        )
-        store.dispatch(
-            TopSitesAction(
-                telemetryConfig: config,
-                windowUUID: self.windowUUID,
-                actionType: actionType
-            )
-        )
-    }
-
     private func dispatchPrivacyNoticeCloseButtonTapped() {
         store.dispatch(
             HomepageAction(
@@ -1349,10 +1337,10 @@ final class HomepageViewController: UIViewController,
                 visitType: .link
             )
             dispatchNavigationBrowserAction(with: destination, actionType: NavigationBrowserActionType.tapOnCell)
-            dispatchTopSitesAction(
+            topSitesTelemetry.sendTileTapped(
+                config,
                 at: indexPath.item,
-                config: config,
-                actionType: TopSitesActionType.tapOnHomepageTopSitesCell
+                isZeroSearch: homepageState.telemetryState.isZeroSearch
             )
         case .searchBar:
             dispatchDidSelectCardItemAction(with: item)
@@ -1405,7 +1393,7 @@ final class HomepageViewController: UIViewController,
             title: url.shortDisplayString.capitalized
         )
         profile.pinnedSites.addPinnedTopSite(site)
-        TopSitesTelemetryService.shared.sendShortcutPinned(source: .homescreenButton)
+        topSitesTelemetry.sendShortcutPinned(source: .homescreenButton)
     }
 
     /// Sends telemetry data associated with tapping on a card item. The jump back in synced card item
@@ -1415,16 +1403,8 @@ final class HomepageViewController: UIViewController,
         sendItemActionWithTelemetryExtras(item: item, actionType: .didSelectItem)
     }
 
-    /// Sends generic telemetry extras to middleware, sends additional extras `topSitesTelemetryConfig` for sponsored sites
-    private func sendItemActionWithTelemetryExtras(
-        item: HomepageItem,
-        actionType: HomepageActionType,
-        topSitesTelemetryConfig: TopSitesTelemetryConfig? = nil
-    ) {
-        let telemetryExtras = HomepageTelemetryExtras(
-            itemType: item.telemetryItemType,
-            topSitesTelemetryConfig: topSitesTelemetryConfig
-        )
+    private func sendItemActionWithTelemetryExtras(item: HomepageItem, actionType: HomepageActionType) {
+        let telemetryExtras = HomepageTelemetryExtras(itemType: item.telemetryItemType)
         store.dispatch(
             HomepageAction(
                 telemetryExtras: telemetryExtras,
@@ -1470,7 +1450,7 @@ final class HomepageViewController: UIViewController,
         guard !alreadyTrackedTopSites.contains(item) else { return }
         alreadyTrackedTopSites.insert(item)
         guard case .topSite(let config, _) = item else { return }
-        dispatchTopSitesAction(at: index, config: config, actionType: TopSitesActionType.topSitesSeen)
+        topSitesTelemetry.sendSponsoredImpression(for: config, at: index)
     }
 
     private func handleTrackingSectionImpression(for section: HomepageSection, with item: HomepageItem) {
