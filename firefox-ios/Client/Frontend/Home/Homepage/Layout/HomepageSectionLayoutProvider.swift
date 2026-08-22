@@ -121,18 +121,21 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
     private let trackerBlockerModuleIsVisible: () -> Bool
     private let merinoCategories: () -> [MerinoCategoryConfiguration]
     private let bookmarksSnapshot: () -> (bookmarks: [BookmarkConfiguration], shouldShowSection: Bool)
+    private let searchBarIsVisible: () -> Bool
 
     init(windowUUID: WindowUUID,
          logger: Logger = DefaultLogger.shared,
          trackerBlockerModuleIsVisible: @escaping () -> Bool = { false },
          merinoCategories: @escaping () -> [MerinoCategoryConfiguration] = { [] },
          bookmarksSnapshot: @escaping () -> (bookmarks: [BookmarkConfiguration],
-                                             shouldShowSection: Bool) = { ([], false) }) {
+                                             shouldShowSection: Bool) = { ([], false) },
+         searchBarIsVisible: @escaping () -> Bool = { false }) {
         self.windowUUID = windowUUID
         self.logger = logger
         self.trackerBlockerModuleIsVisible = trackerBlockerModuleIsVisible
         self.merinoCategories = merinoCategories
         self.bookmarksSnapshot = bookmarksSnapshot
+        self.searchBarIsVisible = searchBarIsVisible
     }
 
     func createLayoutSection(
@@ -800,10 +803,10 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
             return 0
         }
 
-        let searchState = state.searchState
+        let shouldShowSearchBar = searchBarIsVisible()
         let containerWidth = normalizedDimension(environment.container.contentSize.width)
         let measurementKey = HomepageLayoutMeasurementCache.SearchBarMeasurement.Key(
-            shouldShowSearchBar: searchState.shouldShowSearchBar,
+            shouldShowSearchBar: shouldShowSearchBar,
             containerWidth: containerWidth,
             contentSizeCategory: environment.traitCollection.preferredContentSizeCategory
         )
@@ -813,7 +816,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
             return cachedHeight
         }
 
-        guard searchState.shouldShowSearchBar else {
+        guard shouldShowSearchBar else {
             measurementsCache.setHeight(0, for: measurementKey)
             return 0
         }

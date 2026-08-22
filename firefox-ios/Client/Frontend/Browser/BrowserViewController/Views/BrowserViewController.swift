@@ -1344,11 +1344,7 @@ class BrowserViewController: UIViewController,
 
         let isEditing = toolbarState?.addressToolbar.isEditing ?? false
 
-        let shouldShowSearchBar = store.state.componentState(
-            HomepageState.self,
-            for: .homepage,
-            window: windowUUID
-        )?.searchState.shouldShowSearchBar ?? false
+        let shouldShowSearchBar = SearchBarVisibilityStore.shared.isSearchBarVisible(for: windowUUID)
 
         guard shouldShowSearchBar, !isEditing, contentContainer.hasHomepage else {
             guard addressToolbarContainer.isHidden == true else { return }

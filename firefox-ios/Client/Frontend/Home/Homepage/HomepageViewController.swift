@@ -57,6 +57,9 @@ final class HomepageViewController: UIViewController,
         bookmarksSnapshot: { [weak self] in
             guard let bookmarks = self?.homepageViewModel.bookmarks else { return ([], false) }
             return (bookmarks.bookmarks, bookmarks.shouldShowSection)
+        },
+        searchBarIsVisible: { [weak self] in
+            self?.homepageViewModel.searchBar.shouldShowSearchBar ?? false
         }
     )
     // Tracks which tab the shared homepage instance is currently representing.
@@ -428,6 +431,12 @@ final class HomepageViewController: UIViewController,
         return HomepageDimensionCalculator.retrieveJumpBackInDisplayInfo(
             traitCollection: traitCollection
         )
+    }
+
+    /// Whether the homepage is currently showing its own search bar. `BrowserViewController` reads
+    /// this to decide whether to hide the address toolbar; it used to read `HomepageState`.
+    var isSearchBarVisible: Bool {
+        return homepageViewModel.searchBar.shouldShowSearchBar
     }
 
     // MARK: - Redux

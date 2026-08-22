@@ -74,11 +74,6 @@ final class HomepageMiddleware: FeatureFlaggable, Notifiable {
 
         case HomepageActionType.initialize:
             self.dispatchPrivacyNoticeConfigurationAction(action: action)
-            self.dispatchSearchBarConfigurationAction(action: action)
-
-        case HomepageActionType.viewWillTransition, ToolbarActionType.cancelEdit,
-            GeneralBrowserActionType.navigateBack, GeneralBrowserActionType.didCloseTabFromToolbar:
-            self.dispatchSearchBarConfigurationAction(action: action)
 
         default:
             break
@@ -108,29 +103,6 @@ final class HomepageMiddleware: FeatureFlaggable, Notifiable {
                 )
             )
         }
-    }
-
-    private func dispatchSearchBarConfigurationAction(action: Action) {
-        store.dispatch(
-            HomepageAction(
-                isSearchBarEnabled: self.shouldShowSearchBar(),
-                windowUUID: action.windowUUID,
-                actionType: HomepageMiddlewareActionType.configuredSearchBar
-            )
-        )
-    }
-
-    private func shouldShowSearchBar(
-        for device: UIUserInterfaceIdiom = UIDevice.current.userInterfaceIdiom,
-        and isLandscape: Bool = UIWindow.isLandscape
-    ) -> Bool {
-        let isHomepageSearchEnabled = featureFlagsProvider.isEnabled(.homepageSearchBar)
-        let isCompact = device == .phone && !isLandscape
-
-        guard isHomepageSearchEnabled, isCompact else {
-            return false
-        }
-        return true
     }
 
     // MARK: - Notifications

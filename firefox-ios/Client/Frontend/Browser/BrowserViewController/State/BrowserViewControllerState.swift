@@ -265,11 +265,8 @@ struct BrowserViewControllerState: ScreenState {
     ) -> BrowserViewControllerState {
         switch action.actionType {
         case ToolbarMiddlewareActionType.didTapButton:
-            let shouldShowSearchBar = store.state.componentState(
-                HomepageState.self,
-                for: .homepage,
-                window: action.windowUUID
-            )?.searchState.shouldShowSearchBar ?? false
+            let shouldShowSearchBar = SearchBarVisibilityStore.shared
+                .isSearchBarVisible(for: action.windowUUID)
 
             guard shouldShowSearchBar, action.buttonType == .search else {
                 return passthroughState(from: state, action: action)

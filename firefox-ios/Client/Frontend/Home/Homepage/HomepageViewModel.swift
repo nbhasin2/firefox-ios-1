@@ -20,6 +20,7 @@ final class HomepageViewModel: Notifiable {
     let trackerBlockerModule: TrackerBlockerModuleViewModel
     let bookmarks: BookmarksSectionViewModel
     let merino: MerinoSectionViewModel
+    let searchBar: SearchBarViewModel
 
     /// Fired when any owned section changes and the snapshot needs re-applying.
     var onSectionChange: (() -> Void)?
@@ -33,12 +34,14 @@ final class HomepageViewModel: Notifiable {
          trackerBlockerModule: TrackerBlockerModuleViewModel? = nil,
          bookmarks: BookmarksSectionViewModel? = nil,
          merino: MerinoSectionViewModel? = nil,
+         searchBar: SearchBarViewModel? = nil,
          notificationCenter: NotificationProtocol = NotificationCenter.default) {
         self.windowUUID = windowUUID
         self.messageCard = messageCard ?? MessageCardViewModel(windowUUID: windowUUID)
         self.trackerBlockerModule = trackerBlockerModule ?? TrackerBlockerModuleViewModel()
         self.bookmarks = bookmarks ?? BookmarksSectionViewModel()
         self.merino = merino ?? MerinoSectionViewModel()
+        self.searchBar = searchBar ?? SearchBarViewModel(windowUUID: windowUUID)
         self.notificationCenter = notificationCenter
         bindSections()
         // The migrated sections observe their own refresh triggers. `HomepageMiddleware` still
@@ -97,6 +100,7 @@ final class HomepageViewModel: Notifiable {
         trackerBlockerModule.refreshBlockedCount()
         bookmarks.refreshBookmarks()
         merino.refreshStories()
+        searchBar.refreshVisibility()
     }
 
     /// Homepage `viewDidAppear`, and app foreground.
@@ -108,6 +112,11 @@ final class HomepageViewModel: Notifiable {
     func refreshOnBecomeActive() {
         trackerBlockerModule.refreshBlockedCount()
         merino.refreshStories()
+    }
+
+    /// Homepage `viewWillTransition`, and the toolbar events that used to recompute visibility.
+    func refreshSearchBarVisibility() {
+        searchBar.refreshVisibility()
     }
 
     /// Bookmarks changed underneath the homepage.
@@ -128,6 +137,9 @@ final class HomepageViewModel: Notifiable {
             self?.onSectionChange?()
         }
         merino.onChange = { [weak self] in
+            self?.onSectionChange?()
+        }
+        searchBar.onChange = { [weak self] in
             self?.onSectionChange?()
         }
     }

@@ -13,7 +13,6 @@ struct HomepageState: ScreenState, Equatable {
     // Homepage sections state in the order they appear on the collection view
     let headerState: HeaderState
     let topSitesState: TopSitesSectionState
-    let searchState: SearchBarState
     let jumpBackInState: JumpBackInSectionState
     let wallpaperState: WallpaperState
 
@@ -37,7 +36,6 @@ struct HomepageState: ScreenState, Equatable {
             windowUUID: homepageState.windowUUID,
             headerState: homepageState.headerState,
             topSitesState: homepageState.topSitesState,
-            searchState: homepageState.searchState,
             jumpBackInState: homepageState.jumpBackInState,
             wallpaperState: homepageState.wallpaperState,
             telemetryState: homepageState.telemetryState,
@@ -50,7 +48,6 @@ struct HomepageState: ScreenState, Equatable {
             windowUUID: windowUUID,
             headerState: HeaderState(windowUUID: windowUUID),
             topSitesState: TopSitesSectionState(windowUUID: windowUUID),
-            searchState: SearchBarState(windowUUID: windowUUID),
             jumpBackInState: JumpBackInSectionState(windowUUID: windowUUID),
             wallpaperState: WallpaperState(windowUUID: windowUUID),
             telemetryState: HomepageTelemetryState(windowUUID: windowUUID),
@@ -62,7 +59,6 @@ struct HomepageState: ScreenState, Equatable {
         windowUUID: WindowUUID,
         headerState: HeaderState,
         topSitesState: TopSitesSectionState,
-        searchState: SearchBarState,
         jumpBackInState: JumpBackInSectionState,
         wallpaperState: WallpaperState,
         telemetryState: HomepageTelemetryState,
@@ -71,7 +67,6 @@ struct HomepageState: ScreenState, Equatable {
         self.windowUUID = windowUUID
         self.headerState = headerState
         self.topSitesState = topSitesState
-        self.searchState = searchState
         self.jumpBackInState = jumpBackInState
         self.wallpaperState = wallpaperState
         self.telemetryState = telemetryState
@@ -113,7 +108,6 @@ struct HomepageState: ScreenState, Equatable {
             .resetTransientState()
             .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
-            .copy(searchState: SearchBarState.reducer.legacyReducer(state.searchState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
             .copy(telemetryState: HomepageTelemetryState.reducer.legacyReducer(state.telemetryState, action))
@@ -125,7 +119,6 @@ struct HomepageState: ScreenState, Equatable {
             .resetTransientState()
             .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
-            .copy(searchState: SearchBarState.reducer.legacyReducer(state.searchState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
             .copy(telemetryState: HomepageTelemetryState.reducer.legacyReducer(state.telemetryState, action))
@@ -137,7 +130,6 @@ struct HomepageState: ScreenState, Equatable {
             .resetTransientState()
             .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
-            .copy(searchState: SearchBarState.reducer.legacyReducer(state.searchState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
             .copy(telemetryState: HomepageTelemetryState.reducer.legacyReducer(state.telemetryState, action))
@@ -150,7 +142,6 @@ struct HomepageState: ScreenState, Equatable {
             .resetTransientState()
             .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
-            .copy(searchState: SearchBarState.reducer.legacyReducer(state.searchState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
             .copy(telemetryState: HomepageTelemetryState.reducer.legacyReducer(state.telemetryState, action))
@@ -162,7 +153,6 @@ struct HomepageState: ScreenState, Equatable {
             .resetTransientState()
             .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
-            .copy(searchState: SearchBarState.reducer.legacyReducer(state.searchState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
             .copy(telemetryState: HomepageTelemetryState.reducer.legacyReducer(state.telemetryState, action))
@@ -175,7 +165,6 @@ struct HomepageState: ScreenState, Equatable {
             .resetTransientState()
             .copy(headerState: HeaderState.reducer.legacyReducer(state.headerState, action))
             .copy(topSitesState: TopSitesSectionState.reducer.legacyReducer(state.topSitesState, action))
-            .copy(searchState: SearchBarState.reducer.legacyReducer(state.searchState, action))
             .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(wallpaperState: WallpaperState.reducer.legacyReducer(state.wallpaperState, action))
             .copy(telemetryState: HomepageTelemetryState.reducer.legacyReducer(state.telemetryState, action))
@@ -186,7 +175,6 @@ struct HomepageState: ScreenState, Equatable {
             windowUUID: state.windowUUID,
             headerState: HeaderState.defaultState(from: state.headerState),
             topSitesState: TopSitesSectionState.defaultState(from: state.topSitesState),
-            searchState: SearchBarState.defaultState(from: state.searchState),
             jumpBackInState: JumpBackInSectionState.defaultState(from: state.jumpBackInState),
             wallpaperState: WallpaperState.defaultState(from: state.wallpaperState),
             telemetryState: HomepageTelemetryState.defaultState(from: state.telemetryState),
