@@ -27,8 +27,6 @@ final class ThemeManagerMiddleware: ThemeManagerProvider {
     lazy var legacyProvider: LegacyMiddlewareClosure<AppState> = { [self] state, action in
         if let action = action as? PrivateModeAction {
             self.resolvePrivateModeAction(action: action)
-        } else if let action = action as? MainMenuAction {
-            self.resolveMainMenuAction(action: action)
         }
     }
 
@@ -42,14 +40,6 @@ final class ThemeManagerMiddleware: ThemeManagerProvider {
         }
     }
 
-    private func resolveMainMenuAction(action: MainMenuAction) {
-        switch action.actionType {
-        case MainMenuActionType.tapToggleNightMode:
-            updateNightMode()
-        default:
-            break
-        }
-    }
 
     func updatePrivateMode(with action: PrivateModeAction) {
         guard let privateModeState = action.isPrivate else { return }
