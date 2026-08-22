@@ -646,3 +646,26 @@ migrates with Tabs.
 `shouldRecordImpressionTelemetry` was a state field whose only job was "have I recorded the
 viewed event for this presentation" — a middleware read it, sent the event, and dispatched a
 second action to clear it. That round trip is a private `Bool` on the view model.
+
+## D-030 — Search engine selection: a screen that keeps dispatching, and should
+
+`SearchEngineSelectionState` and `SearchEngineSelectionMiddleware` are gone. The middleware's load
+half read `SearchEnginesManager.orderedEngines` and dispatched the result for the reducer to
+store — a read the view model does itself.
+
+Its other half is the interesting part. Tapping an engine announces two things the *toolbar*
+reacts to: `ToolbarActionType.didStartEditingUrl` and
+`SearchEngineSelectionActionType.didTapSearchEngine`, the latter reduced by both `ToolbarState`
+and `AddressBarState`. Those stay as dispatches. This is the first module to land in the D-016
+end state exactly as described: no `ScreenState`, no middleware, no subscription — and still an
+`import Redux`, because it announces outward to screens that have not migrated.
+
+`SearchEngineSelectionState.selectedSearchEngine` was written by the reducer and read by nobody;
+the toolbar's reducers take the value off the action. Deleted with the state.
+
+## D-031 — MicrosurveyPrompt is BVC-blocked, not next
+
+`MicrosurveyPromptState` is a *field of* `BrowserViewControllerState`, not a component of its own,
+so it has no separable boundary until BVC migrates. Recording this so the next pass does not pick
+it up as a small module. Same for `StartAtHomeMiddleware`, which has no state or view of its own —
+it is a browser-lifecycle helper that reacts to BVC actions.

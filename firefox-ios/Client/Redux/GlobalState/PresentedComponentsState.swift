@@ -13,7 +13,6 @@ enum ComponentState: Sendable, Equatable {
     case tabPeek(TabPeekState)
     case tabsTray(TabTrayState)
     case toolbar(ToolbarState)
-    case searchEngineSelection(SearchEngineSelectionState)
 
     static let reducer: Reducer<Self> = (legacyReducer, modernReducer)
 
@@ -32,8 +31,6 @@ enum ComponentState: Sendable, Equatable {
             return .tabsPanel(TabsPanelState.reducer.modernReducer(state, action, actionWindowUUID))
         case .toolbar(let state):
             return .toolbar(ToolbarState.reducer.modernReducer(state, action, actionWindowUUID))
-        case .searchEngineSelection(let state):
-            return .searchEngineSelection(SearchEngineSelectionState.reducer.modernReducer(state, action, actionWindowUUID))
         }
     }
 
@@ -51,8 +48,6 @@ enum ComponentState: Sendable, Equatable {
             return .tabsPanel(TabsPanelState.reducer.legacyReducer(state, action))
         case .toolbar(let state):
             return .toolbar(ToolbarState.reducer.legacyReducer(state, action))
-        case .searchEngineSelection(let state):
-            return .searchEngineSelection(SearchEngineSelectionState.reducer.legacyReducer(state, action))
         }
     }
     // swiftlint:enable closure_body_length
@@ -66,7 +61,6 @@ enum ComponentState: Sendable, Equatable {
         case .tabPeek: return .tabPeek
         case .tabsTray: return .tabsTray
         case .toolbar: return .toolbar
-        case .searchEngineSelection: return .searchEngineSelection
         }
     }
 
@@ -78,7 +72,6 @@ enum ComponentState: Sendable, Equatable {
         case .tabPeek(let state): return state.windowUUID
         case .tabsTray(let state): return state.windowUUID
         case .toolbar(let state): return state.windowUUID
-        case .searchEngineSelection(let state): return state.windowUUID
         }
     }
 }
@@ -142,8 +135,6 @@ struct PresentedComponentsState: Sendable, Equatable {
                 components.append(.tabPeek(TabPeekState(windowUUID: uuid)))
             case .toolbar:
                 components.append(.toolbar(ToolbarState(windowUUID: uuid)))
-            case .searchEngineSelection:
-                components.append(.searchEngineSelection(SearchEngineSelectionState(windowUUID: uuid)))
             }
         default:
             return components

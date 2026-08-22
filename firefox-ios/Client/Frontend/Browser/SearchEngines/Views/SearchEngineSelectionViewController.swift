@@ -10,8 +10,7 @@ import UnifiedSearchKit
 class SearchEngineSelectionViewController: UIViewController,
                                            UISheetPresentationControllerDelegate,
                                            UIPopoverPresentationControllerDelegate,
-                                           Themeable,
-                                           StoreSubscriber {
+                                           Themeable {
     // MARK: - Properties
     var notificationCenter: NotificationProtocol
     var themeManager: ThemeManager
@@ -20,7 +19,7 @@ class SearchEngineSelectionViewController: UIViewController,
 
     weak var coordinator: SearchEngineSelectionCoordinator?
     private let windowUUID: WindowUUID
-    private var state: SearchEngineSelectionState
+    private let viewModel: SearchEngineSelectionViewModel
     private let logger: Logger
 
     // MARK: - UI/UX elements
@@ -32,33 +31,20 @@ class SearchEngineSelectionViewController: UIViewController,
         windowUUID: WindowUUID,
         notificationCenter: NotificationProtocol = NotificationCenter.default,
         themeManager: ThemeManager = AppContainer.shared.resolve(),
-        logger: Logger = DefaultLogger.shared
+        logger: Logger = DefaultLogger.shared,
+        viewModel: SearchEngineSelectionViewModel? = nil
     ) {
         self.windowUUID = windowUUID
-        self.state = SearchEngineSelectionState(windowUUID: windowUUID)
+        self.viewModel = viewModel ?? SearchEngineSelectionViewModel(windowUUID: windowUUID)
         self.logger = logger
         self.notificationCenter = notificationCenter
         self.themeManager = themeManager
 
         super.init(nibName: nil, bundle: nil)
-
-        subscribeToRedux()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    deinit {
-        // TODO: FXIOS-13097 This is a work around until we can leverage isolated deinits
-        guard Thread.isMainThread else {
-            assertionFailure("TabSwipeGestureHandler was not deallocated on the main thread. Observer was not removed")
-            return
-        }
-
-        MainActor.assumeIsolated {
-            unsubscribeFromRedux()
-        }
     }
 
     override func viewDidLoad() {
@@ -72,12 +58,13 @@ class SearchEngineSelectionViewController: UIViewController,
         listenForThemeChanges(withNotificationCenter: notificationCenter)
         applyTheme()
 
-        store.dispatch(
-            SearchEngineSelectionAction(
-                windowUUID: self.windowUUID,
-                actionType: SearchEngineSelectionActionType.viewDidLoad
+        viewModel.onChange = { [weak self] in
+            guard let self else { return }
+            self.searchEngineTableView.reloadTableView(
+                with: self.createSearchEngineTableData(withSearchEngines: self.viewModel.searchEngines)
             )
-        )
+        }
+        viewModel.viewDidLoad()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -97,43 +84,6 @@ class SearchEngineSelectionViewController: UIViewController,
             searchEngineTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             searchEngineTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
-    }
-
-    // MARK: - Redux
-
-    func subscribeToRedux() {
-        store.dispatch(
-            ComponentAction(
-                windowUUID: windowUUID,
-                actionType: ComponentActionType.addComponent,
-                component: .searchEngineSelection
-            )
-        )
-
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            return $0.select({ appState in
-                return SearchEngineSelectionState(appState: appState, uuid: uuid)
-            })
-        })
-    }
-
-    func unsubscribeFromRedux() {
-        store.dispatch(
-            ComponentAction(
-                windowUUID: windowUUID,
-                actionType: ComponentActionType.removeComponent,
-                component: .searchEngineSelection
-            )
-        )
-    }
-
-    func newState(state: SearchEngineSelectionState) {
-        self.state = state
-
-        searchEngineTableView.reloadTableView(
-            with: createSearchEngineTableData(withSearchEngines: state.searchEngines)
-        )
     }
 
     func createSearchEngineTableData(withSearchEngines: [SearchEngineModel]) -> [SearchEngineSection] {
@@ -181,13 +131,7 @@ class SearchEngineSelectionViewController: UIViewController,
     }
 
     func didTap(searchEngineModel: SearchEngineModel) {
-        store.dispatch(
-            SearchEngineSelectionAction(
-                windowUUID: self.windowUUID,
-                actionType: SearchEngineSelectionActionType.didTapSearchEngine,
-                selectedSearchEngine: searchEngineModel
-            )
-        )
+        viewModel.didTap(searchEngineModel: searchEngineModel)
 
         // Close the view after a selection has been made
         coordinator?.dismissModal(animated: true)
