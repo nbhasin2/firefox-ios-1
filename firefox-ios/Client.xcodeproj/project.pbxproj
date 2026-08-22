@@ -1099,7 +1099,6 @@
 		8A7D08E32CAAF7C30035999C /* HomepageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7D08E22CAAF7C30035999C /* HomepageViewController.swift */; };
 		8A7D08E52FBE2EBC0035999C /* HomepageTabStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7D08E42FBE2EBC0035999C /* HomepageTabStateStore.swift */; };
 		8A8158CB2C2C77B000281F72 /* MicrosurveyTelemetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8158CA2C2C77B000281F72 /* MicrosurveyTelemetry.swift */; };
-		8A827E302C20C7F5008D5E3C /* MicrosurveyMiddlewareTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A827E2E2C20C55E008D5E3C /* MicrosurveyMiddlewareTests.swift */; };
 		8A827E322C20C8AE008D5E3C /* MockMicrosurveySurfaceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A827E312C20C8AE008D5E3C /* MockMicrosurveySurfaceManager.swift */; };
 		8A827E362C20CB5B008D5E3C /* MicrosurveyPromptMiddlewareTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A827E342C20CB44008D5E3C /* MicrosurveyPromptMiddlewareTests.swift */; };
 		8A832A9029DC96C50025D5DD /* LaunchScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A832A8F29DC96C50025D5DD /* LaunchScreenView.swift */; };
@@ -1211,11 +1210,9 @@
 		8AABBD052A0041380089941E /* MockCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AABBD042A0041380089941E /* MockCoordinator.swift */; };
 		8AAC7C452D52C18A0011F87A /* SaveLoginAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AAC7C442D52C18A0011F87A /* SaveLoginAlert.swift */; };
 		8AAEB9FE2BF50718000C02B5 /* MicrosurveyViewControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AAEB9FD2BF50718000C02B5 /* MicrosurveyViewControllerTests.swift */; };
-		8AAEBA022BF5110A000C02B5 /* MicrosurveyAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AAEBA012BF5110A000C02B5 /* MicrosurveyAction.swift */; };
-		8AAEBA042BF51134000C02B5 /* MicrosurveyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AAEBA032BF51133000C02B5 /* MicrosurveyState.swift */; };
-		8AAEBA062BF51141000C02B5 /* MicrosurveyMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AAEBA052BF51141000C02B5 /* MicrosurveyMiddleware.swift */; };
+		BEE798F266F6400241ABB4B8 /* MicrosurveyViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C46DAC481DEC2904C5D008 /* MicrosurveyViewModelTests.swift */; };
 		8AAEBA082BF52708000C02B5 /* MicrosurveyCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AAEBA072BF52708000C02B5 /* MicrosurveyCoordinator.swift */; };
-		8AAEBA0B2BF53AF6000C02B5 /* MicrosurveyStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AAEBA092BF53AB5000C02B5 /* MicrosurveyStateTests.swift */; };
+		2E6561E6A7BCD2BE09E48F54 /* MicrosurveyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EE97E29A1095B848F71B803 /* MicrosurveyViewModel.swift */; };
 		8AB30EC82B6C038600BD9A9B /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB30EC72B6C038600BD9A9B /* Lottie */; };
 		8AB53B3A2D4138F200C97590 /* MessageCardMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB53B392D4138ED00C97590 /* MessageCardMiddleware.swift */; };
 		8AB53B3E2D41463900C97590 /* MessageCardAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB53B3D2D41463400C97590 /* MessageCardAction.swift */; };
@@ -9870,7 +9867,6 @@
 		8A7D08E22CAAF7C30035999C /* HomepageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomepageViewController.swift; sourceTree = "<group>"; };
 		8A7D08E42FBE2EBC0035999C /* HomepageTabStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomepageTabStateStore.swift; sourceTree = "<group>"; };
 		8A8158CA2C2C77B000281F72 /* MicrosurveyTelemetry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrosurveyTelemetry.swift; sourceTree = "<group>"; };
-		8A827E2E2C20C55E008D5E3C /* MicrosurveyMiddlewareTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrosurveyMiddlewareTests.swift; sourceTree = "<group>"; };
 		8A827E312C20C8AE008D5E3C /* MockMicrosurveySurfaceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockMicrosurveySurfaceManager.swift; sourceTree = "<group>"; };
 		8A827E342C20CB44008D5E3C /* MicrosurveyPromptMiddlewareTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MicrosurveyPromptMiddlewareTests.swift; path = Mock/MicrosurveyPromptMiddlewareTests.swift; sourceTree = "<group>"; };
 		8A832A8F29DC96C50025D5DD /* LaunchScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchScreenView.swift; sourceTree = "<group>"; };
@@ -9967,11 +9963,9 @@
 		8AAC7C442D52C18A0011F87A /* SaveLoginAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveLoginAlert.swift; sourceTree = "<group>"; };
 		8AAD4900BB6F4DF6056B581F /* ml */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ml; path = ml.lproj/ErrorPages.strings; sourceTree = "<group>"; };
 		8AAEB9FD2BF50718000C02B5 /* MicrosurveyViewControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrosurveyViewControllerTests.swift; sourceTree = "<group>"; };
-		8AAEBA012BF5110A000C02B5 /* MicrosurveyAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrosurveyAction.swift; sourceTree = "<group>"; };
-		8AAEBA032BF51133000C02B5 /* MicrosurveyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrosurveyState.swift; sourceTree = "<group>"; };
-		8AAEBA052BF51141000C02B5 /* MicrosurveyMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrosurveyMiddleware.swift; sourceTree = "<group>"; };
+		54C46DAC481DEC2904C5D008 /* MicrosurveyViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrosurveyViewModelTests.swift; sourceTree = "<group>"; };
 		8AAEBA072BF52708000C02B5 /* MicrosurveyCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrosurveyCoordinator.swift; sourceTree = "<group>"; };
-		8AAEBA092BF53AB5000C02B5 /* MicrosurveyStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrosurveyStateTests.swift; sourceTree = "<group>"; };
+		4EE97E29A1095B848F71B803 /* MicrosurveyViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrosurveyViewModel.swift; sourceTree = "<group>"; };
 		8AB04613B101195AADCC1F1B /* cs */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cs; path = "cs.lproj/Default Browser.strings"; sourceTree = "<group>"; };
 		8AB53B392D4138ED00C97590 /* MessageCardMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCardMiddleware.swift; sourceTree = "<group>"; };
 		8AB53B3D2D41463400C97590 /* MessageCardAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCardAction.swift; sourceTree = "<group>"; };
@@ -14627,10 +14621,9 @@
 				8A4EA0D22C010BF800E4E4F1 /* MicrosurveySurfaceManagerTests.swift */,
 				AA742C7B2E904B9500CF55B3 /* MicrosurveyTelemetryTests.swift */,
 				8AAEB9FD2BF50718000C02B5 /* MicrosurveyViewControllerTests.swift */,
+				54C46DAC481DEC2904C5D008 /* MicrosurveyViewModelTests.swift */,
 				8A8482EE2BE15FFE00F9007B /* MicrosurveyPromptStateTests.swift */,
-				8AAEBA092BF53AB5000C02B5 /* MicrosurveyStateTests.swift */,
 				8A0E5F3D2BFBA49400DE052B /* MicrosurveyCoordinatorTests.swift */,
-				8A827E2E2C20C55E008D5E3C /* MicrosurveyMiddlewareTests.swift */,
 				8A827E342C20CB44008D5E3C /* MicrosurveyPromptMiddlewareTests.swift */,
 			);
 			path = Microsurvey;
@@ -14804,9 +14797,7 @@
 			isa = PBXGroup;
 			children = (
 				8AAEBA072BF52708000C02B5 /* MicrosurveyCoordinator.swift */,
-				8AAEBA012BF5110A000C02B5 /* MicrosurveyAction.swift */,
-				8AAEBA032BF51133000C02B5 /* MicrosurveyState.swift */,
-				8AAEBA052BF51141000C02B5 /* MicrosurveyMiddleware.swift */,
+				4EE97E29A1095B848F71B803 /* MicrosurveyViewModel.swift */,
 				8AAEBA002BF510F5000C02B5 /* View */,
 			);
 			path = Survey;
@@ -19749,7 +19740,6 @@
 				4346FF08295BA6A300F4D220 /* CreditCardSettingsViewController.swift in Sources */,
 				1DCEC3F22D5D1FEC00129966 /* ASSearchEngineSelector.swift in Sources */,
 				E19B38B528A42EBC00D8C541 /* WallpaperCellViewModel.swift in Sources */,
-				8AAEBA042BF51134000C02B5 /* MicrosurveyState.swift in Sources */,
 				C80E1A102A0943640025B9E1 /* UIFont+Extension.swift in Sources */,
 				C8680C5728BFDF7F00BC902A /* WallpaperThumbnailUtility.swift in Sources */,
 				AA5E81472EB12BDC00919E60 /* TranslationsMiddleware.swift in Sources */,
@@ -19865,7 +19855,6 @@
 				0B62EFD21AD63CD100ACB9CD /* Clearables.swift in Sources */,
 				0AFF7F6C2C7C7BBA00265214 /* CertificatesCell.swift in Sources */,
 				391C28173007C3C500833828 /* TrackerBlockStatsModels.swift in Sources */,
-				8AAEBA062BF51141000C02B5 /* MicrosurveyMiddleware.swift in Sources */,
 				8C76F013302344B700D4BC87 /* WebCompatReportCoordinator.swift in Sources */,
 				8CE71B433025C458006C7828 /* WebCompatReportPreviewCoordinator.swift in Sources */,
 				431C0CA925C890E500395CE4 /* DefaultBrowserOnboardingViewModel.swift in Sources */,
@@ -19944,6 +19933,7 @@
 				EDF2C0562D693A7300723609 /* AppIconSetting.swift in Sources */,
 				FA9293D41D6580E100AC8D33 /* QRCodeViewController.swift in Sources */,
 				8AAEBA082BF52708000C02B5 /* MicrosurveyCoordinator.swift in Sources */,
+				2E6561E6A7BCD2BE09E48F54 /* MicrosurveyViewModel.swift in Sources */,
 				5A679E4B2B239FAE004F2B0D /* TabPeekViewController.swift in Sources */,
 				E18CE8DC2BDA3FA600EE2BCD /* NavigationToolbarContainerModel.swift in Sources */,
 				C2BA5A312FEEB54D00AD1FBD /* DefaultQuickAnswersTelemetry.swift in Sources */,
@@ -20091,7 +20081,6 @@
 				E698FFDA1B4AADF40001F623 /* TabScrollHandler.swift in Sources */,
 				8AF117242DDE228700577232 /* TabTrayThemeAnimator.swift in Sources */,
 				1DD4B26E2CA4D09100B51945 /* TabErrorTelemetryHelper.swift in Sources */,
-				8AAEBA022BF5110A000C02B5 /* MicrosurveyAction.swift in Sources */,
 				8ADED55E2D667A7700345293 /* BrowsingSetting.swift in Sources */,
 				D34510881ACF415700EC27F0 /* SearchLoader.swift in Sources */,
 				E17496402994302D0096900A /* PreferredFont.swift in Sources */,
@@ -20939,7 +20928,6 @@
 				81DAB2F92C8901AC00F4BE98 /* MainMenuStateTests.swift in Sources */,
 				EC4F28123011A60C00BAD351 /* CertificateDelegateTests.swift in Sources */,
 				8ACA8F74291987AE00D3075D /* AccountSyncHandlerTests.swift in Sources */,
-				8AAEBA0B2BF53AF6000C02B5 /* MicrosurveyStateTests.swift in Sources */,
 				AA3CEBAD2ECB853400DDEFEF /* SearchTelemetryTests.swift in Sources */,
 				8A03FFA32DB12AFF00509A72 /* MockSponsoredTelemetry.swift in Sources */,
 				8A09A9E32D77552C0069B005 /* HomepageMiddlewareTests.swift in Sources */,
@@ -21084,6 +21072,7 @@
 				630FE1352C7FB42500D9D6B2 /* NativeErrorPageViewControllerTests.swift in Sources */,
 				81AD45077697DF64C778F4F9 /* NativeErrorPageViewModelTests.swift in Sources */,
 				8AAEB9FE2BF50718000C02B5 /* MicrosurveyViewControllerTests.swift in Sources */,
+				BEE798F266F6400241ABB4B8 /* MicrosurveyViewModelTests.swift in Sources */,
 				C8E531CC29E72A2F00E03FEF /* ShortcutRouteTests.swift in Sources */,
 				C83B7DD629BBB49D005565C2 /* SurveySurfaceManagerTests.swift in Sources */,
 				AA11BB22CC33DD44EE550002 /* SurveySurfaceViewModelTests.swift in Sources */,
@@ -21148,7 +21137,6 @@
 				D1A0B7C22F00000100000002 /* WebsiteDataManagementViewModelTests.swift in Sources */,
 				21B41A1D298B187A008BC0A2 /* MockOverlayModeManager.swift in Sources */,
 				8A9D31642D1355EE00171502 /* MockFxBookmarkNode.swift in Sources */,
-				8A827E302C20C7F5008D5E3C /* MicrosurveyMiddlewareTests.swift in Sources */,
 				C705FA7A2EF31F0500AC5EE7 /* MockPrivacyNoticeHelper.swift in Sources */,
 				217C6F312F3BD5E00085D9B9 /* BrowserViewControllerConstraintTestsBase.swift in Sources */,
 				8A9D31622D13545A00171502 /* EditFolderViewModelTests.swift in Sources */,
