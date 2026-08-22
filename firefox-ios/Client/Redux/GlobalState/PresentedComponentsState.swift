@@ -19,7 +19,6 @@ enum ComponentState: Sendable, Equatable {
     case trackingProtection(TrackingProtectionState)
     case toolbar(ToolbarState)
     case searchEngineSelection(SearchEngineSelectionState)
-    case nativeErrorPage(NativeErrorPageState)
     case shortcutsLibrary(ShortcutsLibraryState)
     case translationSettings(TranslationSettingsState)
 
@@ -52,8 +51,6 @@ enum ComponentState: Sendable, Equatable {
             return .toolbar(ToolbarState.reducer.modernReducer(state, action, actionWindowUUID))
         case .searchEngineSelection(let state):
             return .searchEngineSelection(SearchEngineSelectionState.reducer.modernReducer(state, action, actionWindowUUID))
-        case .nativeErrorPage(let state):
-            return .nativeErrorPage(NativeErrorPageState.reducer.modernReducer(state, action, actionWindowUUID))
         case .shortcutsLibrary(let state):
             return .shortcutsLibrary(ShortcutsLibraryState.reducer.modernReducer(state, action, actionWindowUUID))
         case .translationSettings(let state):
@@ -87,8 +84,6 @@ enum ComponentState: Sendable, Equatable {
             return .toolbar(ToolbarState.reducer.legacyReducer(state, action))
         case .searchEngineSelection(let state):
             return .searchEngineSelection(SearchEngineSelectionState.reducer.legacyReducer(state, action))
-        case .nativeErrorPage(let state):
-            return .nativeErrorPage(NativeErrorPageState.reducer.legacyReducer(state, action))
         case .shortcutsLibrary(let state):
             return .shortcutsLibrary(ShortcutsLibraryState.reducer.legacyReducer(state, action))
         case .translationSettings(let state):
@@ -112,7 +107,6 @@ enum ComponentState: Sendable, Equatable {
         case .trackingProtection: return .trackingProtection
         case .toolbar: return .toolbar
         case .searchEngineSelection: return .searchEngineSelection
-        case .nativeErrorPage: return .nativeErrorPage
         case .shortcutsLibrary: return .shortcutsLibrary
         case .translationSettings: return .translationSettings
         }
@@ -132,7 +126,6 @@ enum ComponentState: Sendable, Equatable {
         case .trackingProtection(let state): return state.windowUUID
         case .toolbar(let state): return state.windowUUID
         case .searchEngineSelection(let state): return state.windowUUID
-        case .nativeErrorPage(let state): return state.windowUUID
         case .shortcutsLibrary(let state): return state.windowUUID
         case .translationSettings(let state): return state.windowUUID
         }
@@ -210,8 +203,6 @@ struct PresentedComponentsState: Sendable, Equatable {
                 components.append(.toolbar(ToolbarState(windowUUID: uuid)))
             case .searchEngineSelection:
                 components.append(.searchEngineSelection(SearchEngineSelectionState(windowUUID: uuid)))
-            case .nativeErrorPage:
-                components.append(.nativeErrorPage(NativeErrorPageState(windowUUID: uuid)))
             case .shortcutsLibrary:
                 components.append(.shortcutsLibrary(ShortcutsLibraryState(windowUUID: uuid)))
             case .translationSettings:

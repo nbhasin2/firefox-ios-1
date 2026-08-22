@@ -5,16 +5,13 @@
 import Foundation
 import Common
 import ComponentLibrary
-import Redux
 import Shared
 
 final class NativeErrorPageViewController: UIViewController,
                                            Themeable,
                                            ContentContainable,
-                                           StoreSubscriber,
                                            NativeErrorRegularContentViewDelegate,
                                            NativeErrorBadCertContentViewDelegate {
-    typealias SubscriberStateType = NativeErrorPageState
     private let windowUUID: WindowUUID
 
     // MARK: Themeable Variables
@@ -29,7 +26,7 @@ final class NativeErrorPageViewController: UIViewController,
     private let tabManager: TabManager
     private let logger: Logger
     var contentType: ContentType = .nativeErrorPage
-    private var nativeErrorPageState: NativeErrorPageState
+    private let viewModel: NativeErrorPageViewModel
     private var model: ErrorPageModel?
 
     // MARK: UI Elements
@@ -161,7 +158,8 @@ final class NativeErrorPageViewController: UIViewController,
         overlayManager: OverlayModeManager,
         searchEnginesManager: SearchEnginesManagerProvider = AppContainer.shared.resolve(SearchEnginesManager.self),
         notificationCenter: NotificationProtocol = NotificationCenter.default,
-        logger: Logger = DefaultLogger.shared
+        logger: Logger = DefaultLogger.shared,
+        viewModel: NativeErrorPageViewModel? = nil
     ) {
         self.windowUUID = windowUUID
         self.tabManager = tabManager
@@ -170,24 +168,34 @@ final class NativeErrorPageViewController: UIViewController,
         self.searchEnginesManager = searchEnginesManager
         self.notificationCenter = notificationCenter
         self.logger = logger
-        nativeErrorPageState = NativeErrorPageState(windowUUID: windowUUID)
+        self.viewModel = viewModel ?? NativeErrorPageViewModel(windowUUID: windowUUID)
 
         super.init(
             nibName: nil,
             bundle: nil
         )
 
-        subscribeToRedux()
+        bindViewModel()
         setupLayout()
         adjustConstraints()
         showViewForCurrentOrientation()
     }
 
-    // MARK: Redux
+    // MARK: View model
 
-    func newState(state: NativeErrorPageState) {
-        nativeErrorPageState = state
-        guard let model = state.model else { return }
+    private func bindViewModel() {
+        viewModel.onModelChange = { [weak self] model in
+            self?.render(model)
+        }
+    }
+
+    /// Re-reads the error for this window. Called by the coordinator when a new error arrives for
+    /// an error page that is already on screen.
+    func reloadErrorModel() {
+        viewModel.loadErrorModel()
+    }
+
+    private func render(_ model: ErrorPageModel) {
         self.model = model
 
         if model.isRegularUI {
@@ -255,40 +263,8 @@ final class NativeErrorPageViewController: UIViewController,
         contentStack.addArrangedSubview(view)
     }
 
-    func subscribeToRedux() {
-        let action = ComponentAction(windowUUID: windowUUID,
-                                     actionType: ComponentActionType.addComponent,
-                                     component: .nativeErrorPage)
-        store.dispatch(action)
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            return $0.select({ appState in
-                return NativeErrorPageState(appState: appState, uuid: uuid)
-            })
-        })
-    }
-
-    func unsubscribeFromRedux() {
-        let action = ComponentAction(windowUUID: self.windowUUID,
-                                     actionType: ComponentActionType.removeComponent,
-                                     component: .nativeErrorPage)
-        store.dispatch(action)
-    }
-
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    deinit {
-        // TODO: FXIOS-13097 This is a work around until we can leverage isolated deinits
-        guard Thread.isMainThread else {
-            assertionFailure("TabSwipeGestureHandler was not deallocated on the main thread. Observer was not removed")
-            return
-        }
-
-        MainActor.assumeIsolated {
-            unsubscribeFromRedux()
-        }
     }
 
     override func viewDidLoad() {
@@ -297,9 +273,7 @@ final class NativeErrorPageViewController: UIViewController,
         listenForThemeChanges(withNotificationCenter: notificationCenter)
         applyTheme()
 
-        // TODO: Refactor to dispatch errorPageLoaded from middleware (or equivalent) per Redux best practices
-        store.dispatch(NativeErrorPageAction(windowUUID: windowUUID,
-                                             actionType: NativeErrorPageActionType.errorPageLoaded))
+        viewModel.loadErrorModel()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -494,12 +468,7 @@ final class NativeErrorPageViewController: UIViewController,
     }
 
     func badCertContentViewDidTapProceed() {
-        store.dispatch(
-            NativeErrorPageAction(
-                windowUUID: windowUUID,
-                actionType: NativeErrorPageActionType.bypassCertificateWarning
-            )
-        )
+        viewModel.bypassCertificateWarning()
     }
 
     func badCertContentViewDidTapViewCertificate() {

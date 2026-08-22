@@ -666,8 +666,10 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
 
     // MARK: - rebuildNativeErrorPageStateIfNeeded
 
-    func testRebuildNativeErrorPageStateIfNeeded_validWaybackURL_dispatchesReceivedError() {
+    func testRebuildNativeErrorPageStateIfNeeded_validWaybackURL_recordsTheError() throws {
         let subject = createSubject()
+        let errorStore = MockNativeErrorPageErrorStore()
+        subject.nativeErrorPageErrorStore = errorStore
         let waybackCode = Int(CFNetworkErrors.cfurlErrorCannotFindHost.rawValue)
         let errorPageURL = URL(
             string: "\(InternalURL.baseUrl)/\(InternalURL.Path.errorpage.rawValue)"
@@ -676,20 +678,18 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
 
         subject.rebuildNativeErrorPageStateIfNeeded(for: errorPageURL)
 
-        guard let dispatchedAction = mockStore.dispatchedActions.last as? NativeErrorPageAction else {
-            XCTFail("Expected a NativeErrorPageAction to be dispatched")
-            return
-        }
-        XCTAssertEqual(dispatchedAction.actionType as? NativeErrorPageActionType, .receivedError)
-        XCTAssertEqual(dispatchedAction.networkError?.code, waybackCode)
+        let recorded = try XCTUnwrap(errorStore.recordedErrors.last)
+        XCTAssertEqual(recorded.error.code, waybackCode)
         XCTAssertEqual(
-            dispatchedAction.networkError?.userInfo[NSURLErrorFailingURLErrorKey] as? URL,
+            recorded.error.userInfo[NSURLErrorFailingURLErrorKey] as? URL,
             URL(string: "https://example.com")
         )
     }
 
-    func testRebuildNativeErrorPageStateIfNeeded_missingCodeParam_doesNotDispatch() {
+    func testRebuildNativeErrorPageStateIfNeeded_missingCodeParam_recordsNothing() {
         let subject = createSubject()
+        let errorStore = MockNativeErrorPageErrorStore()
+        subject.nativeErrorPageErrorStore = errorStore
         let errorPageURL = URL(
             string: "\(InternalURL.baseUrl)/\(InternalURL.Path.errorpage.rawValue)"
             + "?url=https%3A%2F%2Fexample.com"
@@ -697,11 +697,13 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
 
         subject.rebuildNativeErrorPageStateIfNeeded(for: errorPageURL)
 
-        XCTAssertTrue(mockStore.dispatchedActions.isEmpty)
+        XCTAssertTrue(errorStore.recordedErrors.isEmpty)
     }
 
-    func testRebuildNativeErrorPageStateIfNeeded_missingURLParam_doesNotDispatch() {
+    func testRebuildNativeErrorPageStateIfNeeded_missingURLParam_recordsNothing() {
         let subject = createSubject()
+        let errorStore = MockNativeErrorPageErrorStore()
+        subject.nativeErrorPageErrorStore = errorStore
         let waybackCode = Int(CFNetworkErrors.cfurlErrorCannotFindHost.rawValue)
         let errorPageURL = URL(
             string: "\(InternalURL.baseUrl)/\(InternalURL.Path.errorpage.rawValue)"
@@ -710,7 +712,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
 
         subject.rebuildNativeErrorPageStateIfNeeded(for: errorPageURL)
 
-        XCTAssertTrue(mockStore.dispatchedActions.isEmpty)
+        XCTAssertTrue(errorStore.recordedErrors.isEmpty)
     }
 
     // MARK: - ReaderMode

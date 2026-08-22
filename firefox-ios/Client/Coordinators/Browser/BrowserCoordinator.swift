@@ -1323,9 +1323,9 @@ final class BrowserCoordinator: BaseCoordinator,
     }
 
     func showNativeErrorPage(overlayManager: OverlayModeManager) {
-        if nativeErrorPageViewController != nil {
-            // Already showing a native error page, the existing instance will
-            // pick up the new error state via its Redux subscription.
+        if let nativeErrorPageViewController {
+            // Already showing a native error page; hand it the new error explicitly.
+            nativeErrorPageViewController.reloadErrorModel()
             return
         }
 

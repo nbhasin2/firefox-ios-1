@@ -42,7 +42,6 @@ struct AppState: StateType, Sendable {
                 case (.toolbar(let state), .toolbar): return state as? S
                 case (.searchEngineSelection(let state), .searchEngineSelection): return state as? S
                 case (.trackingProtection(let state), .trackingProtection): return state as? S
-                case (.nativeErrorPage(let state), .nativeErrorPage): return state as? S
                 case (.shortcutsLibrary(let state), .shortcutsLibrary): return state as? S
                 case (.translationSettings(let state), .translationSettings): return state as? S
                 default: return nil
@@ -86,7 +85,6 @@ let middlewares = [
     TopSitesMiddleware().topSitesProvider,
     TrackingProtectionMiddleware().trackingProtectionProvider,
     MerinoMiddleware().pocketSectionProvider,
-    NativeErrorPageMiddleware().nativeErrorPageProvider,
     WallpaperMiddleware().wallpaperProvider,
     BookmarksMiddleware().bookmarksProvider,
     TrackerBlockerModuleMiddleware().trackerBlockerModuleProvider,

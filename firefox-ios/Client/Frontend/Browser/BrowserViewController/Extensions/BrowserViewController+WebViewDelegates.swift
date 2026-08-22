@@ -1033,11 +1033,7 @@ extension BrowserViewController: WKNavigationDelegate {
         guard let url = webView.url else { return }
         let nsError = error as NSError
         if NativeErrorPageFeatureFlag().isNativeErrorPageEnabled {
-            store.dispatch(NativeErrorPageAction(
-                networkError: nsError,
-                windowUUID: windowUUID,
-                actionType: NativeErrorPageActionType.receivedError
-            ))
+            nativeErrorPageErrorStore.record(error: nsError, for: windowUUID)
             webView.load(PrivilegedRequest(url: url) as URLRequest)
         } else {
             ErrorPageHelper(certStore: profile.certStore).loadPage(nsError, forUrl: url, inWebView: webView)
@@ -1165,13 +1161,8 @@ extension BrowserViewController: WKNavigationDelegate {
                     if isCertificateError {
                         NativeErrorPageHelper.logCertificateErrorDetails(error: error, logger: logger)
                     }
-                    // TODO: FXIOS-15800 Move error type determination to NativeErrorPageMiddleware
-                    let action = NativeErrorPageAction(
-                        networkError: error,
-                        windowUUID: windowUUID,
-                        actionType: NativeErrorPageActionType.receivedError
-                    )
-                    store.dispatch(action)
+                    // TODO: FXIOS-15800 Move error type determination out of the web view delegate
+                    nativeErrorPageErrorStore.record(error: error, for: windowUUID)
                     webView.load(PrivilegedRequest(url: errorPageURL) as URLRequest)
                 } else {
                     ErrorPageHelper(certStore: profile.certStore).loadPage(error, forUrl: url, inWebView: webView)

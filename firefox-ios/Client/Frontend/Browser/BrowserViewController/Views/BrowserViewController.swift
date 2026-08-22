@@ -388,6 +388,9 @@ class BrowserViewController: UIViewController,
     // MARK: Data management
 
     let profile: Profile
+    /// Where a failed navigation's error is parked until the native error page is created.
+    /// Overridable so tests can observe it without reaching for a singleton.
+    var nativeErrorPageErrorStore: NativeErrorPageErrorStoring = NativeErrorPageErrorStore.shared
     let tabManager: TabManager
     var googleLensSearches = [TabUUID: GoogleLensSearchState]()
     let googleLensTelemetry: GoogleLensTelemetry
@@ -2534,12 +2537,7 @@ class BrowserViewController: UIViewController,
             userInfo: [NSURLErrorFailingURLErrorKey: originalURL]
         )
 
-        let action = NativeErrorPageAction(
-            networkError: reconstitutedError,
-            windowUUID: windowUUID,
-            actionType: NativeErrorPageActionType.receivedError
-        )
-        store.dispatch(action)
+        nativeErrorPageErrorStore.record(error: reconstitutedError, for: windowUUID)
     }
     private func handleTitleChanged(tab: Tab) {
         // Ensure that the tab title *actually* changed to prevent repeated calls
