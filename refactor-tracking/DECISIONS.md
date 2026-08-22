@@ -696,3 +696,22 @@ ownership check can tighten a guard in ways the call order was not written for.
 Also removed a duplicate `AppContainer` resolve: `JumpBackInSectionState`'s convenience init
 resolved `UserFeaturePreferring` that the view model had already resolved and was passing in.
 The second resolve crashed the test process under `BrowserCoordinatorTests` — D-026 again.
+
+## D-033 — TabPeek first out of the Tabs module, and a duplicated shortcut registration
+
+Tabs is the largest remaining module, so it comes apart in pieces. TabPeek is the first: five
+actions, four of which were commands on the tab and bookmark layers routed through the store
+(bookmark it, unbookmark it, copy its URL, load its preview). Those are `TabPeekViewModel` method
+calls now, `TabPeekState` loses its `ScreenState` conformance and the `.tabPeek` `AppComponent`
+case goes.
+
+`TabPeekActionType.closeTab` stays a dispatch: closing needs `TabsPanelState.isPrivateMode`, and
+the tabs panel has not migrated. Same shape as `switchTabToastButtonTapped` in D-029 — a command
+whose receiver is still a middleware.
+
+Moving the code surfaced a duplicate: `resolveTabPeekActions`'s `addToBookmarks` case called both
+`addToBookmarks(shareItem)` *and* `setBookmarkQuickActions(with:uuid:)`, and both registered the
+`.openLastBookmark` dynamic shortcut. Bookmarking from tab peek registered it twice. The view
+model does it once.
+
+`TabManagerMiddleware`: 697 lines to 583.

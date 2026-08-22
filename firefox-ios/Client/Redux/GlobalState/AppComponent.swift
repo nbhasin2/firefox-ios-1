@@ -9,6 +9,5 @@ enum AppComponent {
     case tabsTray
     case tabsPanel
     case remoteTabsPanel
-    case tabPeek
     case toolbar
 }

@@ -118,25 +118,15 @@ final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark
     private func resolveTabPeekActions(action: TabPeekAction, state: AppState) {
         guard let tabUUID = action.tabUUID else { return }
         switch action.actionType {
-        case TabPeekActionType.didLoadTabPeek:
-            didLoadTabPeek(tabID: tabUUID, uuid: action.windowUUID)
-
-        case TabPeekActionType.addToBookmarks:
-            let shareItem = createShareItem(with: tabUUID, and: action.windowUUID)
-            addToBookmarks(shareItem)
-            setBookmarkQuickActions(with: shareItem, uuid: action.windowUUID)
-        case TabPeekActionType.removeBookmark:
-            removeBookmark(with: tabUUID, uuid: action.windowUUID)
-        case TabPeekActionType.copyURL:
-            copyURL(tabID: tabUUID, uuid: action.windowUUID)
-
+        // Only closing survives here: it needs the tabs panel's private-mode flag. The rest are
+        // method calls on TabPeekViewModel.
         case TabPeekActionType.closeTab:
             guard let tabsState = state.componentState(TabsPanelState.self,
                                                        for: .tabsPanel,
                                                        window: action.windowUUID) else { return }
-            tabPeekCloseTab(with: tabUUID,
-                            uuid: action.windowUUID,
-                            isPrivate: tabsState.isPrivateMode)
+            closeTabFromTabPanel(with: tabUUID,
+                                 uuid: action.windowUUID,
+                                 isPrivate: tabsState.isPrivateMode)
         default:
             break
         }
@@ -562,55 +552,6 @@ final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark
 
     // MARK: - Tab Peek
 
-    private func didLoadTabPeek(tabID: TabUUID, uuid: WindowUUID) {
-        let tabManager = tabManager(for: uuid)
-        let tab = tabManager?.getTabForUUID(uuid: tabID)
-        let urlString = tab?.url?.absoluteString ?? ""
-
-        getIsBookmarked(url: urlString, dataQueue: .main) { isBookmarked in
-            // FXIOS-13228 It should be safe to assumeIsolated here because of `.main` queue above
-            MainActor.assumeIsolated {
-                let canBeSaved = self.canTabBeSavedToBookmarks(tab: tab, isBookmarked: isBookmarked, urlString: urlString)
-                let isSyncEnabled = self.profile.hasSyncableAccount()
-
-                let model = TabPeekModel(canTabBeSaved: canBeSaved,
-                                         canTabBeRemoved: isBookmarked,
-                                         canCopyURL: self.canAddCopyOption(tab: tab, urlString: urlString),
-                                         isSyncEnabled: isSyncEnabled,
-                                         screenshot: tab?.screenshot ?? UIImage(),
-                                         accessiblityLabel: tab?.webView?.accessibilityLabel ?? "")
-                let action = TabPeekAction(tabPeekModel: model,
-                                           windowUUID: uuid,
-                                           actionType: TabPeekActionType.loadTabPeek)
-                store.dispatch(action)
-            }
-        }
-    }
-
-    private func canTabBeSavedToBookmarks(tab: Tab?, isBookmarked: Bool, urlString: String) -> Bool {
-        guard let tab else { return false }
-
-        // Can be saved only if it is not already bookmarked, the URL is not too long (database restriction),
-        // and it is not a homepage (FxHome) tab or empty url
-        return !isBookmarked && !tab.urlIsTooLong && !tab.isFxHomeTab && !urlString.isEmpty
-    }
-
-    private func canAddCopyOption(tab: Tab?, urlString: String) -> Bool {
-        guard let tab else { return false }
-
-        // the option is not available if is homepage (FxHome) tab or empty url
-        return !tab.isFxHomeTab && !urlString.isEmpty
-    }
-
-    private func copyURL(tabID: TabUUID, uuid: WindowUUID) {
-        let tabManager = tabManager(for: uuid)
-        UIPasteboard.general.url = tabManager?.getTabForUUID(uuid: tabID)?.canonicalURL
-    }
-
-    private func tabPeekCloseTab(with tabID: TabUUID, uuid: WindowUUID, isPrivate: Bool) {
-        closeTabFromTabPanel(with: tabID, uuid: uuid, isPrivate: isPrivate)
-    }
-
     private func changePanel(_ panel: TabTrayPanelType, appState: AppState, uuid: WindowUUID) {
         tabsPanelTelemetry.tabModeSelected(mode: panel.modeForTelemetry)
         let isPrivate = panel == TabTrayPanelType.privateTabs
@@ -620,16 +561,6 @@ final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark
                                                   windowUUID: uuid,
                                                   actionType: TabPanelMiddlewareActionType.didChangeTabPanel)
             store.dispatch(action)
-        }
-    }
-
-    private func getIsBookmarked(
-        url: String,
-        dataQueue: DispatchQueue,
-        completion: @escaping @Sendable (Bool) -> Void
-    ) {
-        profile.places.isBookmarked(url: url).uponQueue(dataQueue) { result in
-            completion(result.successValue ?? false)
         }
     }
 
@@ -646,51 +577,6 @@ final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark
     }
 
     // MARK: - Tab Manager Helper functions
-    private func createShareItem(with tabID: TabUUID, and uuid: WindowUUID) -> ShareItem? {
-        let tabManager = tabManager(for: uuid)
-        guard let tab = tabManager?.getTabForUUID(uuid: tabID),
-              let url = tab.url?.absoluteString, !url.isEmpty
-        else { return nil }
-
-        var title = (tab.tabState.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        if title.isEmpty {
-            title = url
-        }
-        return ShareItem(url: url, title: title)
-    }
-
-    private func addToBookmarks(_ shareItem: ShareItem?) {
-        guard let shareItem else { return }
-
-        Task {
-            await self.bookmarksSaver.createBookmark(url: shareItem.url, title: shareItem.title, position: 0)
-        }
-
-        var userData = [QuickActionInfos.tabURLKey: shareItem.url]
-        if let title = shareItem.title {
-            userData[QuickActionInfos.tabTitleKey] = title
-        }
-        QuickActionsImplementation().addDynamicApplicationShortcutItemOfType(.openLastBookmark,
-                                                                             withUserData: userData,
-                                                                             toApplication: .shared)
-    }
-
-    func removeBookmark(with tabID: TabUUID, uuid: WindowUUID) {
-        let tabManager = tabManager(for: uuid)
-        guard let tab = tabManager?.getTabForUUID(uuid: tabID),
-              let url = tab.url?.absoluteString, !url.isEmpty
-        else { return }
-
-        profile.places.deleteBookmarksWithURL(url: url)
-            .uponQueue(.main) { result in
-                // FXIOS-13228 It should be safe to assumeIsolated here because of `.main` queue above
-                MainActor.assumeIsolated {
-                    guard result.isSuccess else { return }
-                    Self.removeBookmarkShortcut(withBookmarksHandler: self.bookmarksHandler)
-                }
-            }
-    }
-
     private func preserveTabs(uuid: WindowUUID) {
         tabManager(for: uuid)?.preserveTabs()
     }
