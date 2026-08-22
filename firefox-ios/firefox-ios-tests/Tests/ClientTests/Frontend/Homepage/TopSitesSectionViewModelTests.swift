@@ -120,10 +120,7 @@ final class TopSitesSectionViewModelTests: XCTestCase {
 
     private func createService(siteCount: Int = 30) -> TopSitesService {
         topSitesManager.siteCount = siteCount
-        return TopSitesService(
-            topSitesManager: topSitesManager,
-            featureFlagsProvider: MockNimbusFeatureFlags()
-        )
+        return TopSitesService(topSitesManager: topSitesManager)
     }
 
     private func createSubject(service: TopSitesService) -> TopSitesSectionViewModel {

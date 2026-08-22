@@ -182,7 +182,6 @@ final class HomepageViewModelTests: XCTestCase {
     }
 
     private func makeTopSitesService() -> TopSitesService {
-        return TopSitesService(topSitesManager: MockTopSitesManager(),
-                               featureFlagsProvider: MockNimbusFeatureFlags())
+        return TopSitesService(topSitesManager: MockTopSitesManager())
     }
 }

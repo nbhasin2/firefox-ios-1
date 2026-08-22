@@ -3,7 +3,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
 import Common
-import Redux
 import Storage
 import XCTest
 
@@ -11,21 +10,18 @@ import XCTest
 
 /// Replaces the fetch and mutation halves of `TopSitesMiddlewareTests`.
 @MainActor
-final class TopSitesServiceTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStoreForMiddleware<AppState>!
+final class TopSitesServiceTests: XCTestCase {
     private var topSitesManager: MockTopSitesManager!
 
     override func setUp() async throws {
         try await super.setUp()
         await DependencyHelperMock().bootstrapDependencies()
         topSitesManager = MockTopSitesManager()
-        setupStore()
     }
 
     override func tearDown() async throws {
         topSitesManager = nil
         DependencyHelperMock().reset()
-        resetStore()
         try await super.tearDown()
     }
 
@@ -80,20 +76,6 @@ final class TopSitesServiceTests: XCTestCase, StoreTestUtility {
         await waitForSites(subject)
 
         XCTAssertEqual(deliveries, 0)
-    }
-
-    /// The shortcuts library still reduces this; see D-025.
-    func test_refresh_dispatchesRetrievedUpdatedSites() async throws {
-        let subject = createSubject()
-
-        subject.refresh(for: .XCTestDefaultUUID)
-        await waitForSites(subject)
-
-        let action = try XCTUnwrap(
-            mockStore.dispatchedActions.last(where: { $0 is TopSitesAction }) as? TopSitesAction
-        )
-        XCTAssertEqual(action.actionType as? TopSitesMiddlewareActionType, .retrievedUpdatedSites)
-        XCTAssertEqual(action.topSites?.count, subject.topSites.count)
     }
 
     /// The launch and foreground triggers used to fire parallel sponsored requests on slow
@@ -159,26 +141,8 @@ final class TopSitesServiceTests: XCTestCase, StoreTestUtility {
     }
 
     private func createSubject() -> TopSitesService {
-        let subject = TopSitesService(
-            topSitesManager: topSitesManager,
-            featureFlagsProvider: MockNimbusFeatureFlags()
-        )
+        let subject = TopSitesService(topSitesManager: topSitesManager)
         trackForMemoryLeaks(subject)
         return subject
-    }
-
-    // MARK: - StoreTestUtility
-
-    func setupAppState() -> AppState {
-        return AppState()
-    }
-
-    func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
-        StoreTestUtilityHelper.setupStore(with: mockStore)
-    }
-
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
     }
 }

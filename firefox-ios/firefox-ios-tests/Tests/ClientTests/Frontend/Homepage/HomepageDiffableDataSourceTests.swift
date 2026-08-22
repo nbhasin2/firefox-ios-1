@@ -453,8 +453,7 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             topSites: TopSitesSectionViewModel(
                 windowUUID: .XCTestDefaultUUID,
                 profile: MockProfile(),
-                topSitesService: TopSitesService(topSitesManager: MockTopSitesManager(),
-                                                 featureFlagsProvider: MockNimbusFeatureFlags()),
+                topSitesService: TopSitesService(topSitesManager: MockTopSitesManager()),
                 featureFlagsProvider: MockNimbusFeatureFlags(),
                 initialState: topSites ?? TopSitesSectionState(
                     topSitesData: [],

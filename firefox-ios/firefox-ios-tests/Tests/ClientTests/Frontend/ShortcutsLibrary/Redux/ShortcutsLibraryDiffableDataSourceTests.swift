@@ -2,8 +2,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
-import XCTest
+import Common
 import Storage
+import XCTest
 
 @testable import Client
 
@@ -34,7 +35,7 @@ final class ShortcutsLibraryDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_initialSnapshotHasNoData() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        dataSource.updateSnapshot(state: ShortcutsLibraryState(windowUUID: .XCTestDefaultUUID))
+        dataSource.updateSnapshot(viewModel: makeViewModel())
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfSections, 0)
@@ -44,16 +45,10 @@ final class ShortcutsLibraryDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withValidState_returnsShortcuts() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        let state = ShortcutsLibraryState.reducer.legacyReducer(
-            ShortcutsLibraryState(windowUUID: .XCTestDefaultUUID),
-            TopSitesAction(
-                topSites: createSites(count: 10),
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesMiddlewareActionType.retrievedUpdatedSites
-            )
-        )
-
-        dataSource.updateSnapshot(state: state)
+        dataSource.updateSnapshot(viewModel: makeViewModel(
+            shortcuts: createSites(count: 10),
+            showAddShortcutTile: false
+        ))
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfItems(inSection: .shortcuts), 10)
@@ -65,16 +60,10 @@ final class ShortcutsLibraryDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withValidState_returnsMaxShortcuts() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        let state = ShortcutsLibraryState.reducer.legacyReducer(
-            ShortcutsLibraryState(windowUUID: .XCTestDefaultUUID),
-            TopSitesAction(
-                topSites: createSites(count: 20),
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesMiddlewareActionType.retrievedUpdatedSites
-            )
-        )
-
-        dataSource.updateSnapshot(state: state)
+        dataSource.updateSnapshot(viewModel: makeViewModel(
+            shortcuts: createSites(count: 20),
+            showAddShortcutTile: false
+        ))
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfItems(inSection: .shortcuts), 16)
@@ -86,17 +75,10 @@ final class ShortcutsLibraryDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withAddShortcutTileFlagEnabled_appendsTileToShortcuts() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        let state = ShortcutsLibraryState.reducer.legacyReducer(
-            ShortcutsLibraryState(windowUUID: .XCTestDefaultUUID),
-            TopSitesAction(
-                topSites: createSites(count: 10),
-                shouldShowAddShortcutTile: true,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesMiddlewareActionType.retrievedUpdatedSites
-            )
-        )
-
-        dataSource.updateSnapshot(state: state)
+        dataSource.updateSnapshot(viewModel: makeViewModel(
+            shortcuts: createSites(count: 10),
+            showAddShortcutTile: true
+        ))
 
         let items = dataSource.snapshot().itemIdentifiers(inSection: .shortcuts)
         XCTAssertEqual(items.count, 11)
@@ -110,17 +92,10 @@ final class ShortcutsLibraryDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withAddShortcutTileFlagEnabled_returnsMaxItemsIncludingTile() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        let state = ShortcutsLibraryState.reducer.legacyReducer(
-            ShortcutsLibraryState(windowUUID: .XCTestDefaultUUID),
-            TopSitesAction(
-                topSites: createSites(count: 20),
-                shouldShowAddShortcutTile: true,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesMiddlewareActionType.retrievedUpdatedSites
-            )
-        )
-
-        dataSource.updateSnapshot(state: state)
+        dataSource.updateSnapshot(viewModel: makeViewModel(
+            shortcuts: createSites(count: 20),
+            showAddShortcutTile: true
+        ))
 
         let items = dataSource.snapshot().itemIdentifiers(inSection: .shortcuts)
         XCTAssertEqual(items.count, 16)
@@ -133,23 +108,28 @@ final class ShortcutsLibraryDiffableDataSourceTests: XCTestCase {
     @MainActor
     func test_updateSnapshot_withAddShortcutTileFlagEnabledAndNoShortcuts_showsAddShortcutTile() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
-        let state = ShortcutsLibraryState.reducer.legacyReducer(
-            ShortcutsLibraryState(windowUUID: .XCTestDefaultUUID),
-            TopSitesAction(
-                topSites: [],
-                shouldShowAddShortcutTile: true,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesMiddlewareActionType.retrievedUpdatedSites
-            )
-        )
-
-        dataSource.updateSnapshot(state: state)
+        dataSource.updateSnapshot(viewModel: makeViewModel(
+            shortcuts: [],
+            showAddShortcutTile: true
+        ))
 
         let items = dataSource.snapshot().itemIdentifiers(inSection: .shortcuts)
         XCTAssertEqual(items.count, 1)
         guard case .addShortcutTile = items.first else {
             return XCTFail("Expected Add Shortcut tile to be the only shortcut library item")
         }
+    }
+
+    private func makeViewModel(shortcuts: [TopSiteConfiguration] = [],
+                               showAddShortcutTile: Bool = false) -> ShortcutsLibraryViewModel {
+        return ShortcutsLibraryViewModel(
+            windowUUID: .XCTestDefaultUUID,
+            topSitesService: TopSitesService(topSitesManager: MockTopSitesManager()),
+            featureFlagsProvider: MockNimbusFeatureFlags(),
+            telemetry: ShortcutsLibraryTelemetry(gleanWrapper: MockGleanWrapper()),
+            initialShortcuts: shortcuts,
+            initialShouldShowAddShortcutTile: showAddShortcutTile
+        )
     }
 
     private func createSites(count: Int) -> [TopSiteConfiguration] {

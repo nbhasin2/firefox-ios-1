@@ -205,7 +205,9 @@ final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility {
         let action = ShortcutsLibraryAction(
             tab: tab,
             windowUUID: .XCTestDefaultUUID,
-            actionType: ShortcutsLibraryActionType.initialize
+            // switchTabToastButtonTapped is the only case left, so any other action type has to
+            // come from a different family.
+            actionType: TabPanelViewActionType.addNewTab
         )
 
         subject.tabsPanelProvider.legacyMiddleware(appState, action)
