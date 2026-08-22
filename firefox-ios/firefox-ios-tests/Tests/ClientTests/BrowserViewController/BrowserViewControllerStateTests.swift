@@ -19,6 +19,9 @@ final class BrowserViewControllerStateTests: XCTestCase, StoreTestUtility {
     }
 
     override func tearDown() async throws {
+        // The visibility store is a singleton; leaving a window marked visible leaks into the
+        // next test.
+        SearchBarVisibilityStore.shared.setSearchBarVisible(false, for: .XCTestDefaultUUID)
         DependencyHelperMock().reset()
         resetStore()
         try await super.tearDown()
@@ -641,43 +644,10 @@ final class BrowserViewControllerStateTests: XCTestCase, StoreTestUtility {
                                      actionType: actionType)
         }
 
-    /// We need to set up the state for the homepage search bar in order to test method that relies on this state
+    /// The reducer reads the search bar's visibility from `SearchBarVisibilityStore` now rather
+    /// than from `HomepageState`, so this only has to set that.
     func setupStoreForSearchBar() {
-        let initialHomepageState = HomepageState
-            .reducer.legacyReducer(
-                HomepageState(windowUUID: .XCTestDefaultUUID),
-                HomepageAction(
-                    windowUUID: .XCTestDefaultUUID,
-                    actionType: HomepageActionType.initialize
-                )
-            )
-        let newHomepageState = HomepageState
-            .reducer.legacyReducer(
-                initialHomepageState,
-                HomepageAction(
-                    isSearchBarEnabled: true,
-                    windowUUID: .XCTestDefaultUUID,
-                    actionType: HomepageMiddlewareActionType.configuredSearchBar
-                )
-            )
-
-        StoreTestUtilityHelper.setupStore(
-            with: AppState(
-                presentedComponents: PresentedComponentsState(
-                    components: [
-                        .browserViewController(
-                            BrowserViewControllerState(
-                                windowUUID: .XCTestDefaultUUID
-                            )
-                        ),
-                        .homepage(
-                            newHomepageState
-                        )
-                    ]
-                )
-            ),
-            middlewares: []
-        )
+        SearchBarVisibilityStore.shared.setSearchBarVisible(true, for: .XCTestDefaultUUID)
     }
 
     // MARK: StoreTestUtility

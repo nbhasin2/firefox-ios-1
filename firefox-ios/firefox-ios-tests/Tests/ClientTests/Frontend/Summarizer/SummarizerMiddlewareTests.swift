@@ -486,17 +486,7 @@ final class SummarizerMiddlewareTests: XCTestCase, StoreTestUtility {
 
     // MARK: StoreTestUtility
     func setupAppState() -> AppState {
-        return AppState(
-            presentedComponents: PresentedComponentsState(
-                components: [
-                    .homepage(
-                        HomepageState(
-                            windowUUID: .XCTestDefaultUUID
-                        )
-                    ),
-                ]
-            )
-        )
+        return AppState()
     }
 
     func setupStore() {

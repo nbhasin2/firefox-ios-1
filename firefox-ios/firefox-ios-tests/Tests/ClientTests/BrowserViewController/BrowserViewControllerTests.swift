@@ -36,6 +36,9 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     }
 
     override func tearDown() async throws {
+        // The visibility store is a singleton; leaving a window marked visible leaks into the
+        // next test.
+        SearchBarVisibilityStore.shared.setSearchBarVisible(false, for: .XCTestDefaultUUID)
         DependencyHelperMock().reset()
         profile.shutdown()
         profile = nil
@@ -883,39 +886,11 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
         }
     }
 
-    /// We need to set up the state for the homepage search bar in order to test method that relies on this state.
+    /// The search bar's visibility lives in `SearchBarVisibilityStore` now rather than in
+    /// `HomepageState`, so this only has to set that.
     func setupStoreForSearchBar() {
-        let initialHomepageState = HomepageState
-            .reducer.legacyReducer(
-                HomepageState(windowUUID: .XCTestDefaultUUID),
-                HomepageAction(
-                    windowUUID: .XCTestDefaultUUID,
-                    actionType: HomepageActionType.initialize
-                )
-            )
-        let newHomepageState = HomepageState
-            .reducer.legacyReducer(
-                initialHomepageState,
-                HomepageAction(
-                    isSearchBarEnabled: true,
-                    windowUUID: .XCTestDefaultUUID,
-                    actionType: HomepageMiddlewareActionType.configuredSearchBar
-                )
-            )
-        mockStore = MockStoreForMiddleware(state: AppState(
-            presentedComponents: PresentedComponentsState(
-                components: [
-                    .browserViewController(
-                        BrowserViewControllerState(
-                            windowUUID: .XCTestDefaultUUID
-                        )
-                    ),
-                    .homepage(
-                        newHomepageState
-                    )
-                ]
-            )
-        ))
+        SearchBarVisibilityStore.shared.setSearchBarVisible(true, for: .XCTestDefaultUUID)
+        mockStore = MockStoreForMiddleware(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 
