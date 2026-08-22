@@ -10,6 +10,7 @@ import XCTest
 
 final class MockTopSitesManager: TopSitesManagerInterface, @unchecked Sendable {
     var recalculateTopSitesCalledCount = 0
+    var siteCount = 30
     var pinTopSiteCalledCount = 0
 
     // We add these completions since this method is called asynchronously
@@ -28,7 +29,7 @@ final class MockTopSitesManager: TopSitesManagerInterface, @unchecked Sendable {
     func recalculateTopSites(otherSites: [TopSiteConfiguration], sponsoredSites: [Site]) -> [TopSiteConfiguration] {
         recalculateTopSitesCalledCount += 1
         XCTAssertTrue(Thread.isMainThread)
-        return createSites(subtitle: ": total top sites")
+        return createSites(count: siteCount, subtitle: ": total top sites")
     }
 
     func createSites(count: Int = 30, subtitle: String = "") -> [TopSiteConfiguration] {

@@ -183,37 +183,17 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
         XCTAssertEqual(actionCalled.windowUUID, .XCTestDefaultUUID)
     }
 
-    func test_viewDidLayoutSubviews_withTopSitesChange_triggersHomepageAction() throws {
-        let subject = createSubject()
+    /// The tiles-per-row recalculation is a direct call on the section view model now rather than
+    /// a HomepageActionType.viewDidLayoutSubviews dispatch, so the action type is gone.
+    func test_viewDidLayoutSubviews_updatesTheTilesPerRow() {
+        let viewModel = makeViewModel()
+        let subject = createSubject(homepageViewModel: viewModel)
+        subject.loadViewIfNeeded()
+        viewModel.topSites.setNumberOfTilesPerRow(1)
 
-        let newState = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            HomepageAction(
-                numberOfTopSitesPerRow: 10,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: HomepageActionType.viewDidLayoutSubviews
-            )
-        )
-        subject.newState(state: newState)
+        subject.view.layoutIfNeeded()
 
-        subject.viewDidLayoutSubviews()
-        let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.last(where: { $0 is HomepageAction }) as? HomepageAction
-        )
-        let actionType = try XCTUnwrap(actionCalled.actionType as? HomepageActionType)
-        XCTAssertEqual(actionType, HomepageActionType.viewDidLayoutSubviews)
-        XCTAssertEqual(actionCalled.windowUUID, .XCTestDefaultUUID)
-    }
-
-    func test_viewDidLayoutSubviews_withoutTopSitesChange_triggersNothing() throws {
-        let subject = createSubject()
-
-        subject.viewDidLayoutSubviews()
-        let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.last(where: { $0 is HomepageAction }) as? HomepageAction
-        )
-        let actionType = try XCTUnwrap(actionCalled.actionType as? HomepageActionType)
-        XCTAssertNotEqual(actionType, HomepageActionType.viewDidLayoutSubviews)
+        XCTAssertGreaterThan(viewModel.topSites.state.numberOfTilesPerRow, 1)
     }
 
     func test_viewDidAppear_triggersHomepageAction() async throws {
@@ -504,8 +484,22 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
                 initialState: WallpaperState(
                     wallpaperConfiguration: WallpaperConfiguration(hasImage: true)
                 )
-            )
+            ),
+            topSites: makeTopSitesViewModel(),
+            topSitesService: makeTopSitesService()
         )
+    }
+
+    private func makeTopSitesService() -> TopSitesService {
+        return TopSitesService(topSitesManager: MockTopSitesManager(),
+                               featureFlagsProvider: MockNimbusFeatureFlags())
+    }
+
+    private func makeTopSitesViewModel() -> TopSitesSectionViewModel {
+        return TopSitesSectionViewModel(windowUUID: .XCTestDefaultUUID,
+                                        profile: MockProfile(),
+                                        topSitesService: makeTopSitesService(),
+                                        featureFlagsProvider: MockNimbusFeatureFlags())
     }
 
     private func createSubject(
@@ -530,7 +524,9 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
             toastContainer: UIView(),
             notificationCenter: notificationCenter,
             throttler: mockThrottler,
-            homepageViewModel: homepageViewModel
+            // Never the production default: it resolves the top-sites service and the feature
+            // flag provider out of AppContainer, which the mock helper tears down between tests.
+            homepageViewModel: homepageViewModel ?? makeViewModel()
         )
         trackForMemoryLeaks(homepageViewController)
         return homepageViewController
@@ -580,7 +576,9 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
             header: HeaderViewModel(windowUUID: .XCTestDefaultUUID,
                                     quickAnswersStore: MockQuickAnswersStore()),
             wallpaper: WallpaperViewModel(wallpaperManager: WallpaperManagerMock(),
-                                          initialState: WallpaperState())
+                                          initialState: WallpaperState()),
+            topSites: makeTopSitesViewModel(),
+            topSitesService: makeTopSitesService()
         )
     }
 

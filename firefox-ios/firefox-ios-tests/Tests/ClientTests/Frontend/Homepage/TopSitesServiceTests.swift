@@ -41,15 +41,45 @@ final class TopSitesServiceTests: XCTestCase, StoreTestUtility {
         XCTAssertFalse(subject.topSites.isEmpty)
     }
 
-    func test_refresh_notifiesTheSubscriber() async {
+    func test_refresh_notifiesTheObserver() async {
         let subject = createSubject()
+        let observer = NSObject()
         var published: [TopSiteConfiguration]?
-        subject.onSitesChange = { published = $0 }
+        subject.addSitesObserver(observer) { published = $0 }
 
         subject.refresh(for: .XCTestDefaultUUID)
         await waitForSites(subject)
 
         XCTAssertEqual(published?.count, subject.topSites.count)
+    }
+
+    /// One service, a homepage per window: every observer hears each fetch.
+    func test_refresh_notifiesEveryObserver() async {
+        let subject = createSubject()
+        let first = NSObject()
+        let second = NSObject()
+        var deliveries = 0
+        subject.addSitesObserver(first) { _ in deliveries += 1 }
+        subject.addSitesObserver(second) { _ in deliveries += 1 }
+
+        subject.refresh(for: .XCTestDefaultUUID)
+        await waitForSites(subject)
+
+        XCTAssertEqual(deliveries, 2)
+    }
+
+    func test_refresh_afterTheObserverIsGone_doesNotCrash() async {
+        let subject = createSubject()
+        var deliveries = 0
+        autoreleasepool {
+            let transient = NSObject()
+            subject.addSitesObserver(transient) { _ in deliveries += 1 }
+        }
+
+        subject.refresh(for: .XCTestDefaultUUID)
+        await waitForSites(subject)
+
+        XCTAssertEqual(deliveries, 0)
     }
 
     /// The shortcuts library still reduces this; see D-025.
