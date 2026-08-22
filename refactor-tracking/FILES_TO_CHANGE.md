@@ -55,6 +55,37 @@ actions). Zero-coupling modules move first.
 `TabManagerMiddleware` (10 inbound edges) and `ToolbarMiddleware` are the hubs and migrate last,
 immediately before `BrowserViewController`.
 
+### Reducer-coupling map (state ⇢ foreign actions reduced)
+
+Middlewares are not the only cross-module consumers — reducers read foreign actions too. This map
+is the second half of the coupling picture and is what moved SearchEngineSelection, ShortcutsLibrary
+and StartAtHome out of Phase 1 (D-012). Regenerate with `refactor-tracking/tools/coupling.sh`.
+
+| State | Foreign actions reduced |
+| - | - |
+| `BrowserViewControllerState` | `GeneralBrowserAction`, `MicrosurveyPromptAction`, `NavigationBrowserAction`, `StartAtHomeAction`, `SummarizeAction`, `ToolbarAction`, `ToolbarMiddlewareAction` |
+| `ToolbarState` | `GeneralBrowserAction`, `SearchEngineSelectionAction`, `ToolbarModernAction`, `TranslationsAction` |
+| `AddressBarState` | `SearchEngineSelectionAction`, `ToolbarAction`, `ToolbarMiddlewareAction`, `TranslationsAction` |
+| `JumpBackInSectionState` | `JumpBackInAction`, `RemoteTabsAction`, `TabManagerAction` |
+| `TopSitesSectionState` | `HomepageAction`, `TopSitesAction` |
+| `TabTrayState` | `TabPanelMiddlewareAction`, `TabPanelViewAction` |
+| `TranslationSettingsState` | `TranslationsAction`, `TranslationSettingsViewAction` |
+| `ShortcutsLibraryState` | `TopSitesAction` |
+| `NavigationBarState` | `ToolbarAction` |
+| `TabsPanelState` | `TabPanelMiddlewareAction` |
+| `SearchBarState` | `HomepageAction` |
+| `BookmarksSectionState` | `BookmarksAction` |
+| `HomepageTelemetryState` | `HomepageAction` |
+| `WallpaperState` | `HomepageAction` |
+| `HeaderState` | `QuickAnswersMiddlewareAction` |
+
+### Browser-level action fan-in
+
+31 files across 14 modules dispatch `GeneralBrowserAction`, `NavigationBrowserAction`, or
+`GeneralBrowserMiddlewareAction`. These are requests *to* `BrowserViewController` and cannot be
+converted until BVC migrates, so a Phase 1/2 module may still `import Redux` after its own
+migration is complete (D-011).
+
 ---
 
 ## Global files (Phase 4 — deleted last)

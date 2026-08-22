@@ -57,35 +57,39 @@ shippable and the app builds and runs green after every phase.
 - [ ] Establish baseline: Fennec builds green, record test baseline
 
 ### Phase 1 — Isolated leaf screens
-No other middleware consumes these modules' actions, so they can move with zero cross-module churn.
-Each is a self-contained commit with its tests.
+A module qualifies only if **all three** hold: no foreign middleware consumes its actions, no
+foreign *reducer* consumes its actions, and its own reducer consumes no foreign actions. See the
+two coupling maps in [FILES_TO_CHANGE.md](FILES_TO_CHANGE.md).
 
 1. **WebCompatReporter** (433 LOC) — pilot; proves the pattern end-to-end
 2. **PasswordGenerator** (942 LOC)
-3. **NativeErrorPage** (1,993 LOC)
-4. **SearchEngineSelection** (1,351 LOC)
-5. **TranslationSettings** (part of Settings/Translation, 5 files)
-6. **StartAtHome**
-7. **TrackingProtection** (4,349 LOC)
-8. **Microsurvey** — survey screen only; the *prompt* is coupled to Toolbar, so it moves in Phase 3
+3. **NativeErrorPage** (1,993 LOC) — keeps browser-level dispatches until Phase 3 (D-011)
+4. **TrackingProtection** (4,349 LOC)
+5. **Microsurvey** — survey screen only; the *prompt* is coupled to Toolbar
 
-### Phase 2 — Screens with one inbound coupling
-Each has exactly one foreign consumer, which is converted to a delegate call in the same commit.
+### Phase 2 — Screens with one coupling edge
+Each has exactly one foreign edge, converted to a delegate call in the same commit.
 
-9. **ShortcutsLibrary** (686 LOC) — consumed by `TabManagerMiddleware`
-10. **TermsOfUse** (1,481 LOC) — consumes `HomepageAction`
-11. **QuickAnswers** / **Summarizer** — consume `HomepageAction` / toolbar + browser actions
-12. **Translations** (runtime, not settings) — consumes `ToolbarAction`
-13. **MainMenu** (2,369 LOC) — consumed by `TabManagerMiddleware` + `ThemeMiddleware`
+6. **TranslationSettings** + **Translations** — `TranslationSettingsState` consumes
+   `TranslationsAction`, so the pair moves together
+7. **TermsOfUse** (1,481 LOC) — consumes `HomepageAction`
+8. **QuickAnswers** / **Summarizer** — consume `HomepageAction` / toolbar + browser actions
+9. **MainMenu** (2,369 LOC) — consumed by `TabManagerMiddleware` + `ThemeMiddleware`
+10. **FeltPrivacy** + **ThemeSettings** — consume `PrivateModeAction`
 
 ### Phase 3 — Hub modules (highest coupling)
 These are the load-bearing ones; each is split into several ≤500-line commits.
 
-14. **Homepage** (94 files, 12,163 LOC) — fans out to 8 middlewares
+11. **Homepage** (94 files, 12,163 LOC) — fans out to 8 middlewares
     (Merino, TopSites, MessageCard, Bookmarks, TrackerBlockerModule, Wallpaper, RemoteTabsPanel, Homepage)
-15. **Tabs / TabTray** (47 files, 8,988 LOC) — `TabManagerMiddleware` is the single largest consumer
-16. **Toolbar** (21 files, 5,455 LOC) — consumes microsurvey + general-browser actions
-17. **MicrosurveyPrompt** — folded in with Toolbar
+12. **ShortcutsLibrary** (686 LOC) — `ShortcutsLibraryState` consumes `TopSitesAction` and
+    `TabManagerMiddleware` consumes `ShortcutsLibraryAction`; moves with Homepage/Tabs
+13. **Tabs / TabTray** (47 files, 8,988 LOC) — `TabManagerMiddleware` is the single largest consumer
+14. **Toolbar** (21 files, 5,455 LOC) — consumes microsurvey + general-browser actions
+15. **SearchEngineSelection** (1,351 LOC) — `AddressBarState` and `ToolbarState` reducers consume
+    `SearchEngineSelectionAction`; moves with Toolbar
+16. **MicrosurveyPrompt** — folded in with Toolbar
+17. **StartAtHome** — `BrowserViewControllerState` consumes `StartAtHomeAction`
 18. **BrowserViewController** — the integration hub; migrates last
 
 ### Phase 4 — Global teardown
@@ -100,7 +104,8 @@ These are the load-bearing ones; each is split into several ≤500-line commits.
 
 A module is done when **all** hold:
 
-- No `import Redux` in any of its files
+- No `import Redux` in any of its files, **except** where the file dispatches a browser-level
+  action (`GeneralBrowserAction`, `NavigationBrowserAction`) — those survive until Phase 3 (D-011)
 - Its `State` no longer conforms to `ScreenState`; its case is removed from `ComponentState`/`AppComponent`
 - Its `Action` types and `Middleware` are deleted
 - Its view controller no longer conforms to `StoreSubscriber`

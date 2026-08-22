@@ -137,3 +137,127 @@ injected telemetry object the middleware used.
 
 **Rationale.** Telemetry is a consequence of the user intent and belongs with it. Injecting the same
 telemetry type keeps the existing telemetry tests meaningful.
+
+---
+
+## D-009 — Reducer tests that only exercised Redux plumbing are dropped, not ported
+
+**Context.** Some reducer tests assert on Redux's own routing rather than on product behaviour —
+`test_unknownAction_returnsDefaultState`, `test_actionWithDifferentWindowUUID_returnsDefaultState`,
+and the transient-field tests (`test_previewPayload_doesNotSurviveTheNextAction`,
+`test_actionAfterDidSubmit_clearsShouldDismiss`).
+
+**Decision.** These are deleted rather than ported, and each deletion is noted in the module's
+commit message.
+
+**Rationale.** They test invariants that no longer exist. "An action for another window is ignored"
+is meaningless once view models are owned per window (D-005). "The preview payload does not survive
+the next action" existed only because a one-shot event had to be modelled as state that needed
+clearing; as a callback there is nothing to clear. Porting them would mean inventing behaviour to
+test.
+
+**Consequence.** Per-module test counts drop even where product coverage is unchanged. The
+migration must not be judged by test count alone — D-007 (port behaviour tests first) is the
+coverage guarantee.
+
+---
+
+## D-010 — Parallel worktree migration is not used for module migrations
+
+**Context.** The plan allows spawning sub-agents in worktrees for parallel work.
+
+**Decision.** Module migrations run serially on one branch. Sub-agents are used for read-only
+analysis briefs, which parallelise cleanly.
+
+**Rationale.** Every module migration edits the same three shared files — `AppState.swift`,
+`AppComponent.swift`, `PresentedComponentsState.swift` — and always at adjacent lines inside the
+same switch statements. Parallel worktrees would conflict on every merge, and the conflicts would
+be in exactly the code whose correctness the compiler can no longer check once a case is half-removed.
+Serial migration keeps each module's build verifiably green.
+
+---
+
+## D-011 — Leaf modules keep `import Redux` for browser-level actions until Phase 3
+
+**Context.** Analysis of NativeErrorPage and PasswordGenerator surfaced a coupling the
+middleware map did not show: **31 files across 14 modules** dispatch `GeneralBrowserAction`,
+`NavigationBrowserAction`, or `GeneralBrowserMiddlewareAction`. These are not the module's own
+actions — they are requests *to* `BrowserViewController` ("reload this tab", "navigate back",
+"show the password generator"). `NativeErrorPageViewController` alone dispatches five of them.
+
+**Decision.** A Phase 1/2 module migration removes the module's **own** Redux — its `ScreenState`,
+`Action` types, `Middleware`, and `StoreSubscriber` conformance — but leaves browser-level
+dispatches in place. Such a module still has `import Redux` after its migration, and that is the
+expected end state until `BrowserViewController` migrates in Phase 3.
+
+**Rationale.** Converting a browser-level dispatch requires a `BrowserViewController` API to
+convert it *to*, which does not exist until BVC itself is migrated. Inventing a parallel delegate
+path early would mean two routes to the same behaviour and a second migration later.
+
+**Consequence.** The `import Redux` file count (200) will not fall to zero linearly with module
+count — it drops sharply in Phase 3 when BVC lands. Per-module completion must be judged by the
+"Definition of done" in PLAN.md, not by the burn-down alone. WebCompatReporter is the exception
+that reached zero in Phase 1: it dispatches no browser-level actions.
+
+---
+
+## D-012 — Coupling must be measured at the reducer level too, not just the middleware level
+
+**Context.** The original phase ordering came from a middleware ⇢ action map. Module briefs then
+showed that **reducers also consume foreign actions**: `AddressBarState` and `ToolbarState` both
+reduce `SearchEngineSelectionAction`; `ShortcutsLibraryState` reduces `TopSitesAction`;
+`BrowserViewControllerState` reduces seven foreign action types.
+
+**Decision.** Phase membership is determined by three tests, all of which must pass for a module to
+count as a Phase 1 leaf:
+
+1. no foreign **middleware** consumes its actions,
+2. no foreign **reducer** consumes its actions,
+3. its own reducer consumes no foreign actions.
+
+**Consequence.** Phase 1 shrinks from 8 modules to 5. SearchEngineSelection moves to Phase 3 (it is
+effectively part of the Toolbar), ShortcutsLibrary to Phase 3 (Homepage/Tabs), StartAtHome to
+Phase 3 (BrowserViewController), and TranslationSettings pairs with Translations in Phase 2.
+
+**Rationale.** A middleware-only map understates coupling by about half. Migrating
+SearchEngineSelection as a "leaf" would have left `AddressBarState` reducing an action type that no
+longer exists — caught by the compiler, but only after the module had been rewritten around a wrong
+assumption. Both maps are now generated by script and stored in FILES_TO_CHANGE.md.
+
+---
+
+## D-013 — `async` bridges must narrow non-`Sendable` callback payloads at the boundary
+
+**Context.** Converting `PasswordGeneratorMiddleware` to `async`/`await` meant wrapping WebKit's
+`evaluateJavascriptInDefaultContentWorld(_:_:_:)` in `withCheckedThrowingContinuation`. The
+callback hands back `Any?`, which is not `Sendable`, so resuming the continuation with it fails
+under Swift 6 concurrency checking: *"sending 'result' risks causing data races"*.
+
+**Decision.** An `async` bridge over a completion handler converts the payload to a concrete
+`Sendable` type **inside** the callback, before resuming. The bridge here is named
+`evaluateStringInDefaultContentWorld(_:in:)` and returns `String?`, which is what both call sites
+actually wanted.
+
+**Rationale.** The alternative — marking things `@unchecked Sendable` or `nonisolated(unsafe)` —
+reintroduces exactly the unsafety this migration is removing (see the `cachedPasswordRules` static
+it replaced). Narrowing at the boundary is enforced by the compiler and makes the bridge's contract
+narrower and clearer than the API it wraps.
+
+**Consequence.** Expect this for every middleware that wrapped a completion handler. Three related
+traps, all hit while migrating this one module:
+
+- **Callback payload.** `Any?` cannot cross a continuation. Narrow it in the callback.
+- **Stored non-`Sendable` service.** `await storedService.asyncMethod()` from a `@MainActor` type
+  sends the stored property into a nonisolated context and is rejected. A *uniquely-referenced
+  local* can cross, so construct the service inside the async function —
+  `await RemoteSettingsUtils().fetchLocalRecords(…)`. This is what the old middleware did inside
+  its `Task`, which is why the pattern only broke once the call was hoisted into a stored property.
+  Testability is preserved by injecting the surrounding protocol (`PasswordRulesProviding`) rather
+  than the service.
+- **Task-based request coalescing.** A stored `Task` handle drags the fetched element type into
+  `Sendable` territory for no real gain. `PasswordRulesProvider` dropped its in-flight dedup: the
+  underlying read is a local JSON load, so a rare duplicate fetch is cheaper than the concurrency
+  surface.
+
+Budget for this. Three build cycles of this module's migration went to `Sendable` diagnostics
+rather than to the architecture change itself.

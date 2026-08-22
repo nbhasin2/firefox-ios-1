@@ -7,12 +7,12 @@ Baseline: `main` @ f2a42cbea7
 
 | Metric | Baseline | Current | Target |
 | - | - | - | - |
-| Files with `import Redux` | 200 | 200 | 0 |
-| `store.dispatch` call sites | 451 | 451 | 0 |
-| `Action` conforming types | 47 | 47 | 0 |
-| Registered middlewares | 28 | 28 | 0 |
-| `StoreSubscriber` screens | 20 | 20 | 0 |
-| Screens in `AppComponent` | 17 | 17 | 0 |
+| Files with `import Redux` | 200 | 188 | 0 |
+| `store.dispatch` call sites | 451 | 423 | 0 |
+| `Action` conforming types | 47 | 44 | 0 |
+| Registered middlewares | 28 | 26 | 0 |
+| `StoreSubscriber` screens | 20 | 18 | 0 |
+| Screens in `AppComponent` | 17 | 15 | 0 |
 
 Refresh with `refactor-tracking/burndown.sh`.
 
@@ -20,8 +20,8 @@ Refresh with `refactor-tracking/burndown.sh`.
 
 | Phase | Scope | Status |
 | - | - | - |
-| 0 — Analysis & scaffolding | Inventory, coupling map, tracking docs, branch | **Done** |
-| 1 — Isolated leaf screens | 8 modules, no inbound coupling | In progress |
+| 0 — Analysis & scaffolding | Inventory, both coupling maps, tracking docs, branch | **Done** |
+| 1 — Isolated leaf screens | 5 modules (was 8; see D-012) | 2 of 5 done |
 | 2 — Single-coupling screens | 5 modules | Not started |
 | 3 — Hub modules | Homepage, Tabs, Toolbar, BVC | Not started |
 | 4 — Global teardown | Delete Redux core + AppState | Not started |
@@ -32,16 +32,17 @@ Legend: ⬜ not started · 🟡 in progress · ✅ done
 
 ### Phase 1 — isolated leaves
 
-| # | Module | LOC | Status | Commit |
+| # | Module | LOC | Status | Notes |
 | - | - | - | - | - |
-| 1 | WebCompatReporter | 433 | 🟡 pilot | — |
-| 2 | PasswordGenerator | 942 | ⬜ | — |
-| 3 | NativeErrorPage | 1,993 | ⬜ | — |
-| 4 | SearchEngineSelection | 1,351 | ⬜ | — |
-| 5 | TranslationSettings | ~600 | ⬜ | — |
-| 6 | StartAtHome | ~200 | ⬜ | — |
-| 7 | TrackingProtection | 4,349 | ⬜ | — |
-| 8 | Microsurvey (survey) | ~800 | ⬜ | — |
+| 1 | WebCompatReporter | 433 | ✅ | Fully Redux-free; app builds, 76 tests pass |
+| 2 | PasswordGenerator | 942 | ✅ | Fully Redux-free; removed `nonisolated(unsafe)` rules cache (FXIOS-12590) |
+| 3 | NativeErrorPage | 1,993 | ⬜ | Keeps browser-level dispatches (D-011) |
+| 4 | TrackingProtection | 4,349 | ⬜ | |
+| 5 | Microsurvey (survey) | ~800 | ⬜ | |
+
+Moved out of Phase 1 by D-012 (reducer-level coupling): SearchEngineSelection → Phase 3 (Toolbar),
+ShortcutsLibrary → Phase 3 (Homepage/Tabs), StartAtHome → Phase 3 (BVC),
+TranslationSettings → Phase 2 (pairs with Translations).
 
 ### Phase 2 — single inbound coupling
 
@@ -89,8 +90,22 @@ Legend: ⬜ not started · 🟡 in progress · ✅ done
 
 | Date | Check | Result |
 | - | - | - |
-| 2026-08-21 | Baseline Fennec simulator build | Running |
+| 2026-08-21 | Baseline Fennec simulator build | Pass (exit 0) |
+| 2026-08-21 | Fennec build after WebCompatReporter | Pass (exit 0) |
+| 2026-08-21 | WebCompatReporter tests (4 suites, 76 tests) | Pass |
+| 2026-08-21 | Fennec build after PasswordGenerator | Running |
 
 ## Notes / blockers
 
-- Nothing blocked yet.
+- **Phase 1 is smaller than first planned.** The original ordering used a middleware-only
+  coupling map. Reducers consume foreign actions too (D-012), which moved three modules to
+  later phases.
+- **`import Redux` will not fall linearly.** 31 files across 14 modules dispatch browser-level
+  actions that cannot be converted until `BrowserViewController` migrates (D-011).
+- **Shared-file churn is the real bottleneck.** Every module migration edits `AppState.swift`,
+  `AppComponent.swift`, and `PresentedComponentsState.swift` at adjacent lines, which is why
+  migrations run serially (D-010).
+- **`Client.xcodeproj` needs hand editing per file.** Only 9 folders are
+  `PBXFileSystemSynchronizedRootGroup`s; everything else is explicitly referenced. Adding or
+  deleting a file requires four pbxproj lines, handled by `refactor-tracking/tools/pbx_add.py`
+  and `pbx_remove.py`.
