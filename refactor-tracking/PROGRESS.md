@@ -7,12 +7,12 @@ Baseline: `main` @ f2a42cbea7
 
 | Metric | Baseline | Current | Target |
 | - | - | - | - |
-| Files with `import Redux` | 200 | 182 | 0 |
-| `store.dispatch` call sites | 451 | 415 | 0 |
-| `Action` conforming types | 47 | 43 | 0 |
-| Registered middlewares | 28 | 25 | 0 |
-| `StoreSubscriber` screens | 20 | 17 | 0 |
-| Screens in `AppComponent` | 17 | 14 | 0 |
+| Files with `import Redux` | 200 | 177 | 0 |
+| `store.dispatch` call sites | 451 | 408 | 0 |
+| `Action` conforming types | 47 | 42 | 0 |
+| Registered middlewares | 28 | 24 | 0 |
+| `StoreSubscriber` screens | 20 | 16 | 0 |
+| Screens in `AppComponent` | 17 | 13 | 0 |
 
 Refresh with `refactor-tracking/burndown.sh`.
 
@@ -21,7 +21,7 @@ Refresh with `refactor-tracking/burndown.sh`.
 | Phase | Scope | Status |
 | - | - | - |
 | 0 — Analysis & scaffolding | Inventory, both coupling maps, tracking docs, branch | **Done** |
-| 1 — Isolated leaf screens | 5 modules (was 8; see D-012) | 3 of 5 done |
+| 1 — Isolated leaf screens | 5 modules (was 8; see D-012) | 4 of 5 done |
 | 2 — Single-coupling screens | 5 modules | Not started |
 | 3 — Hub modules | Homepage, Tabs, Toolbar, BVC | Not started |
 | 4 — Global teardown | Delete Redux core + AppState | Not started |
@@ -38,7 +38,7 @@ Legend: ⬜ not started · 🟡 in progress · ✅ done
 | 2 | PasswordGenerator | 942 | ✅ | Fully Redux-free; removed `nonisolated(unsafe)` rules cache (FXIOS-12590) |
 | 3 | NativeErrorPage | 1,993 | ✅ | Fixed per-window error bleed; keeps browser-level dispatches (D-011) |
 | 4 | TrackingProtection | 4,349 | ⬜ | |
-| 5 | Microsurvey (survey) | ~800 | ⬜ | |
+| 5 | Microsurvey (survey) | ~800 | ✅ | Screen now holds no state; Prompt half stays until Toolbar |
 
 Moved out of Phase 1 by D-012 (reducer-level coupling): SearchEngineSelection → Phase 3 (Toolbar),
 ShortcutsLibrary → Phase 3 (Homepage/Tabs), StartAtHome → Phase 3 (BVC),
@@ -97,6 +97,8 @@ TranslationSettings → Phase 2 (pairs with Translations).
 | 2026-08-21 | WebCompatReporter + PasswordGenerator tests | 197/199 pass; 2 pre-existing Google Lens camera failures |
 | 2026-08-22 | Fennec build after NativeErrorPage | Pass (exit 0) |
 | 2026-08-22 | NativeErrorPage + BrowserViewController tests (111) | Pass, 0 failures |
+| 2026-08-22 | Fennec build after Microsurvey survey | Pass, after a `@MainActor` closure-type fix |
+| 2026-08-22 | Microsurvey + Toolbar tests (91) | Pass, 0 failures |
 
 ## Notes / blockers
 
@@ -120,6 +122,10 @@ TranslationSettings → Phase 2 (pairs with Translations).
 - **Commit size.** Removing a module's Redux triple lands 600-1900 changed lines, over the
   500-line target. It cannot be split further without intermediate commits that fail to compile,
   because the new and old types collide on name. Each commit is module-scoped and builds.
+- **Grep for `ComponentState` cases, not just type names, before deleting a screen.** Removing the
+  survey broke `MicrosurveyPromptMiddlewareTests`, which seeded an `AppState` containing
+  `.microsurvey(...)` in a test-only `setupAppState()` helper. A search for the Survey types alone
+  missed it. Hub modules have many more hand-built `AppState` fixtures.
 - **`Client.xcodeproj` needs hand editing per file.** Only 9 folders are
   `PBXFileSystemSynchronizedRootGroup`s; everything else is explicitly referenced. Adding or
   deleting a file requires four pbxproj lines, handled by `refactor-tracking/tools/pbx_add.py`
