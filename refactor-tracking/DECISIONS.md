@@ -261,3 +261,29 @@ traps, all hit while migrating this one module:
 
 Budget for this. Three build cycles of this module's migration went to `Sendable` diagnostics
 rather than to the architecture change itself.
+
+
+---
+
+## D-014 — Ownerless cross-module signals become notifications, not delegates
+
+**Context.** D-004 converts cross-module action listening into explicit delegation. TrackingProtection
+broke that rule for two of its inbound edges: `TabContentBlocker` posts a blocked-tracker count
+change and `BrowserViewController` posts a secure-content change, and **neither holds a reference to
+the tracking protection screen**. There is no ownership path to hang a delegate on — which is
+precisely why the original code reached for the global store.
+
+**Decision.** Where the sender has no reference to the receiver and acquiring one would mean
+inventing an ownership relationship, the signal becomes a `NotificationCenter` notification carrying
+the `WindowUUID`. The receiving view model conforms to `Notifiable` and filters on that UUID.
+
+**Rationale.** A delegate would require threading a reference from the coordinator through
+`TabContentBlocker`, which is owned by the tab, not the screen — coupling two subsystems that are
+currently independent, to replace one that was already decoupled. The notification keeps them
+decoupled while making the payload and the window filter explicit.
+
+**Consequence.** This is the first case where Redux was doing something a delegate genuinely cannot,
+and it will recur. Use the D-004 delegate by default; reach for a notification only when the sender
+provably has no reference to the receiver, and always carry the `WindowUUID` so the reducer's window
+guard survives. The `@objc` handler cannot be actor-isolated, so it hops to `@MainActor` before
+touching the delegate.

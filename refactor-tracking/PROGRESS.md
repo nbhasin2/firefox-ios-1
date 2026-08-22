@@ -7,12 +7,12 @@ Baseline: `main` @ f2a42cbea7
 
 | Metric | Baseline | Current | Target |
 | - | - | - | - |
-| Files with `import Redux` | 200 | 177 | 0 |
-| `store.dispatch` call sites | 451 | 408 | 0 |
-| `Action` conforming types | 47 | 42 | 0 |
-| Registered middlewares | 28 | 24 | 0 |
-| `StoreSubscriber` screens | 20 | 16 | 0 |
-| Screens in `AppComponent` | 17 | 13 | 0 |
+| Files with `import Redux` | 200 | 173 | 0 |
+| `store.dispatch` call sites | 451 | 391 | 0 |
+| `Action` conforming types | 47 | 40 | 0 |
+| Registered middlewares | 28 | 23 | 0 |
+| `StoreSubscriber` screens | 20 | 15 | 0 |
+| Screens in `AppComponent` | 17 | 12 | 0 |
 
 Refresh with `refactor-tracking/burndown.sh`.
 
@@ -21,8 +21,8 @@ Refresh with `refactor-tracking/burndown.sh`.
 | Phase | Scope | Status |
 | - | - | - |
 | 0 — Analysis & scaffolding | Inventory, both coupling maps, tracking docs, branch | **Done** |
-| 1 — Isolated leaf screens | 5 modules (was 8; see D-012) | 4 of 5 done |
-| 2 — Single-coupling screens | 5 modules | Not started |
+| 1 — Isolated leaf screens | 5 modules (was 8; see D-012) | **Done** |
+| 2 — Single-coupling screens | 6 modules | Next |
 | 3 — Hub modules | Homepage, Tabs, Toolbar, BVC | Not started |
 | 4 — Global teardown | Delete Redux core + AppState | Not started |
 
@@ -37,7 +37,7 @@ Legend: ⬜ not started · 🟡 in progress · ✅ done
 | 1 | WebCompatReporter | 433 | ✅ | Fully Redux-free; app builds, 76 tests pass |
 | 2 | PasswordGenerator | 942 | ✅ | Fully Redux-free; removed `nonisolated(unsafe)` rules cache (FXIOS-12590) |
 | 3 | NativeErrorPage | 1,993 | ✅ | Fixed per-window error bleed; keeps browser-level dispatches (D-011) |
-| 4 | TrackingProtection | 4,349 | ⬜ | |
+| 4 | TrackingProtection | 4,349 | ✅ | Redux was a navigation command bus; refresh signals became notifications |
 | 5 | Microsurvey (survey) | ~800 | ✅ | Screen now holds no state; Prompt half stays until Toolbar |
 
 Moved out of Phase 1 by D-012 (reducer-level coupling): SearchEngineSelection → Phase 3 (Toolbar),
@@ -99,6 +99,8 @@ TranslationSettings → Phase 2 (pairs with Translations).
 | 2026-08-22 | NativeErrorPage + BrowserViewController tests (111) | Pass, 0 failures |
 | 2026-08-22 | Fennec build after Microsurvey survey | Pass, after a `@MainActor` closure-type fix |
 | 2026-08-22 | Microsurvey + Toolbar tests (91) | Pass, 0 failures |
+| 2026-08-22 | Fennec build after TrackingProtection | Pass (exit 0), first try |
+| 2026-08-22 | TrackingProtection tests (20) | Pass, 0 failures |
 
 ## Notes / blockers
 
