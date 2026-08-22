@@ -3,7 +3,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
 import Common
-import Redux
 import Shared
 import UIKit
 
@@ -11,16 +10,14 @@ import UIKit
 
 @MainActor
 protocol TranslationPickerSettingsDelegate: AnyObject {
-    func showLanguagePicker(availableLanguages: [String])
+    func showLanguagePicker(availableLanguages: [String], onSelect: @escaping @MainActor (String) -> Void)
 }
 
 // MARK: - ViewController
 
 final class TranslationPickerSettingsViewController: UIViewController,
-                                               StoreSubscriber,
                                                Themeable,
                                                UICollectionViewDelegate {
-    typealias SubscriberStateType = TranslationSettingsState
 
     private lazy var collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeLayout())
@@ -77,14 +74,18 @@ final class TranslationPickerSettingsViewController: UIViewController,
 
     let windowUUID: WindowUUID
     private var state: TranslationSettingsState
+    private let viewModel: TranslationSettingsViewModel
 
     init(windowUUID: WindowUUID,
          themeManager: ThemeManager = AppContainer.shared.resolve(),
-         notificationCenter: NotificationCenter = NotificationCenter.default) {
+         notificationCenter: NotificationCenter = NotificationCenter.default,
+         viewModel: TranslationSettingsViewModel? = nil) {
         self.windowUUID = windowUUID
+        self.viewModel = viewModel
+            ?? TranslationSettingsViewModel(service: TranslationSettingsService(windowUUID: windowUUID))
         self.themeManager = themeManager
         self.notificationCenter = notificationCenter
-        state = TranslationSettingsState(windowUUID: windowUUID)
+        state = TranslationSettingsState()
         super.init(nibName: nil, bundle: nil)
         title = .Settings.Translation.Title
     }
@@ -100,44 +101,19 @@ final class TranslationPickerSettingsViewController: UIViewController,
         setupCollectionView()
         listenForThemeChanges(withNotificationCenter: notificationCenter)
         applyTheme()
-        subscribeToRedux()
-        store.dispatch(TranslationSettingsViewAction(
-            windowUUID: windowUUID,
-            actionType: TranslationSettingsViewActionType.viewDidLoad
-        ))
+        bindViewModel()
+        viewModel.viewDidLoad()
     }
 
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        unsubscribeFromRedux()
+    // MARK: - View model
+
+    private func bindViewModel() {
+        viewModel.onStateChange = { [weak self] state in
+            self?.render(state)
+        }
     }
 
-    // MARK: - Redux
-
-    func subscribeToRedux() {
-        store.dispatch(ComponentAction(
-            windowUUID: windowUUID,
-            actionType: ComponentActionType.addComponent,
-            component: .translationSettings
-        ))
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            $0.select { appState in
-                TranslationSettingsState(appState: appState, uuid: uuid)
-            }
-        })
-    }
-
-    func unsubscribeFromRedux() {
-        store.dispatch(ComponentAction(
-            windowUUID: windowUUID,
-            actionType: ComponentActionType.removeComponent,
-            component: .translationSettings
-        ))
-        store.unsubscribe(self)
-    }
-
-    func newState(state: TranslationSettingsState) {
+    private func render(_ state: TranslationSettingsState) {
         let wasEnabled = self.state.isTranslationsEnabled
         let wasEditing = self.state.isEditing
         self.state = state
@@ -267,17 +243,9 @@ final class TranslationPickerSettingsViewController: UIViewController,
                 return nil
             }
             if state.isEditing {
-                store.dispatch(TranslationSettingsViewAction(
-                    pendingLanguages: reorderedLanguages,
-                    windowUUID: windowUUID,
-                    actionType: TranslationSettingsViewActionType.reorderLanguages
-                ))
+                viewModel.reorderLanguages(reorderedLanguages)
             } else {
-                store.dispatch(TranslationSettingsViewAction(
-                    languages: reorderedLanguages.map { $0.code },
-                    windowUUID: windowUUID,
-                    actionType: TranslationSettingsViewActionType.saveLanguages
-                ))
+                viewModel.saveLanguages(reorderedLanguages.map { $0.code })
             }
         }
 
@@ -294,11 +262,7 @@ final class TranslationPickerSettingsViewController: UIViewController,
             } else {
                 let deleteActionHandler = { [weak self] in
                     guard let self else { return }
-                    store.dispatch(TranslationSettingsViewAction(
-                        languageCode: details.code,
-                        windowUUID: windowUUID,
-                        actionType: TranslationSettingsViewActionType.removeLanguage
-                    ))
+                    viewModel.removeLanguage(code: details.code)
                 }
                 cell.accessories = [
                     .delete(displayed: .whenEditing, actionHandler: deleteActionHandler),
@@ -324,10 +288,7 @@ final class TranslationPickerSettingsViewController: UIViewController,
             sender.setOn(state.isTranslationsEnabled, animated: false)
             return
         }
-        store.dispatch(TranslationSettingsViewAction(
-            windowUUID: windowUUID,
-            actionType: TranslationSettingsViewActionType.toggleTranslationsEnabled
-        ))
+        viewModel.toggleTranslationsEnabled()
     }
 
     @objc private func didToggleAutoTranslate(_ sender: UISwitch) {
@@ -335,10 +296,7 @@ final class TranslationPickerSettingsViewController: UIViewController,
             sender.setOn(state.isAutoTranslateEnabled, animated: false)
             return
         }
-        store.dispatch(TranslationSettingsViewAction(
-            windowUUID: windowUUID,
-            actionType: TranslationSettingsViewActionType.toggleAutoTranslate
-        ))
+        viewModel.toggleAutoTranslate()
     }
 
     // MARK: - Nav bar
@@ -357,30 +315,17 @@ final class TranslationPickerSettingsViewController: UIViewController,
     // MARK: - Edit mode
 
     @objc private func didTapEdit() {
-        store.dispatch(TranslationSettingsViewAction(
-            windowUUID: windowUUID,
-            actionType: TranslationSettingsViewActionType.enterEditMode
-        ))
+        viewModel.enterEditMode()
     }
 
     @objc private func didTapDone() {
         guard let pendingLanguages = state.pendingLanguages else { return }
-        store.dispatch(TranslationSettingsViewAction(
-            languages: pendingLanguages.map { $0.code },
-            windowUUID: windowUUID,
-            actionType: TranslationSettingsViewActionType.saveLanguages
-        ))
-        store.dispatch(TranslationSettingsViewAction(
-            windowUUID: windowUUID,
-            actionType: TranslationSettingsViewActionType.cancelEditMode
-        ))
+        viewModel.saveLanguages(pendingLanguages.map { $0.code })
+        viewModel.cancelEditMode()
     }
 
     @objc private func didTapCancel() {
-        store.dispatch(TranslationSettingsViewAction(
-            windowUUID: windowUUID,
-            actionType: TranslationSettingsViewActionType.cancelEditMode
-        ))
+        viewModel.cancelEditMode()
     }
 
     private func updateDoneButton() {
@@ -424,6 +369,8 @@ final class TranslationPickerSettingsViewController: UIViewController,
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
         guard dataSource.itemIdentifier(for: indexPath) == .addLanguage else { return }
-        coordinator?.showLanguagePicker(availableLanguages: state.availableLanguages)
+        coordinator?.showLanguagePicker(availableLanguages: state.availableLanguages) { [weak self] code in
+            self?.viewModel.addLanguage(code: code)
+        }
     }
 }

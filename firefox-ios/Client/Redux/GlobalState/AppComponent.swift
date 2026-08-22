@@ -16,5 +16,4 @@ enum AppComponent {
     case toolbar
     case searchEngineSelection
     case shortcutsLibrary
-    case translationSettings
 }

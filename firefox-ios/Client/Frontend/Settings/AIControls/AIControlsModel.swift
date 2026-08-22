@@ -62,6 +62,19 @@ class AIControlsModel: ObservableObject,
     private let summarizerConfiguration: SummarizerNimbusUtils
     private let prefs: Prefs
     private let settingsTelemetry: SettingsTelemetry
+    private let injectedTranslationSettingsService: TranslationSettingsServicing?
+    private var madeTranslationSettingsService: TranslationSettingsServicing?
+
+    /// Built on first use: this type is not `@MainActor`, but the service is, and every caller is.
+    @MainActor
+    private var translationSettingsService: TranslationSettingsServicing {
+        if let service = injectedTranslationSettingsService ?? madeTranslationSettingsService {
+            return service
+        }
+        let service = TranslationSettingsService(windowUUID: windowUUID)
+        madeTranslationSettingsService = service
+        return service
+    }
     private let logger: Logger
 
     struct LinkInfo {
@@ -75,10 +88,12 @@ class AIControlsModel: ObservableObject,
         translationConfiguration: TranslationConfiguration? = nil,
         summarizerConfiguration: SummarizerNimbusUtils = DefaultSummarizerNimbusUtils(),
         settingsTelemetry: SettingsTelemetry = SettingsTelemetry(),
-        logger: Logger = DefaultLogger.shared
+        logger: Logger = DefaultLogger.shared,
+        translationSettingsService: TranslationSettingsServicing? = nil
     ) {
         self.prefs = prefs
         self.windowUUID = windowUUID
+        self.injectedTranslationSettingsService = translationSettingsService
         self.translationConfiguration = translationConfiguration ?? TranslationConfiguration(
             prefs: prefs,
             isUserSettingEnabled: prefs.boolForKey(PrefsKeys.Settings.translationsFeature) ?? true
@@ -163,12 +178,8 @@ class AIControlsModel: ObservableObject,
         }
 
         translationEnabled = newValue
-        store.dispatch(TranslationSettingsViewAction(
-            newSettingValue: newValue,
-            toggledViaAIControls: true,
-            windowUUID: windowUUID,
-            actionType: TranslationSettingsViewActionType.toggleTranslationsEnabled
-        ))
+        // Telemetry for this toggle is recorded here, not by the service.
+        translationSettingsService.setTranslationsEnabled(newValue, toggledViaAIControls: true)
     }
 
     @MainActor

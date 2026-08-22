@@ -41,7 +41,6 @@ struct AppState: StateType, Sendable {
                 case (.toolbar(let state), .toolbar): return state as? S
                 case (.searchEngineSelection(let state), .searchEngineSelection): return state as? S
                 case (.shortcutsLibrary(let state), .shortcutsLibrary): return state as? S
-                case (.translationSettings(let state), .translationSettings): return state as? S
                 default: return nil
                 }
             }.first(where: {
@@ -90,8 +89,7 @@ let middlewares = [
     ShortcutsLibraryMiddleware().shortcutsLibraryProvider,
     SummarizerMiddleware().summarizerProvider,
     TermsOfUseMiddleware().termsOfUseProvider,
-    TranslationsMiddleware().translationsProvider,
-    TranslationSettingsMiddleware().translationSettingsProvider
+    TranslationsMiddleware().translationsProvider
 ]
 
 // In order for us to mock and test the middlewares easier,

@@ -18,7 +18,6 @@ enum ComponentState: Sendable, Equatable {
     case toolbar(ToolbarState)
     case searchEngineSelection(SearchEngineSelectionState)
     case shortcutsLibrary(ShortcutsLibraryState)
-    case translationSettings(TranslationSettingsState)
 
     static let reducer: Reducer<Self> = (legacyReducer, modernReducer)
 
@@ -47,8 +46,6 @@ enum ComponentState: Sendable, Equatable {
             return .searchEngineSelection(SearchEngineSelectionState.reducer.modernReducer(state, action, actionWindowUUID))
         case .shortcutsLibrary(let state):
             return .shortcutsLibrary(ShortcutsLibraryState.reducer.modernReducer(state, action, actionWindowUUID))
-        case .translationSettings(let state):
-            return .translationSettings(TranslationSettingsState.reducer.modernReducer(state, action, actionWindowUUID))
         }
     }
 
@@ -76,8 +73,6 @@ enum ComponentState: Sendable, Equatable {
             return .searchEngineSelection(SearchEngineSelectionState.reducer.legacyReducer(state, action))
         case .shortcutsLibrary(let state):
             return .shortcutsLibrary(ShortcutsLibraryState.reducer.legacyReducer(state, action))
-        case .translationSettings(let state):
-            return .translationSettings(TranslationSettingsState.reducer.legacyReducer(state, action))
         }
     }
     // swiftlint:enable closure_body_length
@@ -96,7 +91,6 @@ enum ComponentState: Sendable, Equatable {
         case .toolbar: return .toolbar
         case .searchEngineSelection: return .searchEngineSelection
         case .shortcutsLibrary: return .shortcutsLibrary
-        case .translationSettings: return .translationSettings
         }
     }
 
@@ -113,7 +107,6 @@ enum ComponentState: Sendable, Equatable {
         case .toolbar(let state): return state.windowUUID
         case .searchEngineSelection(let state): return state.windowUUID
         case .shortcutsLibrary(let state): return state.windowUUID
-        case .translationSettings(let state): return state.windowUUID
         }
     }
 }
@@ -187,8 +180,6 @@ struct PresentedComponentsState: Sendable, Equatable {
                 components.append(.searchEngineSelection(SearchEngineSelectionState(windowUUID: uuid)))
             case .shortcutsLibrary:
                 components.append(.shortcutsLibrary(ShortcutsLibraryState(windowUUID: uuid)))
-            case .translationSettings:
-                components.append(.translationSettings(TranslationSettingsState(windowUUID: uuid)))
             }
         default:
             return components
