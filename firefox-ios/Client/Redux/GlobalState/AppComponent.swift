@@ -13,7 +13,6 @@ enum AppComponent {
     case tabPeek
     case mainMenu
     case termsOfUse
-    case trackingProtection
     case toolbar
     case searchEngineSelection
     case shortcutsLibrary
