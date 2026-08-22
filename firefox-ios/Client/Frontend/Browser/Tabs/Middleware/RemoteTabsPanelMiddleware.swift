@@ -124,43 +124,6 @@ final class RemoteTabsPanelMiddleware: Notifiable {
         }
     }
 
-    private func handleFetchingMostRecentRemoteTab(windowUUID: WindowUUID) {
-        let completion: @Sendable ([ClientAndTabs]?) -> Void = { (result: [ClientAndTabs]?) in
-            ensureMainThread {
-                guard let mostRecentSyncedTab = self.retrieveConfigurationForMostRecentTab(from: result) else { return }
-                store.dispatch(
-                    RemoteTabsAction(
-                        mostRecentSyncedTab: mostRecentSyncedTab,
-                        windowUUID: windowUUID,
-                        actionType: RemoteTabsMiddlewareActionType.fetchedMostRecentSyncedTab
-                    )
-                )
-            }
-        }
-        profile.getCachedClientsAndTabs(completion: completion)
-    }
-
-    /// Retrieves the most recently used tab from a list of desktop clients tabs.
-    ///
-    /// This method filters the provided `clientAndTabs` list to include only desktop clients that have at least one tab.
-    /// Then, it finds the most recently used tab for each client and then determines the most recent tab across all clients.
-    /// If a valid tab is found, it returns a `RemoteTabConfiguration` containing the client and tab details.
-    ///
-    /// - Parameter clientAndTabs: An optional array of `ClientAndTabs`, representing synced clients and their tabs.
-    /// - Returns: A `RemoteTabConfiguration` containing the most recently used tab’s details,
-    /// or `nil` if no valid tab exists.
-    private func retrieveConfigurationForMostRecentTab(from clientAndTabs: [ClientAndTabs]?) -> RemoteTabConfiguration? {
-        let mostRecentTabsPerClient = clientAndTabs?
-            .filter { !$0.tabs.isEmpty && ClientType.fromFxAType($0.client.type) == .Desktop }
-            .compactMap { client in
-                client.tabs
-                    .max(by: { $0.lastUsed < $1.lastUsed })
-                    .map { RemoteTabConfiguration(client: client.client, tab: $0) }
-            }
-
-        return mostRecentTabsPerClient?.max(by: { $0.tab.lastUsed < $1.tab.lastUsed })
-    }
-
     // MARK: - Notifications
     private func observeNotifications() {
         startObservingNotifications(withNotificationCenter: notificationCenter,
