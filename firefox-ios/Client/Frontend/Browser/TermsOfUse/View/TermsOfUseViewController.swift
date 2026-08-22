@@ -140,7 +140,6 @@ final class TermsOfUseViewController: UIViewController,
 
         listenForThemeChanges(withNotificationCenter: notificationCenter)
         applyTheme()
-
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -161,7 +160,6 @@ final class TermsOfUseViewController: UIViewController,
             view.layoutIfNeeded()
         }
     }
-
 
     private func setupUI() {
         view.addSubview(sheetContainer)

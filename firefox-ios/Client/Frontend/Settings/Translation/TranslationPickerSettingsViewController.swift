@@ -18,7 +18,6 @@ protocol TranslationPickerSettingsDelegate: AnyObject {
 final class TranslationPickerSettingsViewController: UIViewController,
                                                Themeable,
                                                UICollectionViewDelegate {
-
     private lazy var collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeLayout())
         collectionView.translatesAutoresizingMaskIntoConstraints = false
