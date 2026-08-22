@@ -171,3 +171,47 @@ Rewritten by D-016: the core is narrowed, not deleted. Items 21 and 22 previousl
   `PBXFileSystemSynchronizedRootGroup`s; everything else is explicitly referenced. Adding or
   deleting a file requires four pbxproj lines, handled by `refactor-tracking/tools/pbx_add.py`
   and `pbx_remove.py`.
+
+## Homepage complete (Phase 3, module group C)
+
+Ten sections migrated one slice at a time, in this order: MessageCard, TrackerBlockerModule,
+Bookmarks, Merino, SearchBar, Header, Wallpaper, TopSites, JumpBackIn, then the finale
+(`HomepageState`, `HomepageTelemetryState`, `HomepageMiddleware`, `StoreSubscriber`).
+
+Counters at the start of the homepage and now:
+
+| | start | now |
+|---|---|---|
+| registered middlewares | 13 | 9 |
+| StoreSubscriber screens | 12 | 11 |
+| AppComponent cases | 9 | 8 |
+| files with `import Redux` | 138 | 121 |
+| dispatch call sites | 316 | 277 |
+| migration-introduced notifications | 3 | 3 |
+
+### What the homepage taught
+
+- **Keep the state struct, drop the conformance.** Five of the ten sections had a state struct
+  that the diffable data source or a cell takes by value (`HeaderState`, `WallpaperState`,
+  `TopSitesSectionState`, `JumpBackInSectionState`). Removing `StateType`/`ScreenState` and the
+  reducer while leaving the struct kept the churn to the reducer itself. Inventing a parallel
+  `Configuration` type would have touched every cell and the item enum for nothing (D-021).
+- **The bus earned its keep here.** Three sections consume it — the search bar's hide events, jump
+  back in's tab events, and the homepage's own tab-changed impression reset. Jump back in alone
+  collapses twelve action-type cases across two middlewares into one observer (D-027).
+- **Middlewares that were services in all but name.** `QuickAnswersMiddleware` was already being
+  default-constructed as a `QuickAnswersStore` by the header's state (D-020). `WallpaperMiddleware`
+  re-announced an event `WallpaperManager` was already posting as a notification (D-022).
+  `TopSitesMiddleware` said in its own doc comment that its telemetry should be split out (D-024).
+- **Dead code surfaces when you move it.** The row-count settings row dispatched on every draw of
+  its `status` getter; `HomepageTelemetryExtras.topSitesTelemetryConfig` had been nil at every call
+  site since it was added; three of the layout provider's four store reads bound a value nothing
+  used.
+- **Two more real bugs fixed.** A retain cycle in `HomepageViewController` — the news transition
+  header took two unapplied method references, which capture `self` strongly, and the supplementary
+  view holds them for the homepage's whole lifetime. And the shortcuts library sized its grid from
+  the *homepage's* tiles-per-row read out of the store, rather than from its own width.
+- **Test hygiene rule that emerged (D-026).** A view model a test constructs must take every
+  collaborator as a parameter, and the helpers must pass them. Falling through to an
+  `AppContainer.shared.resolve()` default crashes the test *process* rather than failing an
+  assertion, because the mock helper resets the container between tests.
