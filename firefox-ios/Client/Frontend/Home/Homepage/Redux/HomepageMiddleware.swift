@@ -111,10 +111,7 @@ final class HomepageMiddleware: FeatureFlaggable, Notifiable {
             UIApplication.didBecomeActiveNotification,
             UIApplication.didEnterBackgroundNotification,
             .FirefoxAccountChanged,
-            .PrivateDataClearedHistory,
             .ProfileDidFinishSyncing,
-            .TopSitesUpdated,
-            .DefaultSearchEngineUpdated,
             .BookmarksUpdated,
             .RustPlacesOpened
         ]
@@ -151,11 +148,6 @@ final class HomepageMiddleware: FeatureFlaggable, Notifiable {
                     )
                     store.dispatch(backgroundAction)
 
-                case .PrivateDataClearedHistory,
-                        .TopSitesUpdated,
-                        .DefaultSearchEngineUpdated:
-                    self.dispatchActionToFetchTopSites(windowUUID: windowUUID)
-
                 case .BookmarksUpdated, .RustPlacesOpened:
                     let bookmarksAction = HomepageAction(
                         windowUUID: windowUUID,
@@ -164,22 +156,12 @@ final class HomepageMiddleware: FeatureFlaggable, Notifiable {
                     store.dispatch(bookmarksAction)
 
                 case .ProfileDidFinishSyncing, .FirefoxAccountChanged:
-                    self.dispatchActionToFetchTopSites(windowUUID: windowUUID)
                     self.dispatchActionToFetchTabs(windowUUID: windowUUID)
 
                 default: break
                 }
             }
         }
-    }
-
-    private func dispatchActionToFetchTopSites(windowUUID: WindowUUID) {
-        store.dispatch(
-            HomepageAction(
-                windowUUID: windowUUID,
-                actionType: HomepageMiddlewareActionType.topSitesUpdated
-            )
-        )
     }
 
     private func dispatchActionToFetchTabs(windowUUID: WindowUUID) {

@@ -97,6 +97,9 @@ class ShortcutsLibraryViewController: UIViewController,
                 actionType: ShortcutsLibraryActionType.initialize
             )
         )
+        // The initialize action used to reach TopSitesMiddleware, which did the fetching. The
+        // service does it now; ShortcutsLibraryState still reduces the result (D-025).
+        TopSitesService.shared.refresh(for: windowUUID)
 
         listenForThemeChanges(withNotificationCenter: notificationCenter)
         applyTheme()

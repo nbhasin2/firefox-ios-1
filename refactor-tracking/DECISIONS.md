@@ -552,3 +552,21 @@ Splitting the telemetry out first is what makes the rest of TopSites separable: 
 foreign edges disappear without any of them having to migrate, and both action types go with
 them. The remaining middleware is fetch, the in-flight coalescing guard, and the context-menu
 mutations — which is what the next slice moves.
+
+## D-025 — `TopSitesService` keeps dispatching `retrievedUpdatedSites` until ShortcutsLibrary migrates
+
+Two screens read top sites: the homepage and the shortcuts library. `ShortcutsLibraryState`
+reduces `TopSitesMiddlewareActionType.retrievedUpdatedSites`, and a reducer is a static function
+— it cannot hold a service reference or subscribe to one. So the service publishes twice: to
+`onSitesChange` for owners of their own state, and to the store for the reducer that is still
+there.
+
+This is the D-012 blocker resolved without migrating ShortcutsLibrary: the middleware, the fetch
+triggers, and the mutation edges all move now, and one action survives as a shim that the
+shortcuts library slice deletes. Recording it here so the shim is not mistaken for a design.
+
+The five notifications that used to reach the middleware through
+`HomepageMiddlewareActionType.topSitesUpdated` (`.TopSitesUpdated`, `.PrivateDataClearedHistory`,
+`.DefaultSearchEngineUpdated`, `.ProfileDidFinishSyncing`, `.FirefoxAccountChanged`) are now
+observed by `HomepageViewModel` per window, replacing `HomepageMiddleware`'s fan-out over every
+window. None of them is new, so the D-017 budget is untouched.

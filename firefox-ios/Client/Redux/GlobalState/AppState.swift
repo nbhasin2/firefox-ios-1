@@ -72,7 +72,6 @@ let middlewares = [
     TabManagerMiddleware().tabsPanelProvider,
     ToolbarMiddleware().toolbarProvider,
     SearchEngineSelectionMiddleware().searchEngineSelectionProvider,
-    TopSitesMiddleware().topSitesProvider,
     HomepageMiddleware(notificationCenter: NotificationCenter.default).homepageProvider,
     StartAtHomeMiddleware().startAtHomeProvider,
     ShortcutsLibraryMiddleware().shortcutsLibraryProvider,

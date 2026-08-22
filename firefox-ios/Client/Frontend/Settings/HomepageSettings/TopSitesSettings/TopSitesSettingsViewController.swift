@@ -54,12 +54,8 @@ final class TopSitesSettingsViewController: SettingsTableViewController, UserFea
                     defaultValue: userPreferences.getPreferenceFor(.hntSponsoredShortcuts),
                     titleText: .Settings.Homepage.Shortcuts.SponsoredShortcutsToggle
                 ) { _ in
-                    store.dispatch(
-                        TopSitesAction(
-                            windowUUID: self.windowUUID,
-                            actionType: TopSitesActionType.toggleShowSponsoredSettings
-                        )
-                    )
+                    // Explicit user action, so it bypasses the launch/foreground coalescing.
+                    TopSitesService.shared.refresh(for: self.windowUUID, coalesce: false)
 
                     // If sponsored shortcuts are turned off, request to delete the user data
                     let isSponsoredShortcutsEnabled = profile.prefs.boolForKey(

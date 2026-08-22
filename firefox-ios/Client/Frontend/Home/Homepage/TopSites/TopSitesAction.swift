@@ -33,7 +33,6 @@ struct TopSitesAction: Action {
 enum TopSitesActionType: ActionType {
     case updatedNumberOfRows
     case toggleShowSectionSetting
-    case toggleShowSponsoredSettings
 }
 
 enum TopSitesMiddlewareActionType: ActionType {

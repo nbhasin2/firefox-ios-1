@@ -23,6 +23,7 @@ final class HomepageViewModel: Notifiable {
     let searchBar: SearchBarViewModel
     let header: HeaderViewModel
     let wallpaper: WallpaperViewModel
+    let topSitesService: TopSitesService
 
     /// Fired when any owned section changes and the snapshot needs re-applying.
     var onSectionChange: (() -> Void)?
@@ -39,6 +40,7 @@ final class HomepageViewModel: Notifiable {
          searchBar: SearchBarViewModel? = nil,
          header: HeaderViewModel? = nil,
          wallpaper: WallpaperViewModel? = nil,
+         topSitesService: TopSitesService = .shared,
          notificationCenter: NotificationProtocol = NotificationCenter.default) {
         self.windowUUID = windowUUID
         self.messageCard = messageCard ?? MessageCardViewModel(windowUUID: windowUUID)
@@ -48,6 +50,7 @@ final class HomepageViewModel: Notifiable {
         self.searchBar = searchBar ?? SearchBarViewModel(windowUUID: windowUUID)
         self.header = header ?? HeaderViewModel(windowUUID: windowUUID)
         self.wallpaper = wallpaper ?? WallpaperViewModel()
+        self.topSitesService = topSitesService
         self.notificationCenter = notificationCenter
         bindSections()
         // The migrated sections observe their own refresh triggers. `HomepageMiddleware` still
@@ -59,7 +62,15 @@ final class HomepageViewModel: Notifiable {
             observing: [.homepageSectionSettingsChanged,
                         UIApplication.didBecomeActiveNotification,
                         .BookmarksUpdated,
-                        .RustPlacesOpened]
+                        .RustPlacesOpened,
+                        // The five that used to reach TopSitesMiddleware through
+                        // HomepageMiddlewareActionType.topSitesUpdated. Observing them per window
+                        // replaces the middleware's fan-out over every window.
+                        .TopSitesUpdated,
+                        .PrivateDataClearedHistory,
+                        .DefaultSearchEngineUpdated,
+                        .ProfileDidFinishSyncing,
+                        .FirefoxAccountChanged]
         )
     }
 
@@ -72,6 +83,9 @@ final class HomepageViewModel: Notifiable {
                     self?.refreshOnBecomeActive()
                 case .BookmarksUpdated, .RustPlacesOpened:
                     self?.refreshBookmarks()
+                case .TopSitesUpdated, .PrivateDataClearedHistory, .DefaultSearchEngineUpdated,
+                     .ProfileDidFinishSyncing, .FirefoxAccountChanged:
+                    self?.refreshTopSites()
                 default:
                     break
                 }
@@ -108,6 +122,7 @@ final class HomepageViewModel: Notifiable {
         merino.refreshStories()
         searchBar.refreshVisibility()
         header.refresh()
+        refreshTopSites()
     }
 
     /// Homepage `viewWillAppear`.
@@ -124,6 +139,12 @@ final class HomepageViewModel: Notifiable {
     func refreshOnBecomeActive() {
         trackerBlockerModule.refreshBlockedCount()
         merino.refreshStories()
+        refreshTopSites()
+    }
+
+    /// The top sites changed underneath the homepage, or it is being shown for the first time.
+    func refreshTopSites() {
+        topSitesService.refresh(for: windowUUID)
     }
 
     /// Homepage `viewWillTransition`, and the toolbar events that used to recompute visibility.

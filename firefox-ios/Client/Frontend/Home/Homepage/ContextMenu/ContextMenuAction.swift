@@ -29,9 +29,5 @@ struct ContextMenuAction: Action {
 
 enum ContextMenuActionType: ActionType {
     case tappedOnOpenNewPrivateTab
-    case tappedOnRemoveTopSite
-    case tappedOnPinTopSite
-    case tappedOnUnpinTopSite
     case tappedOnSponsoredAction
-    case tappedOnSettingsAction
 }
