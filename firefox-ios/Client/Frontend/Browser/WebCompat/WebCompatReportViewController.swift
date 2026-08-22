@@ -3,7 +3,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
 import Common
-import Redux
 import Shared
 import UIKit
 import WebCompatReporterKit
@@ -20,16 +19,13 @@ protocol WebCompatReportCoordinatorDelegate: AnyObject {
     func webCompatReportViewControllerDidTapPreview(payload: WebCompatReportPayload)
 }
 
-/// Store-connected container that hosts the `WebCompatReporterKit` sheet, maps
-/// `WebCompatReporterState` to its view model, and forwards its intents to Redux
-/// and the coordinator.
+/// Container that hosts the `WebCompatReporterKit` sheet, maps `WebCompatReporterState`
+/// to the sheet's view model, and forwards the sheet's intents to
+/// `WebCompatReporterViewModel` and the coordinator.
 final class WebCompatReportViewController: UINavigationController,
-                                           StoreSubscriber,
                                            Themeable,
                                            UIAdaptivePresentationControllerDelegate,
                                            WebCompatReportSheetDelegate {
-    typealias SubscriberStateType = WebCompatReporterState
-
     var themeManager: ThemeManager
     var themeListenerCancellable: Any?
     var notificationCenter: NotificationProtocol
@@ -39,26 +35,29 @@ final class WebCompatReportViewController: UINavigationController,
 
     private let windowUUID: WindowUUID
     private let reportedURL: URL?
+    private let viewModel: WebCompatReporterViewModel
     private let sheetViewController: WebCompatReportSheetViewController
 
     init(
         windowUUID: WindowUUID,
         reportedURL: URL?,
+        viewModel: WebCompatReporterViewModel? = nil,
         themeManager: ThemeManager = AppContainer.shared.resolve(),
         notificationCenter: NotificationProtocol = NotificationCenter.default
     ) {
         self.windowUUID = windowUUID
         self.reportedURL = reportedURL
+        self.viewModel = viewModel ?? WebCompatReporterViewModel(windowUUID: windowUUID)
         self.themeManager = themeManager
         self.notificationCenter = notificationCenter
-        let initialState = WebCompatReporterState(windowUUID: windowUUID)
         self.sheetViewController = WebCompatReportSheetViewController(
-            viewModel: WebCompatReportViewController.makeViewModel(from: initialState),
+            viewModel: WebCompatReportViewController.makeSheetViewModel(from: self.viewModel.state),
             theme: themeManager.getCurrentTheme(for: windowUUID)
         )
         super.init(nibName: nil, bundle: nil)
         setViewControllers([sheetViewController], animated: false)
         sheetViewController.delegate = self
+        bindViewModel()
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -70,58 +69,29 @@ final class WebCompatReportViewController: UINavigationController,
         listenForThemeChanges(withNotificationCenter: notificationCenter)
         applyTheme()
         presentationController?.delegate = self
-        subscribeToRedux()
-        store.dispatch(WebCompatReporterViewAction(
-            url: reportedURL?.absoluteString,
-            windowUUID: windowUUID,
-            actionType: WebCompatReporterViewActionType.viewDidLoad
-        ))
+        viewModel.viewDidLoad(url: reportedURL?.absoluteString)
     }
 
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        unsubscribeFromRedux()
-    }
+    // MARK: - View model binding
 
-    // MARK: - Redux
-
-    func subscribeToRedux() {
-        store.dispatch(ComponentAction(
-            windowUUID: windowUUID,
-            actionType: ComponentActionType.addComponent,
-            component: .webCompatReporter
-        ))
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            $0.select { appState in
-                WebCompatReporterState(appState: appState, uuid: uuid)
-            }
-        })
-    }
-
-    func unsubscribeFromRedux() {
-        store.dispatch(ComponentAction(
-            windowUUID: windowUUID,
-            actionType: ComponentActionType.removeComponent,
-            component: .webCompatReporter
-        ))
-        store.unsubscribe(self)
-    }
-
-    func newState(state: WebCompatReporterState) {
-        guard !state.shouldDismiss else {
-            reportCoordinator?.webCompatReportViewControllerDidSubmit()
-            return
+    private func bindViewModel() {
+        viewModel.onStateChange = { [weak self] state in
+            guard let self else { return }
+            self.sheetViewController.configure(
+                with: WebCompatReportViewController.makeSheetViewModel(from: state)
+            )
         }
-        if let payload = state.previewPayload {
-            reportCoordinator?.webCompatReportViewControllerDidTapPreview(payload: payload)
+        viewModel.onPreviewReady = { [weak self] payload in
+            self?.reportCoordinator?.webCompatReportViewControllerDidTapPreview(payload: payload)
         }
-        sheetViewController.configure(with: WebCompatReportViewController.makeViewModel(from: state))
+        viewModel.onSubmitted = { [weak self] in
+            self?.reportCoordinator?.webCompatReportViewControllerDidSubmit()
+        }
     }
 
     // MARK: - View model
 
-    private static func makeViewModel(from state: WebCompatReporterState) -> WebCompatReportViewModel {
+    static func makeSheetViewModel(from state: WebCompatReporterState) -> WebCompatReportViewModel {
         return WebCompatReportViewModel(
             navigationTitle: .MainMenu.ToolsSection.ReportBrokenSite,
             closeButtonAccessibilityLabel: .WebCompatReporter.Sheet.CloseButtonAccessibilityLabel,
@@ -319,18 +289,11 @@ final class WebCompatReportViewController: UINavigationController,
 
     /// UIKit calls this only for the interactive swipe, not for programmatic dismissal.
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
-        store.dispatch(WebCompatReporterViewAction(
-            windowUUID: windowUUID,
-            actionType: WebCompatReporterViewActionType.cancel
-        ))
+        viewModel.cancel()
     }
 
-    /// Kept here so the cancel action is dispatched from the one place that talks to the store.
     func finishReport() {
-        store.dispatch(WebCompatReporterViewAction(
-            windowUUID: windowUUID,
-            actionType: WebCompatReporterViewActionType.cancel
-        ))
+        viewModel.cancel()
         reportCoordinator?.webCompatReportViewControllerDidFinish()
     }
 
@@ -341,53 +304,31 @@ final class WebCompatReportViewController: UINavigationController,
     }
 
     func webCompatReportSheetDidTapPreview() {
-        // The report comes back through newState, not from here.
-        store.dispatch(WebCompatReporterViewAction(
-            windowUUID: windowUUID,
-            actionType: WebCompatReporterViewActionType.preview
-        ))
+        // The report comes back through onPreviewReady, not from here.
+        viewModel.preview()
     }
 
     func webCompatReportSheetDidSelectCategory(id: String) {
         guard let category = WebCompatIssueCategory(rawValue: id) else { return }
-        store.dispatch(WebCompatReporterViewAction(
-            category: category,
-            windowUUID: windowUUID,
-            actionType: WebCompatReporterViewActionType.selectCategory
-        ))
+        viewModel.selectCategory(category)
     }
 
     func webCompatReportSheetDidSelectSubOption(id: String) {
         guard let subOption = WebCompatSubOption(rawValue: id) else { return }
-        store.dispatch(WebCompatReporterViewAction(
-            subOptionID: subOption.rawValue,
-            windowUUID: windowUUID,
-            actionType: WebCompatReporterViewActionType.selectSubOption
-        ))
+        viewModel.selectSubOption(id: subOption.rawValue)
     }
 
     func webCompatReportSheetDidTapButton(id: String) {
         guard RowID(rawValue: id) == .send else { return }
-        store.dispatch(WebCompatReporterViewAction(
-            windowUUID: windowUUID,
-            actionType: WebCompatReporterViewActionType.submit
-        ))
+        viewModel.submit()
     }
 
     func webCompatReportSheetDidToggleCheckbox(id: String, isChecked: Bool) {
         switch RowID(rawValue: id) {
         case .includeScreenshot:
-            store.dispatch(WebCompatReporterViewAction(
-                includeScreenshot: isChecked,
-                windowUUID: windowUUID,
-                actionType: WebCompatReporterViewActionType.toggleScreenshot
-            ))
+            viewModel.toggleScreenshot(isChecked)
         case .includeBlockedList:
-            store.dispatch(WebCompatReporterViewAction(
-                includeBlockedList: isChecked,
-                windowUUID: windowUUID,
-                actionType: WebCompatReporterViewActionType.toggleBlockedList
-            ))
+            viewModel.toggleBlockedList(isChecked)
         case .url, .additionalDetails, .send, .none:
             break
         }
@@ -396,27 +337,16 @@ final class WebCompatReportViewController: UINavigationController,
     func webCompatReportSheetDidEditText(id: String, text: String) {
         switch RowID(rawValue: id) {
         case .url:
-            store.dispatch(WebCompatReporterViewAction(
-                url: text,
-                windowUUID: windowUUID,
-                actionType: WebCompatReporterViewActionType.editURL
-            ))
+            viewModel.editURL(text)
         case .additionalDetails:
-            store.dispatch(WebCompatReporterViewAction(
-                additionalDetails: text,
-                windowUUID: windowUUID,
-                actionType: WebCompatReporterViewActionType.setAdditionalDetails
-            ))
+            viewModel.setAdditionalDetails(text)
         case .includeScreenshot, .includeBlockedList, .send, .none:
             break
         }
     }
 
     func webCompatReportSheetDidTapLearnMore(url: URL) {
-        store.dispatch(WebCompatReporterViewAction(
-            windowUUID: windowUUID,
-            actionType: WebCompatReporterViewActionType.learnMore
-        ))
+        viewModel.learnMoreTapped()
         reportCoordinator?.webCompatReportViewControllerDidTapLearnMore(url: url)
     }
 

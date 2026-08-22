@@ -23,7 +23,6 @@ enum ComponentState: Sendable, Equatable {
     case nativeErrorPage(NativeErrorPageState)
     case shortcutsLibrary(ShortcutsLibraryState)
     case translationSettings(TranslationSettingsState)
-    case webCompatReporter(WebCompatReporterState)
 
     static let reducer: Reducer<Self> = (legacyReducer, modernReducer)
 
@@ -62,8 +61,6 @@ enum ComponentState: Sendable, Equatable {
             return .shortcutsLibrary(ShortcutsLibraryState.reducer.modernReducer(state, action, actionWindowUUID))
         case .translationSettings(let state):
             return .translationSettings(TranslationSettingsState.reducer.modernReducer(state, action, actionWindowUUID))
-        case .webCompatReporter(let state):
-            return .webCompatReporter(WebCompatReporterState.reducer.modernReducer(state, action, actionWindowUUID))
         }
     }
 
@@ -101,8 +98,6 @@ enum ComponentState: Sendable, Equatable {
             return .shortcutsLibrary(ShortcutsLibraryState.reducer.legacyReducer(state, action))
         case .translationSettings(let state):
             return .translationSettings(TranslationSettingsState.reducer.legacyReducer(state, action))
-        case .webCompatReporter(let state):
-            return .webCompatReporter(WebCompatReporterState.reducer.legacyReducer(state, action))
         }
     }
     // swiftlint:enable closure_body_length
@@ -126,7 +121,6 @@ enum ComponentState: Sendable, Equatable {
         case .nativeErrorPage: return .nativeErrorPage
         case .shortcutsLibrary: return .shortcutsLibrary
         case .translationSettings: return .translationSettings
-        case .webCompatReporter: return .webCompatReporter
         }
     }
 
@@ -148,7 +142,6 @@ enum ComponentState: Sendable, Equatable {
         case .nativeErrorPage(let state): return state.windowUUID
         case .shortcutsLibrary(let state): return state.windowUUID
         case .translationSettings(let state): return state.windowUUID
-        case .webCompatReporter(let state): return state.windowUUID
         }
     }
 }
@@ -232,8 +225,6 @@ struct PresentedComponentsState: Sendable, Equatable {
                 components.append(.shortcutsLibrary(ShortcutsLibraryState(windowUUID: uuid)))
             case .translationSettings:
                 components.append(.translationSettings(TranslationSettingsState(windowUUID: uuid)))
-            case .webCompatReporter:
-                components.append(.webCompatReporter(WebCompatReporterState(windowUUID: uuid)))
             }
         default:
             return components
