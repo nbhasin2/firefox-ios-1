@@ -10,9 +10,12 @@ import MozillaAppServices
 final class MockMerinoManager: MerinoManagerProvider, @unchecked Sendable {
     var getMerinoItemsCalled = 0
     var prefetchStoriesCalled = 0
+    /// Set to an empty response to exercise the no-content path.
+    var responseToReturn: MerinoStoryResponse?
 
     func getMerinoItems(source: StorySource) async -> MerinoStoryResponse {
         getMerinoItemsCalled += 1
+        if let responseToReturn { return responseToReturn }
         let stories: [MerinoStoryConfiguration] = [
             .makeItem("feed1"),
             .makeItem("feed2"),

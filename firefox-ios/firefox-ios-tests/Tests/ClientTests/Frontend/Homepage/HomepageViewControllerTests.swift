@@ -231,16 +231,13 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
     }
 
     func test_viewDidAppear_triggersHomepageAction() async throws {
-        let subject = createSubject()
-        let initialState = HomepageState(windowUUID: .XCTestDefaultUUID)
+        let viewModel = makeViewModel()
+        let subject = createSubject(homepageViewModel: viewModel)
 
-        // Add some visible sections in the collection view to trigger impression telemetry
-        let populatedState = await getPopulatedCollectionViewState(from: initialState)
-
-        // Need to call loadViewIfNeeded to load the view, newState to populate the datasource, and layoutIfNeeded to
-        // reload the collectionView so that it's content is visible
+        // Load the view, then populate the sections through the view model so the collection view
+        // has visible content, then lay out so impressions can be tracked.
         subject.loadViewIfNeeded()
-        subject.newState(state: populatedState)
+        await populateSections(viewModel)
         subject.view.layoutIfNeeded()
 
         subject.viewDidAppear(false)
@@ -255,16 +252,13 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
     }
 
     func test_scrollViewDidEndDecelerating_triggersHomepageAction() async throws {
-        let subject = createSubject()
-        let initialState = HomepageState(windowUUID: .XCTestDefaultUUID)
+        let viewModel = makeViewModel()
+        let subject = createSubject(homepageViewModel: viewModel)
 
-        // Add some visible sections in the collection view to trigger impression telemetry
-        let populatedState = await getPopulatedCollectionViewState(from: initialState)
-
-        // Need to call loadViewIfNeeded to load the view, newState to populate the datasource, and layoutIfNeeded to
-        // reload the collectionView so that it's content is visible
+        // Load the view, then populate the sections through the view model so the collection view
+        // has visible content, then lay out so impressions can be tracked.
         subject.loadViewIfNeeded()
-        subject.newState(state: populatedState)
+        await populateSections(viewModel)
         subject.view.layoutIfNeeded()
 
         subject.scrollViewDidEndDecelerating(UIScrollView())
@@ -279,22 +273,20 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
     }
 
     func test_newState_forTriggeringImpression_withPopulatedDataSource_triggersHomepageAction() async throws {
-        let subject = createSubject()
-        let initialState = HomepageState(windowUUID: .XCTestDefaultUUID)
-
-        // Add some visible sections in the collection view to trigger impression telemetry
-        let populatedState = await getPopulatedCollectionViewState(from: initialState)
+        let viewModel = makeViewModel()
+        let subject = createSubject(homepageViewModel: viewModel)
         let newState = HomepageState.reducer.legacyReducer(
-            populatedState,
+            HomepageState(windowUUID: .XCTestDefaultUUID),
             GeneralBrowserAction(
                 windowUUID: .XCTestDefaultUUID,
                 actionType: GeneralBrowserActionType.didSelectedTabChangeToHomepage
             )
         )
 
-        // Need to call loadViewIfNeeded to load the view, newState to populate the datasource, and layoutIfNeeded to
-        // reload the collectionView so that it's content is visible
+        // Load the view, populate the sections through the view model, then lay out so the
+        // collection view has visible content.
         subject.loadViewIfNeeded()
+        await populateSections(viewModel)
         subject.newState(state: newState)
         subject.view.layoutIfNeeded()
 
@@ -528,7 +520,8 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
 
     private func createSubject(
         tabManager: TabManager = MockTabManager(),
-        statusBarScrollDelegate: StatusBarScrollDelegate? = nil
+        statusBarScrollDelegate: StatusBarScrollDelegate? = nil,
+        homepageViewModel: HomepageViewModel? = nil
     ) -> HomepageViewController {
         let notificationCenter = MockNotificationCenter()
         let themeManager = MockThemeManager()
@@ -546,7 +539,8 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
             statusBarScrollDelegate: statusBarScrollDelegate,
             toastContainer: UIView(),
             notificationCenter: notificationCenter,
-            throttler: mockThrottler
+            throttler: mockThrottler,
+            homepageViewModel: homepageViewModel
         )
         trackForMemoryLeaks(homepageViewController)
         return homepageViewController
@@ -583,17 +577,21 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
         }))
     }
 
-    private func getPopulatedCollectionViewState(from currentState: HomepageState) async -> HomepageState {
-        let merinoManager = MockMerinoManager()
-        let merinoStories = await merinoManager.getMerinoItems(source: .homepage)
-        return HomepageState.reducer.legacyReducer(
-            currentState,
-            MerinoAction(
-                merinoStoryResponse: merinoStories,
-                windowUUID: windowUUID,
-                actionType: MerinoMiddlewareActionType.retrievedUpdatedHomepageStories
-            )
+    /// Merino moved off the store, so the stories that make sections visible come from the view
+    /// model. Fetching after the view controller has bound to it is what triggers the snapshot,
+    /// which `newState` used to do when the stories arrived in the state.
+    private func makeViewModel() -> HomepageViewModel {
+        return HomepageViewModel(
+            windowUUID: .XCTestDefaultUUID,
+            merino: MerinoSectionViewModel(merinoManager: MockMerinoManager())
         )
+    }
+
+    private func populateSections(_ viewModel: HomepageViewModel) async {
+        viewModel.merino.refreshStories()
+        for _ in 0..<20 where !viewModel.merino.hasMerinoResponseContent {
+            await Task.yield()
+        }
     }
 }
 

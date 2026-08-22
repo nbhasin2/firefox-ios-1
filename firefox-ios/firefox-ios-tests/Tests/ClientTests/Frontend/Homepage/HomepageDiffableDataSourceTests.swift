@@ -74,14 +74,7 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             logoTextColor: .blue
         )
 
-        let state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            MerinoAction(
-                merinoStoryResponse: MerinoStoryResponse(stories: createStories()),
-                windowUUID: .XCTestDefaultUUID,
-                actionType: MerinoMiddlewareActionType.retrievedUpdatedHomepageStories
-            )
-        )
+        let state = HomepageState(windowUUID: .XCTestDefaultUUID)
 
         let updatedState = HomepageState.reducer.legacyReducer(
             state,
@@ -94,7 +87,7 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
 
         dataSource.updateSnapshot(
             state: updatedState,
-            viewModel: makeViewModel(),
+            viewModel: makeViewModel(merinoResponse: MerinoStoryResponse(stories: createStories())),
             jumpBackInDisplayConfig: mockSectionConfig
         )
 
@@ -301,16 +294,13 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withValidState_returnPocketStories() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        let state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            MerinoAction(
-                merinoStoryResponse: MerinoStoryResponse(stories: createStories()),
-                windowUUID: .XCTestDefaultUUID,
-                actionType: MerinoMiddlewareActionType.retrievedUpdatedHomepageStories
-            )
-        )
+        let state = HomepageState(windowUUID: .XCTestDefaultUUID)
 
-        dataSource.updateSnapshot(state: state, viewModel: makeViewModel(), jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(
+            state: state,
+            viewModel: makeViewModel(merinoResponse: MerinoStoryResponse(stories: createStories())),
+            jumpBackInDisplayConfig: mockSectionConfig
+        )
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfItems(inSection: .pocket(nil)), 20)
@@ -326,16 +316,13 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withCategorizedStoriesAndNoSelection_returnsFlattenedStories() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        let state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            MerinoAction(
-                merinoStoryResponse: MerinoStoryResponse(categories: createCategories()),
-                windowUUID: .XCTestDefaultUUID,
-                actionType: MerinoMiddlewareActionType.retrievedUpdatedHomepageStories
-            )
-        )
+        let state = HomepageState(windowUUID: .XCTestDefaultUUID)
 
-        dataSource.updateSnapshot(state: state, viewModel: makeViewModel(), jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(
+            state: state,
+            viewModel: makeViewModel(merinoResponse: MerinoStoryResponse(categories: createCategories())),
+            jumpBackInDisplayConfig: mockSectionConfig
+        )
 
         let snapshot = dataSource.snapshot()
         let items = snapshot.itemIdentifiers(inSection: .pocket(nil))
@@ -348,18 +335,11 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withCategorizedStoriesAndSelectedCategory_returnsSelectedCategoryStories() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        let categorizedState = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            MerinoAction(
-                merinoStoryResponse: MerinoStoryResponse(categories: createCategories()),
-                windowUUID: .XCTestDefaultUUID,
-                actionType: MerinoMiddlewareActionType.retrievedUpdatedHomepageStories
-            )
-        )
+        let categorizedState = HomepageState(windowUUID: .XCTestDefaultUUID)
 
         dataSource.updateSnapshot(
             state: categorizedState,
-            viewModel: makeViewModel(),
+            viewModel: makeViewModel(merinoResponse: MerinoStoryResponse(categories: createCategories())),
             selectedNewsfeedCategoryID: "technology",
             jumpBackInDisplayConfig: mockSectionConfig
         )
@@ -375,18 +355,11 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withCategorizedStoriesAndMissingSelectedCategory_omitsPocketSection() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        let categorizedState = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            MerinoAction(
-                merinoStoryResponse: MerinoStoryResponse(categories: createCategories()),
-                windowUUID: .XCTestDefaultUUID,
-                actionType: MerinoMiddlewareActionType.retrievedUpdatedHomepageStories
-            )
-        )
+        let categorizedState = HomepageState(windowUUID: .XCTestDefaultUUID)
 
         dataSource.updateSnapshot(
             state: categorizedState,
-            viewModel: makeViewModel(),
+            viewModel: makeViewModel(merinoResponse: MerinoStoryResponse(categories: createCategories())),
             selectedNewsfeedCategoryID: "missing-category",
             jumpBackInDisplayConfig: mockSectionConfig
         )
@@ -425,30 +398,16 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withValidState_returnBookmarks() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        var state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            BookmarksAction(
-                bookmarks: [BookmarkConfiguration(
-                    site: Site.createBasicSite(
-                        url: "www.mozilla.org",
-                        title: "Title 1",
-                        isBookmarked: true
-                    )
-                )],
-                windowUUID: .XCTestDefaultUUID,
-                actionType: BookmarksMiddlewareActionType.initialize
-            )
-        )
+        var state = HomepageState(windowUUID: .XCTestDefaultUUID)
 
-        // Enable the bookmarks section of the homepage since it's off by default
-        state = HomepageState.reducer.legacyReducer(
-            state,
-            BookmarksAction(isEnabled: true,
-                            windowUUID: .XCTestDefaultUUID,
-                            actionType: BookmarksActionType.toggleShowSectionSetting)
+        let bookmark = BookmarkConfiguration(
+            site: Site.createBasicSite(url: "www.mozilla.org", title: "Title 1", isBookmarked: true)
         )
-
-        dataSource.updateSnapshot(state: state, viewModel: makeViewModel(), jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(
+            state: state,
+            viewModel: makeViewModel(bookmarks: [bookmark]),
+            jumpBackInDisplayConfig: mockSectionConfig
+        )
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfItems(inSection: .bookmarks(nil)), 1)
@@ -602,15 +561,28 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     /// Sections that have migrated read from the view model; a seeded message card lets the data
     /// source render one without going through the store.
     private func makeViewModel(messageCardConfiguration: MessageCardConfiguration? = nil,
-                               trackerBlockerEnabled: Bool = false) -> HomepageViewModel {
+                               trackerBlockerEnabled: Bool = false,
+                               merinoResponse: MerinoStoryResponse? = nil,
+                               bookmarks: [BookmarkConfiguration] = []) -> HomepageViewModel {
         let messageCard = MessageCardViewModel(
             windowUUID: .XCTestDefaultUUID,
             messagingManager: MockGleanPlumbMessageManagerProtocol(),
             initialConfiguration: messageCardConfiguration
         )
-        let viewModel = HomepageViewModel(windowUUID: .XCTestDefaultUUID, messageCard: messageCard)
+        let viewModel = HomepageViewModel(
+            windowUUID: .XCTestDefaultUUID,
+            messageCard: messageCard,
+            bookmarks: BookmarksSectionViewModel(bookmarksHandler: MockBookmarksHandler(),
+                                                 initialBookmarks: bookmarks),
+            merino: MerinoSectionViewModel(merinoManager: MockMerinoManager(),
+                                           initialResponse: merinoResponse)
+        )
         if trackerBlockerEnabled {
             viewModel.trackerBlockerModule.setSectionEnabled(true)
+        }
+        // The bookmarks section is off by default; seeding bookmarks means the test wants it shown.
+        if !bookmarks.isEmpty {
+            viewModel.bookmarks.setSectionEnabled(true)
         }
         return viewModel
     }
