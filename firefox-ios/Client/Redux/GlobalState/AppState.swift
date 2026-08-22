@@ -67,12 +67,10 @@ extension AppState {
 
 @MainActor
 let middlewares = [
-    FeltPrivacyMiddleware().privacyManagerProvider,
     MessageCardMiddleware().messageCardProvider,
     MicrosurveyPromptMiddleware().microsurveyProvider,
     RemoteTabsPanelMiddleware().remoteTabsPanelProvider,
     TabManagerMiddleware().tabsPanelProvider,
-    ThemeManagerMiddleware().themeManagerProvider,
     ToolbarMiddleware().toolbarProvider,
     SearchEngineSelectionMiddleware().searchEngineSelectionProvider,
     TopSitesMiddleware().topSitesProvider,

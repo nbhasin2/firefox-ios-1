@@ -630,9 +630,6 @@ final class BrowserViewControllerStateTests: XCTestCase, StoreTestUtility {
         )
     }
 
-    private func getPrivateModeAction(isPrivate: Bool, for actionType: PrivateModeActionType) -> PrivateModeAction {
-        return  PrivateModeAction(isPrivate: isPrivate, windowUUID: .XCTestDefaultUUID, actionType: actionType)
-    }
 
     func getGeneralBrowserAction(selectedTabURL: URL? = nil,
                                  destinationURL: URL? = nil,
