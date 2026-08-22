@@ -25,6 +25,7 @@ final class HomepageViewModel: Notifiable {
     let wallpaper: WallpaperViewModel
     let topSitesService: TopSitesService
     let topSites: TopSitesSectionViewModel
+    let jumpBackIn: JumpBackInSectionViewModel
 
     /// Fired when any owned section changes and the snapshot needs re-applying.
     var onSectionChange: (() -> Void)?
@@ -42,6 +43,7 @@ final class HomepageViewModel: Notifiable {
          header: HeaderViewModel? = nil,
          wallpaper: WallpaperViewModel? = nil,
          topSites: TopSitesSectionViewModel? = nil,
+         jumpBackIn: JumpBackInSectionViewModel? = nil,
          topSitesService: TopSitesService = .shared,
          notificationCenter: NotificationProtocol = NotificationCenter.default) {
         self.windowUUID = windowUUID
@@ -57,6 +59,7 @@ final class HomepageViewModel: Notifiable {
             windowUUID: windowUUID,
             topSitesService: topSitesService
         )
+        self.jumpBackIn = jumpBackIn ?? JumpBackInSectionViewModel(windowUUID: windowUUID)
         self.notificationCenter = notificationCenter
         bindSections()
         // The migrated sections observe their own refresh triggers. `HomepageMiddleware` still
@@ -89,9 +92,12 @@ final class HomepageViewModel: Notifiable {
                     self?.refreshOnBecomeActive()
                 case .BookmarksUpdated, .RustPlacesOpened:
                     self?.refreshBookmarks()
-                case .TopSitesUpdated, .PrivateDataClearedHistory, .DefaultSearchEngineUpdated,
-                     .ProfileDidFinishSyncing, .FirefoxAccountChanged:
+                case .TopSitesUpdated, .PrivateDataClearedHistory, .DefaultSearchEngineUpdated:
                     self?.refreshTopSites()
+                case .ProfileDidFinishSyncing, .FirefoxAccountChanged:
+                    // Both sections used to be refreshed off these through the middleware.
+                    self?.refreshTopSites()
+                    self?.jumpBackIn.refresh()
                 default:
                     break
                 }
@@ -112,6 +118,8 @@ final class HomepageViewModel: Notifiable {
                 self.bookmarks.setSectionEnabled(isEnabled)
             case .merino:
                 self.merino.setSectionEnabled(isEnabled)
+            case .jumpBackIn:
+                self.jumpBackIn.setSectionEnabled(isEnabled)
             case .topSites:
                 // TopSitesSectionViewModel observes the notification itself; it needs the row
                 // count too, which this switch does not carry.
@@ -133,11 +141,13 @@ final class HomepageViewModel: Notifiable {
         searchBar.refreshVisibility()
         header.refresh()
         refreshTopSites()
+        jumpBackIn.refresh()
     }
 
     /// Homepage `viewWillAppear`.
     func viewWillAppear() {
         header.refresh()
+        jumpBackIn.refresh()
     }
 
     /// Homepage `viewDidAppear`, and app foreground.
@@ -191,6 +201,9 @@ final class HomepageViewModel: Notifiable {
         topSites.onChange = { [weak self] in
             self?.onSectionChange?()
         }
+        jumpBackIn.onChange = { [weak self] in
+            self?.onSectionChange?()
+        }
     }
 }
 
@@ -216,6 +229,7 @@ enum HomepageSectionSettingsNotification {
         case bookmarks
         case merino
         case topSites
+        case jumpBackIn
     }
 
     @MainActor

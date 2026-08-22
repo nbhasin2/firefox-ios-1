@@ -125,6 +125,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
     private let headerState: () -> HeaderState?
     private let availableContentHeight: () -> CGFloat
     private let topSitesState: () -> TopSitesSectionState?
+    private let jumpBackInState: () -> JumpBackInSectionState?
 
     init(windowUUID: WindowUUID,
          logger: Logger = DefaultLogger.shared,
@@ -135,7 +136,8 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
          searchBarIsVisible: @escaping () -> Bool = { false },
          headerState: @escaping () -> HeaderState? = { nil },
          availableContentHeight: @escaping () -> CGFloat = { 0 },
-         topSitesState: @escaping () -> TopSitesSectionState? = { nil }) {
+         topSitesState: @escaping () -> TopSitesSectionState? = { nil },
+         jumpBackInState: @escaping () -> JumpBackInSectionState? = { nil }) {
         self.windowUUID = windowUUID
         self.logger = logger
         self.trackerBlockerModuleIsVisible = trackerBlockerModuleIsVisible
@@ -145,6 +147,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
         self.headerState = headerState
         self.availableContentHeight = availableContentHeight
         self.topSitesState = topSitesState
+        self.jumpBackInState = jumpBackInState
     }
 
     func createLayoutSection(
@@ -710,12 +713,8 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
     /// Creates a "dummy" jump back in section and returns its height
     private func getJumpBackInSectionHeight(environment: NSCollectionLayoutEnvironment) -> CGFloat {
         // Ensures we have at least 1 jump back in tab to show
-        guard let state = store.state.componentState(HomepageState.self, for: .homepage, window: windowUUID) else {
-            return 0
-        }
-
-        let jumpBackInState = state.jumpBackInState
-        guard jumpBackInState.shouldShowSection,
+        guard let jumpBackInState = jumpBackInState(),
+              jumpBackInState.shouldShowSection,
               jumpBackInState.mostRecentSyncedTab != nil || !jumpBackInState.jumpBackInTabs.isEmpty else { return 0 }
 
         let containerWidth = normalizedDimension(environment.container.contentSize.width)

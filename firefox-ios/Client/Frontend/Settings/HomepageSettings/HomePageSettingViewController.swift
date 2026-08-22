@@ -137,13 +137,11 @@ class HomePageSettingViewController: SettingsTableViewController,
                 defaultValue: userPreferences.getPreferenceFor(.homepageJumpBackinSectionDefault),
                 titleText: .Settings.Homepage.CustomizeFirefoxHome.JumpBackIn
             ) { value in
-                store.dispatch(
-                    JumpBackInAction(
+                HomepageSectionSettingsNotification.post(
+                        section: .jumpBackIn,
                         isEnabled: value,
-                        windowUUID: self.windowUUID,
-                        actionType: JumpBackInActionType.toggleShowSectionSetting
+                        windowUUID: self.windowUUID
                     )
-                )
             }
             sectionItems.append(jumpBackInSetting)
 

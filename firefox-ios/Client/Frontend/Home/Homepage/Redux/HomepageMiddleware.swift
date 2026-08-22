@@ -110,8 +110,6 @@ final class HomepageMiddleware: FeatureFlaggable, Notifiable {
         let notifications: [Notification.Name] = [
             UIApplication.didBecomeActiveNotification,
             UIApplication.didEnterBackgroundNotification,
-            .FirefoxAccountChanged,
-            .ProfileDidFinishSyncing,
             .BookmarksUpdated,
             .RustPlacesOpened
         ]
@@ -155,27 +153,9 @@ final class HomepageMiddleware: FeatureFlaggable, Notifiable {
                     )
                     store.dispatch(bookmarksAction)
 
-                case .ProfileDidFinishSyncing, .FirefoxAccountChanged:
-                    self.dispatchActionToFetchTabs(windowUUID: windowUUID)
-
                 default: break
                 }
             }
         }
-    }
-
-    private func dispatchActionToFetchTabs(windowUUID: WindowUUID) {
-        store.dispatch(
-            HomepageAction(
-                windowUUID: windowUUID,
-                actionType: HomepageMiddlewareActionType.jumpBackInLocalTabsUpdated
-            )
-        )
-        store.dispatch(
-            HomepageAction(
-                windowUUID: windowUUID,
-                actionType: HomepageMiddlewareActionType.jumpBackInRemoteTabsUpdated
-            )
-        )
     }
 }

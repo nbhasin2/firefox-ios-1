@@ -181,13 +181,8 @@ final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark
         case TabTrayActionType.closePrivateTabsSettingToggled:
             preserveTabs(uuid: action.windowUUID)
 
-        // FXIOS-11740 - This is relate to homepage actions, so if we want to break up this middleware
-        // then this action should go to the homepage specific middleware.
-        case TabTrayActionType.dismissTabTray, TabTrayActionType.modalSwipedToClose:
-            dispatchRecentlyAccessedTabs(action: action)
         case TabTrayActionType.doneButtonTapped:
             tabsPanelTelemetry.doneButtonTapped(mode: action.panelType?.modeForTelemetry ?? .normal)
-            dispatchRecentlyAccessedTabs(action: action)
         default:
             break
         }
@@ -222,7 +217,6 @@ final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark
             let isPrivateMode = action.panelType == .privateTabs
             tabsPanelTelemetry.newTabButtonTapped(mode: action.panelType?.modeForTelemetry ?? .normal)
             addNewTab(with: action.urlRequest, isPrivate: isPrivateMode, showOverlay: true, for: action.windowUUID)
-            dispatchRecentlyAccessedTabs(action: action)
         case TabPanelViewActionType.moveTab:
             guard let moveTabData = action.moveTabData else { return }
             moveTab(state: state, moveTabData: moveTabData, uuid: action.windowUUID)
@@ -642,11 +636,6 @@ final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark
     // MARK: - Homepage Related Actions
     private func resolveHomepageActions(with action: Action) {
         switch action.actionType {
-        case HomepageActionType.viewWillAppear,
-            HomepageMiddlewareActionType.jumpBackInLocalTabsUpdated,
-            TopTabsActionType.didTapNewTab,
-            TopTabsActionType.didTapCloseTab:
-            dispatchRecentlyAccessedTabs(action: action)
         case JumpBackInActionType.tapOnCell:
             guard let jumpBackInAction = action as? JumpBackInAction,
                   let tab = jumpBackInAction.tab else { return }
@@ -704,18 +693,5 @@ final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark
 
     private func preserveTabs(uuid: WindowUUID) {
         tabManager(for: uuid)?.preserveTabs()
-    }
-
-    /// Sends out updated recent tabs which is currently used for the homepage jumpBackIn section
-    private func dispatchRecentlyAccessedTabs(action: Action) {
-        guard let tabManager = tabManager(for: action.windowUUID) else { return }
-        let recentTabs = tabManager.recentlyAccessedNormalTabs
-        store.dispatch(
-            TabManagerAction(
-                recentTabs: recentTabs,
-                windowUUID: action.windowUUID,
-                actionType: TabManagerMiddlewareActionType.fetchedRecentTabs
-            )
-        )
     }
 }

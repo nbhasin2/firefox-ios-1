@@ -11,7 +11,6 @@ struct HomepageState: ScreenState, Equatable {
     var windowUUID: WindowUUID
 
     // Homepage sections state in the order they appear on the collection view
-    let jumpBackInState: JumpBackInSectionState
 
     let telemetryState: HomepageTelemetryState
 
@@ -31,7 +30,6 @@ struct HomepageState: ScreenState, Equatable {
 
         self.init(
             windowUUID: homepageState.windowUUID,
-            jumpBackInState: homepageState.jumpBackInState,
             telemetryState: homepageState.telemetryState,
             shouldShowPrivacyNotice: homepageState.shouldShowPrivacyNotice
         )
@@ -40,7 +38,6 @@ struct HomepageState: ScreenState, Equatable {
     init(windowUUID: WindowUUID) {
         self.init(
             windowUUID: windowUUID,
-            jumpBackInState: JumpBackInSectionState(windowUUID: windowUUID),
             telemetryState: HomepageTelemetryState(windowUUID: windowUUID),
             shouldShowPrivacyNotice: false,
         )
@@ -48,12 +45,10 @@ struct HomepageState: ScreenState, Equatable {
 
     private init(
         windowUUID: WindowUUID,
-        jumpBackInState: JumpBackInSectionState,
         telemetryState: HomepageTelemetryState,
         shouldShowPrivacyNotice: Bool
     ) {
         self.windowUUID = windowUUID
-        self.jumpBackInState = jumpBackInState
         self.telemetryState = telemetryState
         self.shouldShowPrivacyNotice = shouldShowPrivacyNotice
     }
@@ -91,7 +86,6 @@ struct HomepageState: ScreenState, Equatable {
     private static func handleInitializeAndViewWillTransitionAction(state: HomepageState, action: Action) -> HomepageState {
         return state
             .resetTransientState()
-            .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(telemetryState: HomepageTelemetryState.reducer.legacyReducer(state.telemetryState, action))
     }
 
@@ -99,7 +93,6 @@ struct HomepageState: ScreenState, Equatable {
     private static func handleEmbeddedHomepageAction(state: HomepageState, action: Action) -> HomepageState {
         return state
             .resetTransientState()
-            .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(telemetryState: HomepageTelemetryState.reducer.legacyReducer(state.telemetryState, action))
     }
 
@@ -107,7 +100,6 @@ struct HomepageState: ScreenState, Equatable {
     private static func handlePrivacyNoticeCloseButtonTappedAction(state: HomepageState, action: Action) -> HomepageState {
         return state
             .resetTransientState()
-            .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(telemetryState: HomepageTelemetryState.reducer.legacyReducer(state.telemetryState, action))
             .copy(shouldShowPrivacyNotice: false)
     }
@@ -116,7 +108,6 @@ struct HomepageState: ScreenState, Equatable {
     private static func handleDidTabChangeToHomepageAction(state: HomepageState, action: Action) -> HomepageState {
         return state
             .resetTransientState()
-            .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(telemetryState: HomepageTelemetryState.reducer.legacyReducer(state.telemetryState, action))
     }
 
@@ -124,7 +115,6 @@ struct HomepageState: ScreenState, Equatable {
     private static func handlePrivacyNoticeInitialization(action: Action, state: Self) -> HomepageState {
         return state
             .resetTransientState()
-            .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(telemetryState: HomepageTelemetryState.reducer.legacyReducer(state.telemetryState, action))
             .copy(shouldShowPrivacyNotice: true)
     }
@@ -133,14 +123,12 @@ struct HomepageState: ScreenState, Equatable {
     private static func passthroughState(from state: HomepageState, action: Action) -> HomepageState {
         return state
             .resetTransientState()
-            .copy(jumpBackInState: JumpBackInSectionState.reducer.legacyReducer(state.jumpBackInState, action))
             .copy(telemetryState: HomepageTelemetryState.reducer.legacyReducer(state.telemetryState, action))
     }
 
     static func defaultState(from state: HomepageState) -> HomepageState {
         return HomepageState(
             windowUUID: state.windowUUID,
-            jumpBackInState: JumpBackInSectionState.defaultState(from: state.jumpBackInState),
             telemetryState: HomepageTelemetryState.defaultState(from: state.telemetryState),
             shouldShowPrivacyNotice: state.shouldShowPrivacyNotice
         )

@@ -157,7 +157,8 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
             )
         }
 
-        if let (tabs, configuration) = getJumpBackInTabs(with: state.jumpBackInState, and: jumpBackInDisplayConfig) {
+        let jumpBackIn = getJumpBackInTabs(with: viewModel.jumpBackIn.state, and: jumpBackInDisplayConfig)
+        if let (tabs, configuration) = jumpBackIn {
             snapshot.appendSections([.jumpBackIn(textColor, configuration)])
             snapshot.appendItems(tabs, toSection: .jumpBackIn(textColor, configuration))
         }

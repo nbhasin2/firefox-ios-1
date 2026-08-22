@@ -584,3 +584,26 @@ The rule this leaves: a view model that a test constructs must take every collab
 injectable parameter, and the test helpers must pass them. `HomepageViewControllerTests` and
 `HomepageDiffableDataSourceTests` now build a stubbed `HomepageViewModel` in every case rather
 than letting `createSubject` fall through to the production defaults.
+
+## D-027 — Jump back in reads the tab layer directly, and hears about it on the bus
+
+Jump back in was the hardest section to separate: its two data sources lived in
+`TabManagerMiddleware` and `RemoteTabsPanelMiddleware`, neither of which is migrating in Phase 3.
+The D-012 test says look at what actually couples them, and what coupled them was two cheap
+reads — `tabManager.recentlyAccessedNormalTabs` and `profile.getCachedClientsAndTabs` — that each
+middleware wrapped in a dispatch. Neither needed the store. `TabManagerMiddleware` even carried
+"FXIOS-11740 this should go to the homepage middleware" on its half.
+
+So they become `RecentTabsProviding` and `SyncedTabProviding`, and the section migrates without
+Tabs having to.
+
+The refresh triggers show all three D-017 rows in one section:
+- homepage `viewWillAppear` → direct call (ownership)
+- `.ProfileDidFinishSyncing` / `.FirefoxAccountChanged` → notifications the homepage already
+  observes, so `HomepageMiddleware`'s `jumpBackInLocalTabsUpdated`/`jumpBackInRemoteTabsUpdated`
+  bridge disappears
+- tab tray dismissed, top tabs opened or closed a tab → the bus (D-016), because those are
+  browser-level events with no ownership path to the homepage
+
+The last group is the second real use of the retained bus after the search bar, and the one that
+justifies keeping it: twelve action-type cases across two middlewares collapse into one observer.

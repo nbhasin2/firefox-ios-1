@@ -50,8 +50,6 @@ enum HomepageActionType: ActionType {
 }
 
 enum HomepageMiddlewareActionType: ActionType {
-    case jumpBackInLocalTabsUpdated
-    case jumpBackInRemoteTabsUpdated
     case bookmarksUpdated
     case didBecomeActive
     case didEnterBackground

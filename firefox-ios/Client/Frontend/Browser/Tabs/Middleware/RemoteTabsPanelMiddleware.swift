@@ -33,12 +33,8 @@ final class RemoteTabsPanelMiddleware: Notifiable {
     }
 
     lazy var legacyProvider: LegacyMiddlewareClosure<AppState> = { [self] state, action in
-        let uuid = action.windowUUID
-        if let action = action as? RemoteTabsPanelAction {
-            self.resolveRemoteTabsPanelActions(action: action, state: state)
-        } else {
-            self.resolveHomepageActions(action: action, state: state)
-        }
+        guard let action = action as? RemoteTabsPanelAction else { return }
+        self.resolveRemoteTabsPanelActions(action: action, state: state)
     }
 
     // MARK: - Internal Utilities
@@ -56,19 +52,6 @@ final class RemoteTabsPanelMiddleware: Notifiable {
             self.getSyncState(window: uuid)
         case RemoteTabsPanelActionType.refreshTabsWithCache:
             self.getSyncState(window: uuid, useCache: true)
-        default:
-            break
-        }
-    }
-
-    private func resolveHomepageActions(action: Action, state: AppState) {
-        switch action.actionType {
-        case HomepageActionType.viewWillAppear,
-            HomepageMiddlewareActionType.jumpBackInRemoteTabsUpdated,
-            TabTrayActionType.dismissTabTray,
-            TopTabsActionType.didTapNewTab,
-            TopTabsActionType.didTapCloseTab:
-            self.handleFetchingMostRecentRemoteTab(windowUUID: action.windowUUID)
         default:
             break
         }
