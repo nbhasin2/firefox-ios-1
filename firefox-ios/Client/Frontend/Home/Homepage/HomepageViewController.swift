@@ -16,11 +16,7 @@ final class HomepageViewController: UIViewController,
                                     ContentContainable,
                                     Screenshotable,
                                     Themeable,
-                                    FeatureFlaggable,
-                                    StoreSubscriber {
-    // MARK: - Typealiases
-    typealias SubscriberStateType = HomepageState
-
+                                    FeatureFlaggable {
     // MARK: - ContentContainable variables
     var contentType: ContentType = .homepage
 
@@ -75,7 +71,6 @@ final class HomepageViewController: UIViewController,
 
     private let jumpBackInContextualHintViewController: ContextualHintViewController
     private let syncTabContextualHintViewController: ContextualHintViewController
-    private var homepageState: HomepageState
     private let homepageViewModel: HomepageViewModel
     private var lastContentOffsetY: CGFloat = 0
     private var didFinishFirstLayout = false
@@ -157,7 +152,6 @@ final class HomepageViewController: UIViewController,
             windowUUID: windowUUID
         )
 
-        homepageState = HomepageState(windowUUID: windowUUID)
         self.homepageViewModel = homepageViewModel ?? HomepageViewModel(windowUUID: windowUUID)
         super.init(nibName: nil, bundle: nil)
 
@@ -167,23 +161,15 @@ final class HomepageViewController: UIViewController,
         self.homepageViewModel.wallpaper.onChange = { [weak self] state, previous in
             self?.applyWallpaper(state, previous: previous)
         }
-        subscribeToRedux()
+        // FXIOS-11523 - Re-record impressions when a tab switches to the homepage.
+        self.homepageViewModel.onImpressionReset = { [weak self] in
+            self?.resetTrackedObjects()
+            self?.trackVisibleItemImpressions()
+        }
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    deinit {
-        // TODO: FXIOS-13097 This is a work around until we can leverage isolated deinits
-        guard Thread.isMainThread else {
-            assertionFailure("TabSwipeGestureHandler was not deallocated on the main thread. Observer was not removed")
-            return
-        }
-
-        MainActor.assumeIsolated {
-            unsubscribeFromRedux()
-        }
     }
 
     func stopCFRsTimer() {
@@ -215,24 +201,13 @@ final class HomepageViewController: UIViewController,
 
         /// Used as a trigger for showing a microsurvey based on viewing the homepage
         Experiments.events.recordEvent(BehavioralTargetingEvent.homepageViewed)
-        store.dispatch(
-            HomepageAction(
-                windowUUID: windowUUID,
-                actionType: HomepageActionType.viewWillAppear
-            )
-        )
         homepageViewModel.viewWillAppear()
         termsOfUseDelegate?.showTermsOfUse(context: .homepageOpened)
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        store.dispatch(
-            HomepageAction(
-                windowUUID: windowUUID,
-                actionType: HomepageActionType.viewDidAppear
-            )
-        )
+        homepageViewModel.recordHomepageImpression()
         homepageViewModel.refreshOnAppearance()
         trackVisibleItemImpressions()
     }
@@ -240,12 +215,6 @@ final class HomepageViewController: UIViewController,
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
-        store.dispatch(
-            HomepageAction(
-                windowUUID: windowUUID,
-                actionType: HomepageActionType.viewWillDisappear
-            )
-        )
         stopCFRsTimer()
         saveVerticalScrollOffset()
     }
@@ -263,12 +232,6 @@ final class HomepageViewController: UIViewController,
         /// This issue seems to be resolved by the SDK on later iOS versions
         if !didFinishFirstLayout {
             didFinishFirstLayout = true
-            store.dispatch(
-                HomepageAction(
-                    windowUUID: windowUUID,
-                    actionType: HomepageActionType.initialize
-                )
-            )
             homepageViewModel.topSites.setNumberOfTilesPerRow(numberOfTilesPerRow(for: availableWidth))
             homepageViewModel.viewDidLoad()
         }
@@ -281,12 +244,6 @@ final class HomepageViewController: UIViewController,
         super.viewWillTransition(to: size, with: coordinator)
         wallpaperView.updateImageForOrientationChange()
         homepageViewModel.topSites.setNumberOfTilesPerRow(numberOfTilesPerRow(for: size.width))
-        store.dispatch(
-            HomepageAction(
-                windowUUID: windowUUID,
-                actionType: HomepageActionType.viewWillTransition
-            )
-        )
     }
 
     // Called when the homepage is displayed to make sure it's vertical scroll position is persisted.
@@ -440,54 +397,6 @@ final class HomepageViewController: UIViewController,
     /// this to decide whether to hide the address toolbar; it used to read `HomepageState`.
     var isSearchBarVisible: Bool {
         return homepageViewModel.searchBar.shouldShowSearchBar
-    }
-
-    // MARK: - Redux
-    func subscribeToRedux() {
-        let action = ComponentAction(
-            windowUUID: windowUUID,
-            actionType: ComponentActionType.addComponent,
-            component: .homepage
-        )
-        store.dispatch(action)
-
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            return $0.select({ appState in
-                return HomepageState(
-                    appState: appState,
-                    uuid: uuid
-                )
-            })
-        })
-    }
-
-    func newState(state: HomepageState) {
-        // TODO: - FXIOS-13346 / FXIOS-13343 - fix collection view being reloaded all the time also when data don't change
-        // this is a quick workaround to avoid blocking the main thread by calling apply snapshot many times.
-        if homepageState != state {
-            self.homepageState = state
-
-            refreshHomepageDataSourceSnapshot { [weak self] in
-                self?.collectionView?.layoutIfNeeded()
-                self?.updateNewsTransitionHeaderProgress()
-            }
-        }
-
-        // FXIOS-11523 - Trigger impression when user opens homepage view new tab + scroll to top
-        if state.telemetryState.shouldTriggerImpression {
-            resetTrackedObjects()
-            trackVisibleItemImpressions()
-        }
-    }
-
-    func unsubscribeFromRedux() {
-        let action = ComponentAction(
-            windowUUID: windowUUID,
-            actionType: ComponentActionType.removeComponent,
-            component: .homepage
-        )
-        store.dispatch(action)
     }
 
     // MARK: - Theming
@@ -775,7 +684,7 @@ final class HomepageViewController: UIViewController,
                 onOpenSyncedTabAction: { [weak self] url in
                     guard let self else { return }
                     self.navigateToNewTab(with: url)
-                    self.sendItemActionWithTelemetryExtras(item: item, actionType: .didSelectItem)
+                    self.recordItemTapped(item)
                 }
             )
             prepareSyncedTabContextualHint(onCell: cell)
@@ -1019,13 +928,6 @@ final class HomepageViewController: UIViewController,
                 self?.updateNewsTransitionHeaderProgress()
             }
         }
-
-        store.dispatch(
-            HomepageAction(
-                windowUUID: windowUUID,
-                actionType: HomepageActionType.traitCollectionDidChange
-            )
-        )
     }
 
     // MARK: Tap Gesture Recognizer
@@ -1155,7 +1057,7 @@ final class HomepageViewController: UIViewController,
     }
 
     private func dispatchOpenPocketAction(at index: Int, actionType: ActionType) {
-        let config = OpenPocketTelemetryConfig(isZeroSearch: homepageState.telemetryState.isZeroSearch, position: index)
+        let config = OpenPocketTelemetryConfig(isZeroSearch: homepageViewModel.isZeroSearch, position: index)
         store.dispatch(
             MerinoAction(
                 telemetryConfig: config,
@@ -1166,12 +1068,7 @@ final class HomepageViewController: UIViewController,
     }
 
     private func dispatchPrivacyNoticeCloseButtonTapped() {
-        store.dispatch(
-            HomepageAction(
-                windowUUID: self.windowUUID,
-                actionType: HomepageActionType.privacyNoticeCloseButtonTapped
-            )
-        )
+        homepageViewModel.privacyNoticeDismissed()
     }
 
     private func dispatchPrivacyNoticeLinkTapped(url: URL) {
@@ -1207,7 +1104,6 @@ final class HomepageViewController: UIViewController,
     private func refreshHomepageDataSourceSnapshot(animatingDifferences: Bool = true,
                                                    completion: (() -> Void)? = nil) {
         dataSource?.updateSnapshot(
-            state: homepageState,
             viewModel: homepageViewModel,
             selectedNewsfeedCategoryID: currentHomepageTabState.selectedNewsfeedCategoryID,
             jumpBackInDisplayConfig: getJumpBackInDisplayConfig(),
@@ -1330,7 +1226,7 @@ final class HomepageViewController: UIViewController,
             topSitesTelemetry.sendTileTapped(
                 config,
                 at: indexPath.item,
-                isZeroSearch: homepageState.telemetryState.isZeroSearch
+                isZeroSearch: homepageViewModel.isZeroSearch
             )
         case .searchBar:
             dispatchDidSelectCardItemAction(with: item)
@@ -1390,18 +1286,12 @@ final class HomepageViewController: UIViewController,
     /// is handled differently due to how tapping is handled for the cell. See `onOpenSyncedTabAction` in this file.
     private func dispatchDidSelectCardItemAction(with item: HomepageItem) {
         if case .jumpBackInSyncedTab = item { return }
-        sendItemActionWithTelemetryExtras(item: item, actionType: .didSelectItem)
+        recordItemTapped(item)
     }
 
-    private func sendItemActionWithTelemetryExtras(item: HomepageItem, actionType: HomepageActionType) {
-        let telemetryExtras = HomepageTelemetryExtras(itemType: item.telemetryItemType)
-        store.dispatch(
-            HomepageAction(
-                telemetryExtras: telemetryExtras,
-                windowUUID: windowUUID,
-                actionType: actionType
-            )
-        )
+    private func recordItemTapped(_ item: HomepageItem) {
+        guard let itemType = item.telemetryItemType else { return }
+        homepageViewModel.recordItemTapped(itemType)
     }
 
     /// Used to track impressions. If the user has already seen the item on the homepage, we only record the impression once.
@@ -1446,7 +1336,8 @@ final class HomepageViewController: UIViewController,
     private func handleTrackingSectionImpression(for section: HomepageSection, with item: HomepageItem) {
         guard !alreadyTrackedSections.contains(section) else { return }
         alreadyTrackedSections.insert(section)
-        sendItemActionWithTelemetryExtras(item: item, actionType: HomepageActionType.sectionSeen)
+        guard let itemType = item.telemetryItemType else { return }
+        homepageViewModel.recordSectionSeen(itemType)
     }
 
     private func resetTrackedObjects() {
@@ -1504,7 +1395,7 @@ final class HomepageViewController: UIViewController,
     }
 
     private var canContextHintBePresented: Bool {
-        return presentedViewController == nil && homepageState.telemetryState.isZeroSearch
+        return presentedViewController == nil && homepageViewModel.isZeroSearch
     }
 
     @objc

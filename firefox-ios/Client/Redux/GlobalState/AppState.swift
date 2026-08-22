@@ -31,7 +31,6 @@ struct AppState: StateType, Sendable {
             .compactMap {
                 switch ($0, component) {
                 case (.browserViewController(let state), .browserViewController): return state as? S
-                case (.homepage(let state), .homepage): return state as? S
                 case (.remoteTabsPanel(let state), .remoteTabsPanel): return state as? S
                 case (.tabsPanel(let state), .tabsPanel): return state as? S
                 case (.tabPeek(let state), .tabPeek): return state as? S
@@ -72,7 +71,6 @@ let middlewares = [
     TabManagerMiddleware().tabsPanelProvider,
     ToolbarMiddleware().toolbarProvider,
     SearchEngineSelectionMiddleware().searchEngineSelectionProvider,
-    HomepageMiddleware(notificationCenter: NotificationCenter.default).homepageProvider,
     StartAtHomeMiddleware().startAtHomeProvider,
     ShortcutsLibraryMiddleware().shortcutsLibraryProvider,
     SummarizerMiddleware().summarizerProvider,

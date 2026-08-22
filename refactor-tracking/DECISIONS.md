@@ -607,3 +607,26 @@ The refresh triggers show all three D-017 rows in one section:
 
 The last group is the second real use of the retained bus after the search bar, and the one that
 justifies keeping it: twelve action-type cases across two middlewares collapse into one observer.
+
+## D-028 — Homepage complete: the first screen fully off the screen-state tree
+
+`HomepageState`, `HomepageTelemetryState` and `HomepageMiddleware` are gone, along with
+`HomepageAction`, both of its action-type enums, and the `.homepage` `AppComponent` case.
+`HomepageViewController` no longer conforms to `StoreSubscriber`. Ten sections migrated over the
+phase; the last two fields of the state — `telemetryState` and `shouldShowPrivacyNotice` — moved
+into `HomepageViewModel` in this slice.
+
+Three things worth recording from the finale:
+
+- `HomepageActionType.embeddedHomepage` carried `isZeroSearch` from `BrowserCoordinator`, which
+  creates the homepage. That is an ownership path, so it is `setZeroSearch(_:)`.
+- `GeneralBrowserActionType.didSelectedTabChangeToHomepage` drove the `shouldTriggerImpression`
+  flag. A tab changing is browser-level with no ownership path here, so it comes off the bus.
+  This is the third bus consumer, after the search bar and jump back in.
+- `HomepageSectionLayoutProvider` held four `store.state.componentState(HomepageState.self, ...)`
+  guards. Three of them bound a value nothing read — they were "is the homepage in the store"
+  checks that survived their own purpose. Only one carried information, and it is a closure now.
+
+What the homepage still touches of Redux is navigation and browser-level actions it dispatches
+outward — `NavigationBrowserAction`, `GeneralBrowserAction`, `ToolbarAction`, `ContextMenuAction`
+— which is exactly the D-016 end state for a migrated screen.

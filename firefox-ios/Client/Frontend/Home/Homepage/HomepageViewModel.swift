@@ -4,6 +4,7 @@
 
 import Common
 import Foundation
+import Redux
 import Shared
 import UIKit
 
@@ -27,10 +28,29 @@ final class HomepageViewModel: Notifiable {
     let topSites: TopSitesSectionViewModel
     let jumpBackIn: JumpBackInSectionViewModel
 
+    /// FXIOS-11504 / FXIOS-6203 - true when the homepage was opened from the tab tray, a long
+    /// press on the tab bar, or the home button, rather than by tapping the url bar on a loaded
+    /// page. Drives top sites and merino telemetry and the contextual pop-overs. Set by
+    /// `BrowserCoordinator`, which embeds the homepage and is the only thing that knows.
+    private(set) var isZeroSearch = false
+
+    /// True when a new privacy notice is available after the user already accepted the ToS/ToU.
+    private(set) var shouldShowPrivacyNotice = false
+
+    /// Fired when the homepage should re-record impressions from scratch.
+    var onImpressionReset: (() -> Void)?
+
     /// Fired when any owned section changes and the snapshot needs re-applying.
     var onSectionChange: (() -> Void)?
 
     private let windowUUID: WindowUUID
+    private let privacyNoticeHelper: PrivacyNoticeHelperProtocol
+    private let telemetry: HomepageTelemetry
+    /// The privacy notice is a Terms of Use surface, so its impression and dismissal are ToU
+    /// events. They were recorded in `HomepageMiddleware` after `TermsOfUseMiddleware` went.
+    private let termsOfUseTelemetry: TermsOfUseTelemetry
+    /// The store holds observers weakly and sweeps dead ones, so there is nothing to unregister.
+    private let bus: (any ActionObserving)?
 
     let notificationCenter: NotificationProtocol
 
@@ -45,6 +65,11 @@ final class HomepageViewModel: Notifiable {
          topSites: TopSitesSectionViewModel? = nil,
          jumpBackIn: JumpBackInSectionViewModel? = nil,
          topSitesService: TopSitesService = .shared,
+         privacyNoticeHelper: PrivacyNoticeHelperProtocol? = nil,
+         telemetry: HomepageTelemetry = HomepageTelemetry(),
+         termsOfUseTelemetry: TermsOfUseTelemetry = TermsOfUseTelemetry(),
+         profile: Profile = AppContainer.shared.resolve(),
+         bus: (any ActionObserving)? = store,
          notificationCenter: NotificationProtocol = NotificationCenter.default) {
         self.windowUUID = windowUUID
         self.messageCard = messageCard ?? MessageCardViewModel(windowUUID: windowUUID)
@@ -60,8 +85,13 @@ final class HomepageViewModel: Notifiable {
             topSitesService: topSitesService
         )
         self.jumpBackIn = jumpBackIn ?? JumpBackInSectionViewModel(windowUUID: windowUUID)
+        self.privacyNoticeHelper = privacyNoticeHelper ?? PrivacyNoticeHelper(prefs: profile.prefs)
+        self.telemetry = telemetry
+        self.termsOfUseTelemetry = termsOfUseTelemetry
+        self.bus = bus
         self.notificationCenter = notificationCenter
         bindSections()
+        observeTabChange()
         // The migrated sections observe their own refresh triggers. `HomepageMiddleware` still
         // observes the same names for the sections that have not moved yet; both can coexist
         // because each only acts on its own sections.
@@ -132,6 +162,50 @@ final class HomepageViewModel: Notifiable {
 
     // MARK: - Lifecycle
 
+    /// Set by `BrowserCoordinator` when it embeds the homepage; see `isZeroSearch`.
+    func setZeroSearch(_ isZeroSearch: Bool) {
+        self.isZeroSearch = isZeroSearch
+    }
+
+    /// A tab switched to the homepage, so impressions should be recorded again from scratch.
+    func didSelectTabChangeToHomepage() {
+        onImpressionReset?()
+    }
+
+    // MARK: - Privacy notice
+
+    func configurePrivacyNoticeIfNeeded() {
+        guard privacyNoticeHelper.shouldShowPrivacyNotice() else { return }
+        termsOfUseTelemetry.termsOfUseDisplayed(surface: .privacyNotice)
+        shouldShowPrivacyNotice = true
+        onSectionChange?()
+    }
+
+    func privacyNoticeDismissed() {
+        termsOfUseTelemetry.termsOfUseDismissed(surface: .privacyNotice)
+        shouldShowPrivacyNotice = false
+        onSectionChange?()
+    }
+
+    // MARK: - Telemetry
+
+    func recordHomepageImpression() {
+        telemetry.sendHomepageImpressionEvent()
+    }
+
+    func recordItemTapped(_ itemType: HomepageTelemetry.ItemType) {
+        telemetry.sendItemTappedTelemetryEvent(for: itemType)
+    }
+
+    func recordSectionSeen(_ itemType: HomepageTelemetry.ItemType) {
+        switch itemType {
+        case .quickAnswersEntryPoint:
+            telemetry.sendQuickAnswersButtonViewedEvent()
+        default:
+            telemetry.sendSectionLabeledCounter(for: itemType)
+        }
+    }
+
     /// Homepage `initialize`.
     func viewDidLoad() {
         messageCard.viewDidLoad()
@@ -142,6 +216,7 @@ final class HomepageViewModel: Notifiable {
         header.refresh()
         refreshTopSites()
         jumpBackIn.refresh()
+        configurePrivacyNoticeIfNeeded()
     }
 
     /// Homepage `viewWillAppear`.
@@ -178,6 +253,18 @@ final class HomepageViewModel: Notifiable {
     }
 
     // MARK: - Private
+
+    /// FXIOS-11523 - a tab switching to the homepage is a browser-level event with no ownership
+    /// path here, so it comes off the bus (D-016) rather than through a `ScreenState`.
+    private func observeTabChange() {
+        bus?.addActionObserver(self) { [weak self] action in
+            guard let self,
+                  action.windowUUID == self.windowUUID || action.windowUUID == .unavailable,
+                  action.actionType as? GeneralBrowserActionType == .didSelectedTabChangeToHomepage
+            else { return }
+            self.didSelectTabChangeToHomepage()
+        }
+    }
 
     private func bindSections() {
         messageCard.onConfigurationChange = { [weak self] _ in

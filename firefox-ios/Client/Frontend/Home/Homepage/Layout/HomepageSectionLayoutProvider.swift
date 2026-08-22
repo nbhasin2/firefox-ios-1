@@ -126,6 +126,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
     private let availableContentHeight: () -> CGFloat
     private let topSitesState: () -> TopSitesSectionState?
     private let jumpBackInState: () -> JumpBackInSectionState?
+    private let shouldShowPrivacyNotice: () -> Bool
 
     init(windowUUID: WindowUUID,
          logger: Logger = DefaultLogger.shared,
@@ -137,7 +138,8 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
          headerState: @escaping () -> HeaderState? = { nil },
          availableContentHeight: @escaping () -> CGFloat = { 0 },
          topSitesState: @escaping () -> TopSitesSectionState? = { nil },
-         jumpBackInState: @escaping () -> JumpBackInSectionState? = { nil }) {
+         jumpBackInState: @escaping () -> JumpBackInSectionState? = { nil },
+         shouldShowPrivacyNotice: @escaping () -> Bool = { false }) {
         self.windowUUID = windowUUID
         self.logger = logger
         self.trackerBlockerModuleIsVisible = trackerBlockerModuleIsVisible
@@ -148,6 +150,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
         self.availableContentHeight = availableContentHeight
         self.topSitesState = topSitesState
         self.jumpBackInState = jumpBackInState
+        self.shouldShowPrivacyNotice = shouldShowPrivacyNotice
     }
 
     func createLayoutSection(
@@ -612,8 +615,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
 
     private func getPrivacyNoticeSectionHeight(environment: NSCollectionLayoutEnvironment) -> CGFloat {
         // Ensures we should be showing the privacy notice
-        guard let state = store.state.componentState(HomepageState.self, for: .homepage, window: windowUUID),
-              state.shouldShowPrivacyNotice else { return 0 }
+        guard shouldShowPrivacyNotice() else { return 0 }
 
         var totalHeight: CGFloat = 0
         let containerWidth = normalizedDimension(environment.container.contentSize.width)
@@ -803,10 +805,6 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
 
     /// Creates a "dummy" search bar section and returns its height
     private func getSearchBarSectionHeight(environment: NSCollectionLayoutEnvironment) -> CGFloat {
-        guard let state = store.state.componentState(HomepageState.self, for: .homepage, window: windowUUID) else {
-            return 0
-        }
-
         let shouldShowSearchBar = searchBarIsVisible()
         let containerWidth = normalizedDimension(environment.container.contentSize.width)
         let measurementKey = HomepageLayoutMeasurementCache.SearchBarMeasurement.Key(
@@ -861,8 +859,6 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
 
         switch sectionHeaderConfiguration.style {
         case .newsAffordance:
-            guard let state = store.state.componentState(HomepageState.self, for: .homepage, window: windowUUID)
-            else { fallthrough }
             let header = NewsTransitionHeaderCell(frame: CGRect(width: 200, height: 200))
             header.configure(sectionHeaderConfiguration: sectionHeaderConfiguration,
                              textColor: nil,
@@ -912,12 +908,6 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
     /// Gets the bookmarks measurement (tallest cell height and section height)
     private func getBookmarksMeasurement(environment: NSCollectionLayoutEnvironment,
                                          cellWidth: CGFloat) -> HomepageLayoutMeasurementCache.BookmarksMeasurement.Result {
-        guard let state = store.state.componentState(HomepageState.self, for: .homepage, window: windowUUID) else {
-            return HomepageLayoutMeasurementCache.BookmarksMeasurement.Result(
-                tallestCellHeight: 0,
-                totalHeight: 0
-            )
-        }
         let bookmarkState = bookmarksSnapshot()
         let containerWidth = normalizedDimension(environment.container.contentSize.width)
         let key = HomepageLayoutMeasurementCache.BookmarksMeasurement.Key(

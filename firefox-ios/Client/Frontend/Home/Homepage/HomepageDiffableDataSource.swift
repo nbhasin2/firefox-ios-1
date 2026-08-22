@@ -108,10 +108,7 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
         }
     }
 
-    /// `viewModel` carries the sections that have moved off Redux; `state` carries the rest.
-    /// The `state` parameter goes away when the last section migrates.
     func updateSnapshot(
-        state: HomepageState,
         viewModel: HomepageViewModel,
         selectedNewsfeedCategoryID: String? = nil,
         jumpBackInDisplayConfig: JumpBackInSectionLayoutConfiguration,
@@ -129,7 +126,7 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
         snapshot.appendSections([.header])
         snapshot.appendItems([headerItem], toSection: .header)
 
-        if state.shouldShowPrivacyNotice {
+        if viewModel.shouldShowPrivacyNotice {
             snapshot.appendSections([.privacyNotice])
             snapshot.appendItems([.privacyNotice], toSection: .privacyNotice)
         }
