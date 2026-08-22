@@ -408,13 +408,7 @@ class ShortcutsLibraryViewController: UIViewController,
             title: url.shortDisplayString.capitalized
         )
         profile.pinnedSites.addPinnedTopSite(site)
-        store.dispatch(
-            TopSitesAction(
-                shortcutPinnedSource: .homescreenButton,
-                windowUUID: windowUUID,
-                actionType: TopSitesActionType.shortcutPinned
-            )
-        )
+        TopSitesTelemetryService.shared.sendShortcutPinned(source: .homescreenButton)
     }
 
     // MARK: - DismissalNotifiable

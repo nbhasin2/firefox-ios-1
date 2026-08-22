@@ -539,3 +539,16 @@ ownership path, and becomes a method call. The redundant-update guard BVC held (
 
 This is the first BVC→homepage edge cut. `HomepageActionType` loses a case and `HomepageAction`
 loses two fields.
+
+## D-024 — Top-sites telemetry becomes a service before the section migrates
+
+`TopSitesMiddleware` opened with "if this gets too big, should split out the telemetry"; it had.
+Roughly 140 of its 266 lines were telemetry, and three callers outside the homepage — the app
+menu, the shortcuts library, and the homepage's own pin action — dispatched
+`TopSitesActionType.shortcutPinned`/`shortcutUnpinned` *only* to reach it. Each had already done
+the pinning itself; the action carried nothing but a `source` enum.
+
+Splitting the telemetry out first is what makes the rest of TopSites separable: those three
+foreign edges disappear without any of them having to migrate, and both action types go with
+them. The remaining middleware is fetch, the in-flight coalescing guard, and the context-menu
+mutations — which is what the next slice moves.

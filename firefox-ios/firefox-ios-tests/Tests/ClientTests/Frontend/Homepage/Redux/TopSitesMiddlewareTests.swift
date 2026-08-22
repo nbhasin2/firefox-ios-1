@@ -561,66 +561,6 @@ final class TopSitesMiddlewareTests: XCTestCase, StoreTestUtility {
         try checkContextMenuMetricsCalled(withExtra: "sponsoredSupport")
     }
 
-    func test_shortcutPinnedAction_sendTelemetryData() throws {
-        let subject = createSubject(topSitesManager: mockTopSitesManager)
-        let homeScreenAction = TopSitesAction(
-            shortcutPinnedSource: .homescreenButton,
-            windowUUID: .XCTestDefaultUUID,
-            actionType: TopSitesActionType.shortcutPinned
-        )
-        let appMenuAction = TopSitesAction(
-            shortcutPinnedSource: .appMenu,
-            windowUUID: .XCTestDefaultUUID,
-            actionType: TopSitesActionType.shortcutPinned
-        )
-        let contextMenuAction = TopSitesAction(
-            shortcutPinnedSource: .contextMenu,
-            windowUUID: .XCTestDefaultUUID,
-            actionType: TopSitesActionType.shortcutPinned
-        )
-
-        subject.topSitesProvider.legacyMiddleware(AppState(), homeScreenAction)
-        subject.topSitesProvider.legacyMiddleware(AppState(), appMenuAction)
-        subject.topSitesProvider.legacyMiddleware(AppState(), contextMenuAction)
-
-        let savedMetric = try XCTUnwrap(
-            mockGleanWrapper.savedEvents.first as? EventMetricType<GleanMetrics.TopSites.ShortcutPinnedExtra>
-        )
-        let savedExtras = try XCTUnwrap(mockGleanWrapper.savedExtras as? [GleanMetrics.TopSites.ShortcutPinnedExtra])
-        let event = GleanMetrics.TopSites.shortcutPinned
-
-        XCTAssertEqual(mockGleanWrapper.recordEventCalled, 3)
-        XCTAssert(savedMetric === event, "Received \(savedMetric) instead of \(event)")
-        XCTAssertEqual(savedExtras.map(\.source), ["homescreen_button", "app_menu", "context_menu"])
-    }
-
-    func test_shortcutUnpinnedAction_sendTelemetryData() throws {
-        let subject = createSubject(topSitesManager: mockTopSitesManager)
-        let contextMenuAction = TopSitesAction(
-            shortcutUnpinnedSource: .contextMenu,
-            windowUUID: .XCTestDefaultUUID,
-            actionType: TopSitesActionType.shortcutUnpinned
-        )
-        let appMenuAction = TopSitesAction(
-            shortcutUnpinnedSource: .appMenu,
-            windowUUID: .XCTestDefaultUUID,
-            actionType: TopSitesActionType.shortcutUnpinned
-        )
-
-        subject.topSitesProvider.legacyMiddleware(AppState(), contextMenuAction)
-        subject.topSitesProvider.legacyMiddleware(AppState(), appMenuAction)
-
-        let savedMetric = try XCTUnwrap(
-            mockGleanWrapper.savedEvents.first as? EventMetricType<GleanMetrics.TopSites.ShortcutUnpinnedExtra>
-        )
-        let savedExtras = try XCTUnwrap(mockGleanWrapper.savedExtras as? [GleanMetrics.TopSites.ShortcutUnpinnedExtra])
-        let event = GleanMetrics.TopSites.shortcutUnpinned
-
-        XCTAssertEqual(mockGleanWrapper.recordEventCalled, 2)
-        XCTAssert(savedMetric === event, "Received \(savedMetric) instead of \(event)")
-        XCTAssertEqual(savedExtras.map(\.source), ["context_menu", "app_menu"])
-    }
-
     // MARK: - Helpers
     private func createSubject(
         topSitesManager: TopSitesManagerInterface,
@@ -629,9 +569,11 @@ final class TopSitesMiddlewareTests: XCTestCase, StoreTestUtility {
     ) -> TopSitesMiddleware {
         return TopSitesMiddleware(
             topSitesManager: topSitesManager,
-            homepageTelemetry: HomepageTelemetry(gleanWrapper: mockGleanWrapper),
-            bookmarksTelemetry: BookmarksTelemetry(gleanWrapper: mockGleanWrapper),
-            unifiedAdsTelemetry: unifiedAdsTelemetry ??  MockUnifiedAdsCallbackTelemetry(),
+            telemetry: TopSitesTelemetryService(
+                homepageTelemetry: HomepageTelemetry(gleanWrapper: mockGleanWrapper),
+                bookmarksTelemetry: BookmarksTelemetry(gleanWrapper: mockGleanWrapper),
+                unifiedAdsTelemetry: unifiedAdsTelemetry ?? MockUnifiedAdsCallbackTelemetry()
+            ),
             featureFlagsProvider: featureFlagsProvider
         )
     }

@@ -11,20 +11,15 @@ import Storage
 @MainActor
 final class TopSitesMiddleware {
     private let topSitesManager: TopSitesManagerInterface
-    private let homepageTelemetry: HomepageTelemetry
-    private let bookmarksTelemetry: BookmarksTelemetry
-    private let unifiedAdsTelemetry: UnifiedAdsCallbackTelemetry
+    private let telemetry: TopSitesTelemetryService
     private let featureFlagsProvider: FeatureFlagProviding
     private let logger: Logger
-    private let profile: Profile
     private var inFlightHomepageTopSitesFetchWindowIDs = Set<WindowUUID>()
 
     init(
         profile: Profile = AppContainer.shared.resolve(),
         topSitesManager: TopSitesManagerInterface? = nil,
-        homepageTelemetry: HomepageTelemetry = HomepageTelemetry(),
-        bookmarksTelemetry: BookmarksTelemetry = BookmarksTelemetry(),
-        unifiedAdsTelemetry: UnifiedAdsCallbackTelemetry = DefaultUnifiedAdsCallbackTelemetry(),
+        telemetry: TopSitesTelemetryService = .shared,
         featureFlagsProvider: FeatureFlagProviding = AppContainer.shared.resolve(),
         searchEnginesManager: SearchEnginesManager = AppContainer.shared.resolve(),
         logger: Logger = DefaultLogger.shared
@@ -37,12 +32,9 @@ final class TopSitesMiddleware {
             topSiteHistoryManager: TopSiteHistoryManager(profile: profile),
             searchEnginesManager: searchEnginesManager
         )
-        self.homepageTelemetry = homepageTelemetry
-        self.bookmarksTelemetry = bookmarksTelemetry
-        self.unifiedAdsTelemetry = unifiedAdsTelemetry
+        self.telemetry = telemetry
         self.featureFlagsProvider = featureFlagsProvider
         self.logger = logger
-        self.profile = profile
     }
 
     lazy var topSitesProvider: Middleware<AppState> = (legacyProvider, modernProvider)
@@ -65,17 +57,11 @@ final class TopSitesMiddleware {
         case TopSitesActionType.tapOnHomepageTopSitesCell:
             self.handleOpenTopSitesItemTelemetry(for: action)
 
-        case TopSitesActionType.shortcutPinned:
-            self.handleShortcutPinnedTelemetry(for: action)
-
-        case TopSitesActionType.shortcutUnpinned:
-            self.handleShortcutUnpinnedTelemetry(for: action)
-
         case ContextMenuActionType.tappedOnPinTopSite:
             guard let site = self.getSite(for: action) else { return }
             self.topSitesManager.pinTopSite(site)
-            self.homepageTelemetry.sendContextMenuOpenedEventForTopSites(for: .pin)
-            self.homepageTelemetry.sendTopSitesShortcutPinnedEvent(source: .contextMenu)
+            self.telemetry.sendContextMenuOpened(for: .pin)
+            self.telemetry.sendShortcutPinned(source: .contextMenu)
 
         case ContextMenuActionType.tappedOnUnpinTopSite:
             self.handleTappedOnUnpinSites(for: action)
@@ -87,10 +73,10 @@ final class TopSitesMiddleware {
             self.sendOpenInPrivateTelemetry(for: action)
 
         case ContextMenuActionType.tappedOnSettingsAction:
-            self.homepageTelemetry.sendContextMenuOpenedEventForTopSites(for: .settings)
+            self.telemetry.sendContextMenuOpened(for: .settings)
 
         case ContextMenuActionType.tappedOnSponsoredAction:
-            self.homepageTelemetry.sendContextMenuOpenedEventForTopSites(for: .sponsoredSupport)
+            self.telemetry.sendContextMenuOpened(for: .sponsoredSupport)
         default:
             break
         }
@@ -133,7 +119,7 @@ final class TopSitesMiddleware {
         Task { @MainActor in
             await self.topSitesManager.removeTopSite(site)
         }
-        self.homepageTelemetry.sendContextMenuOpenedEventForTopSites(for: .remove)
+        self.telemetry.sendContextMenuOpened(for: .remove)
     }
 
     private func handleTappedOnUnpinSites(for action: Action) {
@@ -141,8 +127,8 @@ final class TopSitesMiddleware {
         Task { @MainActor in
             await self.topSitesManager.unpinTopSite(site)
         }
-        self.homepageTelemetry.sendContextMenuOpenedEventForTopSites(for: .unpin)
-        self.homepageTelemetry.sendTopSitesShortcutUnpinnedEvent(source: .contextMenu)
+        self.telemetry.sendContextMenuOpened(for: .unpin)
+        self.telemetry.sendShortcutUnpinned(source: .contextMenu)
     }
 
     private func getSite(for action: Action) -> Site? {
@@ -186,14 +172,10 @@ final class TopSitesMiddleware {
             )
             return
         }
-
-        guard telemetryMetadata.topSiteConfiguration.site.isSponsoredSite else { return }
-        unifiedAdsTelemetry.sendImpressionTelemetry(tileSite: telemetryMetadata.topSiteConfiguration.site, position: telemetryMetadata.position)
-    }
-
-    private func sendSponsoredTappedTracking(with topSiteConfig: TopSiteConfiguration, and position: Int) {
-        guard topSiteConfig.site.isSponsoredSite else { return }
-        unifiedAdsTelemetry.sendClickTelemetry(tileSite: topSiteConfig.site, position: position)
+        telemetry.sendSponsoredImpression(
+            for: telemetryMetadata.topSiteConfiguration,
+            at: telemetryMetadata.position
+        )
     }
 
     private func sendOpenInPrivateTelemetry(for action: Action) {
@@ -205,7 +187,7 @@ final class TopSitesMiddleware {
             )
             return
         }
-        homepageTelemetry.sendOpenInPrivateTabEventForTopSites()
+        telemetry.sendOpenInPrivateTab()
     }
 
     private func handleOpenTopSitesItemTelemetry(for action: Action) {
@@ -217,50 +199,10 @@ final class TopSitesMiddleware {
             )
             return
         }
-        let config = telemetryConfig.topSiteConfiguration
-        sendSponsoredTappedTracking(with: config, and: telemetryConfig.position)
-
-        homepageTelemetry
-            .sendTopSitesPressedEvent(
-                position: telemetryConfig.position,
-                tileType: config.getTelemetrySiteType,
-                isZeroSearch: telemetryConfig.isZeroSearch
-            )
-        sendBookmarkOpenTelemetry(with: config.site.url)
-    }
-
-    private func handleShortcutPinnedTelemetry(for action: Action) {
-        guard let source = (action as? TopSitesAction)?.shortcutPinnedSource else {
-            self.logger.log(
-                "Unable to retrieve shortcut pinned source for \(action.actionType)",
-                level: .debug,
-                category: .homepage
-            )
-            return
-        }
-        homepageTelemetry.sendTopSitesShortcutPinnedEvent(source: source)
-    }
-
-    private func handleShortcutUnpinnedTelemetry(for action: Action) {
-        guard let source = (action as? TopSitesAction)?.shortcutUnpinnedSource else {
-            self.logger.log(
-                "Unable to retrieve shortcut unpinned source for \(action.actionType)",
-                level: .debug,
-                category: .homepage
-            )
-            return
-        }
-        homepageTelemetry.sendTopSitesShortcutUnpinnedEvent(source: source)
-    }
-
-    private func sendBookmarkOpenTelemetry(with urlString: String) {
-        // Resolve the bookmark lookup off the main thread to avoid blocking it on a contended
-        // Places DB query (this runs on the homepage tap path).
-        profile.places.isBookmarked(url: urlString) { [weak self] result in
-            guard case .success(true) = result else { return }
-            Task { @MainActor in
-                self?.bookmarksTelemetry.openBookmarksSite(eventLabel: .topSites)
-            }
-        }
+        telemetry.sendTileTapped(
+            telemetryConfig.topSiteConfiguration,
+            at: telemetryConfig.position,
+            isZeroSearch: telemetryConfig.isZeroSearch
+        )
     }
 }

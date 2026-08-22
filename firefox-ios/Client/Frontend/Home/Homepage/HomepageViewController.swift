@@ -1405,13 +1405,7 @@ final class HomepageViewController: UIViewController,
             title: url.shortDisplayString.capitalized
         )
         profile.pinnedSites.addPinnedTopSite(site)
-        store.dispatch(
-            TopSitesAction(
-                shortcutPinnedSource: .homescreenButton,
-                windowUUID: windowUUID,
-                actionType: TopSitesActionType.shortcutPinned
-            )
-        )
+        TopSitesTelemetryService.shared.sendShortcutPinned(source: .homescreenButton)
     }
 
     /// Sends telemetry data associated with tapping on a card item. The jump back in synced card item

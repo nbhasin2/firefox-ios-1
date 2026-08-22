@@ -39,6 +39,7 @@ final class MainMenuTabInfoProvider: MainMenuTabInfoProviding {
     private let summarizerConfigFactory: SummarizerConfigFactory
     private let summarizerNimbusUtility: SummarizerNimbusUtils
     private let bookmarksSaver: BookmarksSaver
+    private let topSitesTelemetry: TopSitesTelemetryService
     private let logger: Logger
 
     init(profile: Profile = AppContainer.shared.resolve(),
@@ -46,12 +47,14 @@ final class MainMenuTabInfoProvider: MainMenuTabInfoProviding {
          summarizerConfigFactory: SummarizerConfigFactory = SummarizerMiddleware(),
          summarizerNimbusUtility: SummarizerNimbusUtils = DefaultSummarizerNimbusUtils(),
          bookmarksSaver: BookmarksSaver? = nil,
+         topSitesTelemetry: TopSitesTelemetryService = .shared,
          logger: Logger = DefaultLogger.shared) {
         self.bookmarksSaver = bookmarksSaver ?? DefaultBookmarksSaver(profile: profile)
         self.profile = profile
         self.windowManager = windowManager
         self.summarizerConfigFactory = summarizerConfigFactory
         self.summarizerNimbusUtility = summarizerNimbusUtility
+        self.topSitesTelemetry = topSitesTelemetry
         self.logger = logger
     }
 
@@ -143,25 +146,13 @@ final class MainMenuTabInfoProvider: MainMenuTabInfoProviding {
     func addToShortcuts(tabID: TabUUID?, windowUUID: WindowUUID) {
         guard let site = site(for: tabID, windowUUID: windowUUID) else { return }
         profile.pinnedSites.addPinnedTopSite(site)
-        store.dispatch(
-            TopSitesAction(
-                shortcutPinnedSource: .appMenu,
-                windowUUID: windowUUID,
-                actionType: TopSitesActionType.shortcutPinned
-            )
-        )
+        topSitesTelemetry.sendShortcutPinned(source: .appMenu)
     }
 
     func removeFromShortcuts(tabID: TabUUID?, windowUUID: WindowUUID) {
         guard let site = site(for: tabID, windowUUID: windowUUID) else { return }
         profile.pinnedSites.removeFromPinnedTopSites(site)
-        store.dispatch(
-            TopSitesAction(
-                shortcutUnpinnedSource: .appMenu,
-                windowUUID: windowUUID,
-                actionType: TopSitesActionType.shortcutUnpinned
-            )
-        )
+        topSitesTelemetry.sendShortcutUnpinned(source: .appMenu)
     }
 
     /// TODO: `TabManagerMiddleware` keeps its own copy for the tab-peek path; the two converge

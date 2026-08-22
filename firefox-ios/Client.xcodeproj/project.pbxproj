@@ -986,6 +986,7 @@
 		8A454D412CB9B8AA009436D9 /* TopSitesAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A454D402CB9B8AA009436D9 /* TopSitesAction.swift */; };
 		8A454D432CB9B8F5009436D9 /* TopSitesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A454D422CB9B8F5009436D9 /* TopSitesManager.swift */; };
 		8A454D462CB9C83F009436D9 /* TopSitesMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A454D452CB9C83F009436D9 /* TopSitesMiddleware.swift */; };
+		CEAACDE62ADADB1B84949546 /* TopSitesTelemetryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9C9143939E36331EBC7B70C /* TopSitesTelemetryService.swift */; };
 		8A456B6E2DC50F9400056533 /* MockLoginProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB893A52C73AFBA00DAEED7 /* MockLoginProvider.swift */; };
 		8A456B6F2DC50F9400056533 /* MockLoginProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB893A52C73AFBA00DAEED7 /* MockLoginProvider.swift */; };
 		8A456B702DC50F9400056533 /* MockLoginProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB893A52C73AFBA00DAEED7 /* MockLoginProvider.swift */; };
@@ -1185,6 +1186,7 @@
 		5D58424844FA1603A74BC17F /* MessageCardViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1402BF2899A3D84B185D1F8 /* MessageCardViewModelTests.swift */; };
 		EAFCA47230E84D1BF644BDB0 /* SearchBarViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 932818F6A2A278030F2C754E /* SearchBarViewModelTests.swift */; };
 		A2BEF550109F503F8A8FB548 /* HeaderViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14CC106D448B1F7597ADF91B /* HeaderViewModelTests.swift */; };
+		28835067A47172DDB9F011DF /* TopSitesTelemetryServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D522D21DEBB0E96863C06936 /* TopSitesTelemetryServiceTests.swift */; };
 		2F52446185D135727F34583C /* WallpaperViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B59B74D87C13F21E0D9F4472 /* WallpaperViewModelTests.swift */; };
 		3D952A170E7E0CA34204C44E /* BookmarksSectionViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEE56821DE6BCD6D444972FE /* BookmarksSectionViewModelTests.swift */; };
 		7A80A2FAB24202D773552954 /* MerinoSectionViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C7538071014AED32D759B93 /* MerinoSectionViewModelTests.swift */; };
@@ -9730,6 +9732,7 @@
 		8A454D402CB9B8AA009436D9 /* TopSitesAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesAction.swift; sourceTree = "<group>"; };
 		8A454D422CB9B8F5009436D9 /* TopSitesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesManager.swift; sourceTree = "<group>"; };
 		8A454D452CB9C83F009436D9 /* TopSitesMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesMiddleware.swift; sourceTree = "<group>"; };
+		A9C9143939E36331EBC7B70C /* TopSitesTelemetryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesTelemetryService.swift; sourceTree = "<group>"; };
 		8A4593C32BF7BEC9002758DE /* MicrosurveyTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MicrosurveyTableViewCell.swift; sourceTree = "<group>"; };
 		8A4593C42BF7BECA002758DE /* MicrosurveyViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MicrosurveyViewController.swift; sourceTree = "<group>"; };
 		8A4593C52BF7BECA002758DE /* MicrosurveyTableHeaderView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MicrosurveyTableHeaderView.swift; sourceTree = "<group>"; };
@@ -9919,6 +9922,7 @@
 		D1402BF2899A3D84B185D1F8 /* MessageCardViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageCardViewModelTests.swift; sourceTree = "<group>"; };
 		932818F6A2A278030F2C754E /* SearchBarViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchBarViewModelTests.swift; sourceTree = "<group>"; };
 		14CC106D448B1F7597ADF91B /* HeaderViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderViewModelTests.swift; sourceTree = "<group>"; };
+		D522D21DEBB0E96863C06936 /* TopSitesTelemetryServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesTelemetryServiceTests.swift; sourceTree = "<group>"; };
 		B59B74D87C13F21E0D9F4472 /* WallpaperViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperViewModelTests.swift; sourceTree = "<group>"; };
 		EEE56821DE6BCD6D444972FE /* BookmarksSectionViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksSectionViewModelTests.swift; sourceTree = "<group>"; };
 		6C7538071014AED32D759B93 /* MerinoSectionViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerinoSectionViewModelTests.swift; sourceTree = "<group>"; };
@@ -14016,6 +14020,7 @@
 				D1402BF2899A3D84B185D1F8 /* MessageCardViewModelTests.swift */,
 				932818F6A2A278030F2C754E /* SearchBarViewModelTests.swift */,
 				14CC106D448B1F7597ADF91B /* HeaderViewModelTests.swift */,
+				D522D21DEBB0E96863C06936 /* TopSitesTelemetryServiceTests.swift */,
 				B59B74D87C13F21E0D9F4472 /* WallpaperViewModelTests.swift */,
 				EEE56821DE6BCD6D444972FE /* BookmarksSectionViewModelTests.swift */,
 				6C7538071014AED32D759B93 /* MerinoSectionViewModelTests.swift */,
@@ -14280,6 +14285,7 @@
 				8A454D422CB9B8F5009436D9 /* TopSitesManager.swift */,
 				8A454D402CB9B8AA009436D9 /* TopSitesAction.swift */,
 				8A454D452CB9C83F009436D9 /* TopSitesMiddleware.swift */,
+				A9C9143939E36331EBC7B70C /* TopSitesTelemetryService.swift */,
 				8AE938182CD91D5A0020E6CF /* TopSiteConfiguration.swift */,
 				C710FDB62DCBDBEF0046475F /* TopSiteCell.swift */,
 				8AB8571E27D931B40075C173 /* EmptyTopSiteCell.swift */,
@@ -20249,6 +20255,7 @@
 				EBC4869D2195F58300CDA48D /* ErrorPageHelper.swift in Sources */,
 				C84655E8288739CB00861B4A /* WallpaperCollectionAvailability.swift in Sources */,
 				8A454D462CB9C83F009436D9 /* TopSitesMiddleware.swift in Sources */,
+				CEAACDE62ADADB1B84949546 /* TopSitesTelemetryService.swift in Sources */,
 				0B1278E02DDB1D6E00406656 /* BackForwardList.swift in Sources */,
 				8A4B14852CF8D67800FCE2D0 /* UnifiedTile.swift in Sources */,
 				ABE856AD2C75029F00C56F47 /* TrackingProtectionStatusView.swift in Sources */,
@@ -21203,6 +21210,7 @@
 				5D58424844FA1603A74BC17F /* MessageCardViewModelTests.swift in Sources */,
 				EAFCA47230E84D1BF644BDB0 /* SearchBarViewModelTests.swift in Sources */,
 				A2BEF550109F503F8A8FB548 /* HeaderViewModelTests.swift in Sources */,
+				28835067A47172DDB9F011DF /* TopSitesTelemetryServiceTests.swift in Sources */,
 				2F52446185D135727F34583C /* WallpaperViewModelTests.swift in Sources */,
 				3D952A170E7E0CA34204C44E /* BookmarksSectionViewModelTests.swift in Sources */,
 				7A80A2FAB24202D773552954 /* MerinoSectionViewModelTests.swift in Sources */,
