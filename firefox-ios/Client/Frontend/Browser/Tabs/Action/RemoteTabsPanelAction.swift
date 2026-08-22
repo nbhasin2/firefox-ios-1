@@ -12,39 +12,23 @@ import struct Storage.ClientAndTabs
 struct RemoteTabsPanelAction: Action, Sendable {
     let windowUUID: WindowUUID
     let actionType: ActionType
-    let clientAndTabs: [ClientAndTabs]?
-    let reason: RemoteTabsPanelEmptyStateReason?
     let url: URL?
     let targetDeviceId: String?
-    let devices: [Device]?
 
     init(clientAndTabs: [ClientAndTabs]? = nil,
-         reason: RemoteTabsPanelEmptyStateReason? = nil,
          url: URL? = nil,
          targetDeviceId: String? = nil,
-         devices: [Device]? = nil,
          windowUUID: WindowUUID,
          actionType: ActionType) {
         self.windowUUID = windowUUID
         self.actionType = actionType
-        self.clientAndTabs = clientAndTabs
-        self.reason = reason
         self.url = url
         self.targetDeviceId = targetDeviceId
-        self.devices = devices
     }
 }
 
 enum RemoteTabsPanelActionType: ActionType {
-    case panelDidAppear
-    case refreshTabs
-    case refreshTabsWithCache
-    case refreshDidBegin
-    case syncDidBegin
-    case refreshDidFail
-    case refreshDidSucceed
     case openSelectedURL
     case closeSelectedRemoteURL
     case flushTabCommands
-    case remoteDevicesChanged
 }

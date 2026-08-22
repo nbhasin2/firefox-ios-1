@@ -715,3 +715,28 @@ Moving the code surfaced a duplicate: `resolveTabPeekActions`'s `addToBookmarks`
 model does it once.
 
 `TabManagerMiddleware`: 697 lines to 583.
+
+## D-034 — RemoteTabsPanel: a sync state machine written as five round trips
+
+`RemoteTabsPanelState` and `RemoteTabsPanelMiddleware` are gone, and the `.remoteTabsPanel`
+`AppComponent` case with them. The middleware was a refresh state machine expressed as five
+actions going out to the store and coming back — begin, succeed, fail, sync-began,
+devices-changed. Every one was the screen announcing something to itself, so they are plain state
+transitions on `RemoteTabsPanelViewModel`. `RemoteTabsPanelActionType` drops from eleven cases to
+three.
+
+What still dispatches is what actually leaves the screen: `TabTrayActionType.firefoxAccountChanged`
+(reduced by `TabTrayState`) and the three commands `TabManagerMiddleware` performs — open, close,
+flush.
+
+The tab tray's sync button dispatched `refreshTabs`, which would have been orphaned. The tab tray
+holds the panel in `childPanelControllers`, so that is an ownership path and becomes a call.
+
+## D-035 — Test seams: `initialState`, not `newState`
+
+Several panel tests seeded a screen by calling its `newState(_:)`. With the subscription gone
+there is no such entry point, and adding one purely for tests would put a setter back on the view.
+The pattern that has settled instead is an `initialState:` parameter on the view model, which the
+view controller also takes for injection. `HeaderViewModel`, `WallpaperViewModel`,
+`TopSitesSectionViewModel`, `JumpBackInSectionViewModel`, `ShortcutsLibraryViewModel` and now
+`RemoteTabsPanelViewModel` all have one.

@@ -1057,9 +1057,15 @@ final class TabTrayViewController: UIViewController,
 
     @objc
     private func syncTabsTapped() {
-        let action = RemoteTabsPanelAction(windowUUID: windowUUID,
-                                           actionType: RemoteTabsPanelActionType.refreshTabs)
-        store.dispatch(action)
+        // The tab tray owns the synced-tabs panel as a child, so this is a call rather than a
+        // dispatch now that RemoteTabsPanel holds its own state.
+        remoteTabsPanel?.syncTabsTapped()
+    }
+
+    private var remoteTabsPanel: RemoteTabsPanel? {
+        return childPanelControllers
+            .compactMap { $0.viewControllers.first as? RemoteTabsPanel }
+            .first
     }
 
     // MARK: - TabTraySelectorDelegate

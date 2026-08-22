@@ -25,14 +25,12 @@ final class RemoteTabsPanel: UIViewController,
                        Themeable,
                        RemoteTabsClientAndTabsDataSourceDelegate,
                        RemoteTabsEmptyViewDelegate,
-                       StoreSubscriber,
                        FeatureFlaggable,
                        TabTrayThemeable,
                        Notifiable {
-    typealias SubscriberStateType = RemoteTabsPanelState
-
     // MARK: - Properties
 
+    private let viewModel: RemoteTabsPanelViewModel
     private(set) var state: RemoteTabsPanelState
     var tabsDisplayViewController: RemoteTabsViewController
     weak var remoteTabsDelegate: RemoteTabsPanelDelegate?
@@ -52,17 +50,24 @@ final class RemoteTabsPanel: UIViewController,
 
     init(windowUUID: WindowUUID,
          themeManager: ThemeManager = AppContainer.shared.resolve(),
-         notificationCenter: NotificationProtocol = NotificationCenter.default
+         notificationCenter: NotificationProtocol = NotificationCenter.default,
+         viewModel: RemoteTabsPanelViewModel? = nil
     ) {
         self.windowUUID = windowUUID
-        self.state = RemoteTabsPanelState(windowUUID: windowUUID)
+        let viewModel = viewModel ?? RemoteTabsPanelViewModel(windowUUID: windowUUID)
+        self.viewModel = viewModel
+        self.state = viewModel.state
         self.themeManager = themeManager
         self.notificationCenter = notificationCenter
-        self.tabsDisplayViewController = RemoteTabsViewController(state: state, windowUUID: windowUUID)
+        self.tabsDisplayViewController = RemoteTabsViewController(state: viewModel.state, windowUUID: windowUUID)
 
         super.init(nibName: nil, bundle: nil)
 
         self.tabsDisplayViewController.remoteTabsPanel = self
+
+        self.viewModel.onChange = { [weak self] state in
+            self?.applyState(state)
+        }
 
         startObservingNotifications(
             withNotificationCenter: notificationCenter,
@@ -76,18 +81,6 @@ final class RemoteTabsPanel: UIViewController,
 
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    deinit {
-        // TODO: FXIOS-13097 This is a work around until we can leverage isolated deinits
-        guard Thread.isMainThread else {
-            assertionFailure("TabSwipeGestureHandler was not deallocated on the main thread. Observer was not removed")
-            return
-        }
-
-        MainActor.assumeIsolated {
-            unsubscribeFromRedux()
-        }
-    }
-
     var currentWindowUUID: UUID? { return windowUUID }
 
     // MARK: - Actions
@@ -96,17 +89,15 @@ final class RemoteTabsPanel: UIViewController,
         refreshTabs()
     }
 
+    /// The tab tray's sync button; it holds this panel as a child.
+    func syncTabsTapped() {
+        refreshTabs()
+    }
+
     // MARK: - Internal Utilities
 
     private func refreshTabs(useCache: Bool = false) {
-        // Ensure we do not already have a refresh in progress
-        guard state.refreshState != .refreshing else { return }
-        let actionType = useCache ?
-            RemoteTabsPanelActionType.refreshTabsWithCache :
-            RemoteTabsPanelActionType.refreshTabs
-        let action = RemoteTabsPanelAction(windowUUID: windowUUID,
-                                           actionType: actionType)
-        store.dispatch(action)
+        viewModel.refresh(useCache: useCache)
     }
 
     // MARK: - View & Layout
@@ -115,7 +106,7 @@ final class RemoteTabsPanel: UIViewController,
         super.viewDidLoad()
 
         setupLayout()
-        subscribeToRedux()
+        viewModel.panelDidAppear()
 
         listenForThemeChanges(withNotificationCenter: notificationCenter)
         applyTheme()
@@ -187,40 +178,9 @@ final class RemoteTabsPanel: UIViewController,
         statusBarBackground.backgroundColor = theme.isNova ? theme.colors.layer1 : theme.colors.layer3
     }
 
-    // MARK: - Redux
-
-    func subscribeToRedux() {
-        store.dispatch(ComponentAction(
-            windowUUID: windowUUID,
-            actionType: ComponentActionType.addComponent,
-            component: .remoteTabsPanel
-        ))
-
-        let didAppearAction = RemoteTabsPanelAction(windowUUID: windowUUID,
-                                                    actionType: RemoteTabsPanelActionType.panelDidAppear)
-        store.dispatch(didAppearAction)
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            $0.select({ appState in
-                return RemoteTabsPanelState(appState: appState, uuid: uuid)
-            })
-        })
-    }
-
-    func unsubscribeFromRedux() {
-        let action = ComponentAction(windowUUID: windowUUID,
-                                     actionType: ComponentActionType.removeComponent,
-                                     component: .remoteTabsPanel)
-        store.dispatch(action)
-    }
-
-    func newState(state: RemoteTabsPanelState) {
-        ensureMainThread { [weak self] in
-            guard let self else { return }
-
-            self.state = state
-            tabsDisplayViewController.newState(state: state)
-        }
+    private func applyState(_ state: RemoteTabsPanelState) {
+        self.state = state
+        tabsDisplayViewController.newState(state: state)
     }
 
     // MARK: - RemoteTabsClientAndTabsDataSourceDelegate
@@ -281,13 +241,7 @@ final class RemoteTabsPanel: UIViewController,
         switch notification.name {
         case .ProfileDidStartSyncing:
             ensureMainThread {
-                if self.state.refreshState == .idle {
-                    let action = RemoteTabsPanelAction(clientAndTabs: [],
-                                                       devices: nil,
-                                                       windowUUID: self.windowUUID,
-                                                       actionType: RemoteTabsPanelActionType.syncDidBegin)
-                    store.dispatch(action)
-                }
+                self.viewModel.syncDidBegin()
             }
         case .ProfileDidFinishSyncing:
             ensureMainThread {

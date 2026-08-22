@@ -8,6 +8,5 @@ enum AppComponent {
     case browserViewController
     case tabsTray
     case tabsPanel
-    case remoteTabsPanel
     case toolbar
 }

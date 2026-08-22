@@ -8,7 +8,6 @@ import Common
 
 enum ComponentState: Sendable, Equatable {
     case browserViewController(BrowserViewControllerState)
-    case remoteTabsPanel(RemoteTabsPanelState)
     case tabsPanel(TabsPanelState)
     case tabsTray(TabTrayState)
     case toolbar(ToolbarState)
@@ -20,8 +19,6 @@ enum ComponentState: Sendable, Equatable {
         switch state {
         case .browserViewController(let state):
             return .browserViewController(BrowserViewControllerState.reducer.modernReducer(state, action, actionWindowUUID))
-        case .remoteTabsPanel(let state):
-            return .remoteTabsPanel(RemoteTabsPanelState.reducer.modernReducer(state, action, actionWindowUUID))
         case .tabsTray(let state):
             return .tabsTray(TabTrayState.reducer.modernReducer(state, action, actionWindowUUID))
         case .tabsPanel(let state):
@@ -35,8 +32,6 @@ enum ComponentState: Sendable, Equatable {
         switch state {
         case .browserViewController(let state):
             return .browserViewController(BrowserViewControllerState.reducer.legacyReducer(state, action))
-        case .remoteTabsPanel(let state):
-            return .remoteTabsPanel(RemoteTabsPanelState.reducer.legacyReducer(state, action))
         case .tabsTray(let state):
             return .tabsTray(TabTrayState.reducer.legacyReducer(state, action))
         case .tabsPanel(let state):
@@ -51,7 +46,6 @@ enum ComponentState: Sendable, Equatable {
     var associatedAppComponent: AppComponent {
         switch self {
         case .browserViewController: return .browserViewController
-        case .remoteTabsPanel: return .remoteTabsPanel
         case .tabsPanel: return .tabsPanel
         case .tabsTray: return .tabsTray
         case .toolbar: return .toolbar
@@ -61,7 +55,6 @@ enum ComponentState: Sendable, Equatable {
     var windowUUID: WindowUUID? {
         switch self {
         case .browserViewController(let state): return state.windowUUID
-        case .remoteTabsPanel(let state): return state.windowUUID
         case .tabsPanel(let state): return state.windowUUID
         case .tabsTray(let state): return state.windowUUID
         case .toolbar(let state): return state.windowUUID
@@ -118,8 +111,6 @@ struct PresentedComponentsState: Sendable, Equatable {
             switch action.component {
             case .browserViewController:
                 components.append(.browserViewController(BrowserViewControllerState(windowUUID: uuid)))
-            case .remoteTabsPanel:
-                components.append(.remoteTabsPanel(RemoteTabsPanelState(windowUUID: uuid)))
             case .tabsTray:
                 components.append(.tabsTray(TabTrayState(windowUUID: uuid)))
             case .tabsPanel:

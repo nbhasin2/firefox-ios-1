@@ -220,8 +220,6 @@
 		1D7B78972ADF32590011E9F2 /* EventQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D7B78962ADF32590011E9F2 /* EventQueue.swift */; };
 		1D7B78992ADF328E0011E9F2 /* AppEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D7B78982ADF328E0011E9F2 /* AppEvent.swift */; };
 		1D7B789F2AE088930011E9F2 /* EventQueueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D7B789E2AE088930011E9F2 /* EventQueueTests.swift */; };
-		1D8487B42AD0C6C100F7527C /* RemoteTabsPanelMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D8487B32AD0C6C100F7527C /* RemoteTabsPanelMiddleware.swift */; };
-		1D8487B62AD6038100F7527C /* RemoteTabPanelStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D8487B52AD6038100F7527C /* RemoteTabPanelStateTests.swift */; };
 		1D8956212FFD58E40041B982 /* TabErrorTelemetryHelperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D8956202FFD58E40041B982 /* TabErrorTelemetryHelperTests.swift */; };
 		1D91C17E2CF11EA500B24960 /* disconnect-block-cookies-analytics.json in Resources */ = {isa = PBXBuildFile; fileRef = 1D91C1742CF11EA400B24960 /* disconnect-block-cookies-analytics.json */; };
 		1D91C17F2CF11EA500B24960 /* disconnect-block-cookies-content.json in Resources */ = {isa = PBXBuildFile; fileRef = 1D91C1752CF11EA400B24960 /* disconnect-block-cookies-content.json */; };
@@ -265,6 +263,7 @@
 		1DDE3DB52AC360EC0039363B /* TabCellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DDE3DB42AC360EC0039363B /* TabCellTests.swift */; };
 		1DDE3DB72AC3820A0039363B /* TabModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DDE3DB62AC3820A0039363B /* TabModel.swift */; };
 		1DEBC55E2AC4ED70006E4801 /* RemoteTabsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DEBC55D2AC4ED70006E4801 /* RemoteTabsPanel.swift */; };
+		7ECE408A0FA461BE993425C8 /* RemoteTabsPanelViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138C98ABECFA75BB88193AC0 /* RemoteTabsPanelViewModel.swift */; };
 		1DF2BDC32BD1BCF300E53C57 /* WindowManager+DebugUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DF2BDC22BD1BCF300E53C57 /* WindowManager+DebugUtilities.swift */; };
 		1DF9168A2F48EAB100FA2407 /* MockRelayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DF916892F48EAAD00FA2407 /* MockRelayController.swift */; };
 		21050F332F7D66C00006B76C /* BrowserTabScrollHandlerDelegateTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21050F322F7D66C00006B76C /* BrowserTabScrollHandlerDelegateTest.swift */; };
@@ -952,6 +951,7 @@
 		8A395552299AF83400B2AFBB /* UIControl+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A395551299AF83300B2AFBB /* UIControl+Extension.swift */; };
 		8A3EAFE52D5F9AA40060AB87 /* TabManagerMiddlewareTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3EAFE42D5F9AA40060AB87 /* TabManagerMiddlewareTests.swift */; };
 		2F8930D3968B9908DA4C6051 /* TabPeekViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 888B2D9DC1948180BAD72057 /* TabPeekViewModelTests.swift */; };
+		CE109E07499CC7697892012F /* RemoteTabsPanelViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 026CF7F0F47A3F13DD252924 /* RemoteTabsPanelViewModelTests.swift */; };
 		8A3EF7F02A2FCF3100796E3A /* HiddenSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3EF7EF2A2FCF3100796E3A /* HiddenSettings.swift */; };
 		8A3EF7F22A2FCF4000796E3A /* DeleteExportedDataSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3EF7F12A2FCF4000796E3A /* DeleteExportedDataSetting.swift */; };
 		8A3EF7F42A2FCF5700796E3A /* ExportBrowserDataSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3EF7F32A2FCF5700796E3A /* ExportBrowserDataSetting.swift */; };
@@ -3065,8 +3065,6 @@
 		1D7B78962ADF32590011E9F2 /* EventQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventQueue.swift; sourceTree = "<group>"; };
 		1D7B78982ADF328E0011E9F2 /* AppEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEvent.swift; sourceTree = "<group>"; };
 		1D7B789E2AE088930011E9F2 /* EventQueueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventQueueTests.swift; sourceTree = "<group>"; };
-		1D8487B32AD0C6C100F7527C /* RemoteTabsPanelMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteTabsPanelMiddleware.swift; sourceTree = "<group>"; };
-		1D8487B52AD6038100F7527C /* RemoteTabPanelStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteTabPanelStateTests.swift; sourceTree = "<group>"; };
 		1D8956202FFD58E40041B982 /* TabErrorTelemetryHelperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabErrorTelemetryHelperTests.swift; sourceTree = "<group>"; };
 		1D90440B860A503D4DBA4213 /* cy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cy; path = cy.lproj/Storage.strings; sourceTree = "<group>"; };
 		1D91C1742CF11EA400B24960 /* disconnect-block-cookies-analytics.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = "disconnect-block-cookies-analytics.json"; path = "attachments/tracking-protection-lists-ios/disconnect-block-cookies-analytics.json"; sourceTree = "<group>"; };
@@ -3104,6 +3102,7 @@
 		1DDE3DB62AC3820A0039363B /* TabModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabModel.swift; sourceTree = "<group>"; };
 		1DE6449A95FE587845F9A459 /* si */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = si; path = si.lproj/ErrorPages.strings; sourceTree = "<group>"; };
 		1DEBC55D2AC4ED70006E4801 /* RemoteTabsPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteTabsPanel.swift; sourceTree = "<group>"; };
+		138C98ABECFA75BB88193AC0 /* RemoteTabsPanelViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteTabsPanelViewModel.swift; sourceTree = "<group>"; };
 		1DF2BDC22BD1BCF300E53C57 /* WindowManager+DebugUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WindowManager+DebugUtilities.swift"; sourceTree = "<group>"; };
 		1DF916892F48EAAD00FA2407 /* MockRelayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockRelayController.swift; sourceTree = "<group>"; };
 		1E26464F9A5C96917A1CAFBD /* gu-IN */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "gu-IN"; path = "gu-IN.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
@@ -9692,6 +9691,7 @@
 		8A395551299AF83300B2AFBB /* UIControl+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIControl+Extension.swift"; sourceTree = "<group>"; };
 		8A3EAFE42D5F9AA40060AB87 /* TabManagerMiddlewareTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabManagerMiddlewareTests.swift; sourceTree = "<group>"; };
 		888B2D9DC1948180BAD72057 /* TabPeekViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabPeekViewModelTests.swift; sourceTree = "<group>"; };
+		026CF7F0F47A3F13DD252924 /* RemoteTabsPanelViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteTabsPanelViewModelTests.swift; sourceTree = "<group>"; };
 		8A3EF7EF2A2FCF3100796E3A /* HiddenSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiddenSettings.swift; sourceTree = "<group>"; };
 		8A3EF7F12A2FCF4000796E3A /* DeleteExportedDataSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteExportedDataSetting.swift; sourceTree = "<group>"; };
 		8A3EF7F32A2FCF5700796E3A /* ExportBrowserDataSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportBrowserDataSetting.swift; sourceTree = "<group>"; };
@@ -12876,7 +12876,6 @@
 		21B548932B1E5EC000DC1DF8 /* Middleware */ = {
 			isa = PBXGroup;
 			children = (
-				1D8487B32AD0C6C100F7527C /* RemoteTabsPanelMiddleware.swift */,
 				21D151252AFC28960062D891 /* TabManagerMiddleware.swift */,
 			);
 			path = Middleware;
@@ -12903,6 +12902,7 @@
 				8A2068362D6D52830063A77B /* ExperimentTabCell.swift */,
 				1D2F68B02ACCA22000524B92 /* RemoteTabsEmptyView.swift */,
 				1DEBC55D2AC4ED70006E4801 /* RemoteTabsPanel.swift */,
+				138C98ABECFA75BB88193AC0 /* RemoteTabsPanelViewModel.swift */,
 				1D2F68AE2ACB272500524B92 /* RemoteTabsViewController.swift */,
 				1DDE3DB22AC34E1E0039363B /* TabCell.swift */,
 				F605DD572CC73469009A671B /* TabDisplayDiffableDataSource.swift */,
@@ -12940,6 +12940,7 @@
 				21D8EA922ABE04F7003FF16E /* TabTrayViewControllerTests.swift */,
 				8A3EAFE42D5F9AA40060AB87 /* TabManagerMiddlewareTests.swift */,
 				888B2D9DC1948180BAD72057 /* TabPeekViewModelTests.swift */,
+				026CF7F0F47A3F13DD252924 /* RemoteTabsPanelViewModelTests.swift */,
 			);
 			path = TabTray;
 			sourceTree = "<group>";
@@ -14500,7 +14501,6 @@
 			isa = PBXGroup;
 			children = (
 				218457C52F22A4E200B4FF23 /* TabTrayStateTests.swift */,
-				1D8487B52AD6038100F7527C /* RemoteTabPanelStateTests.swift */,
 				21F2A2D32B0D194A00626AEC /* TabsPanelStateTests.swift */,
 			);
 			path = Redux;
@@ -19650,6 +19650,7 @@
 				E18259DF29B25E4F00E6BE76 /* UserNotificationCenterProtocol.swift in Sources */,
 				EDDB13872D3184F300C4B165 /* Site+createSponsoredSite.swift in Sources */,
 				1DEBC55E2AC4ED70006E4801 /* RemoteTabsPanel.swift in Sources */,
+				7ECE408A0FA461BE993425C8 /* RemoteTabsPanelViewModel.swift in Sources */,
 				9658143C29FAB610007339BD /* CreditCardInputFieldHelper.swift in Sources */,
 				5A9F83442B2B8CE900272819 /* TabPeekModel.swift in Sources */,
 				39910DF0ED8878C80A2B056C /* RemoteTabConfiguration.swift in Sources */,
@@ -20304,7 +20305,6 @@
 				1D2F68AB2ACB262900524B92 /* RemoteTabsPanelAction.swift in Sources */,
 				8A5D1CB92A30DBDB005AD35C /* ChinaSyncServiceSetting.swift in Sources */,
 				8AB893A92C73CBBD00DAEED7 /* CreditCardProvider.swift in Sources */,
-				1D8487B42AD0C6C100F7527C /* RemoteTabsPanelMiddleware.swift in Sources */,
 				819656152C80C55300E62323 /* MainMenuState.swift in Sources */,
 				1DCEC3F62D600C4400129966 /* ASSearchEngineIconRecord.swift in Sources */,
 				D5D0532E2645B3A700759F85 /* ExperimentsTableView.swift in Sources */,
@@ -20945,7 +20945,6 @@
 				AA24AD322E7C3A8F008659A3 /* TrendingSearchClientTests.swift in Sources */,
 				8A09BCC32D22F1BE00CFDF60 /* ContextMenuCoordinatorTests.swift in Sources */,
 				0B7CF8872CAC1C4E00DC02F8 /* DefaultFolderHierarchyFetcherTests.swift in Sources */,
-				1D8487B62AD6038100F7527C /* RemoteTabPanelStateTests.swift in Sources */,
 				2137786129802B7000D01309 /* DownloadsPanelViewModelTests.swift in Sources */,
 				EDADF7842D70DAF800C39295 /* SettingsTelemetryTests.swift in Sources */,
 				8A5BD95A28788A3D000FE773 /* TopSitesHelperTests.swift in Sources */,
@@ -21061,6 +21060,7 @@
 				C8E78BDD27F4A1E700C48BAA /* HistoryDeletionUtilityTests.swift in Sources */,
 				8A3EAFE52D5F9AA40060AB87 /* TabManagerMiddlewareTests.swift in Sources */,
 				2F8930D3968B9908DA4C6051 /* TabPeekViewModelTests.swift in Sources */,
+				CE109E07499CC7697892012F /* RemoteTabsPanelViewModelTests.swift in Sources */,
 				0AC659272BF35854005C614A /* FxAWebViewModelTests.swift in Sources */,
 				8AB893A72C73AFCC00DAEED7 /* MockLoginViewModelDelegate.swift in Sources */,
 				8AC8841F2D5261170033ABF5 /* MockCrashTracker.swift in Sources */,
