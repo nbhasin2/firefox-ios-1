@@ -60,7 +60,7 @@ Legend: ⬜ not started · 🟡 in progress · ✅ done
 
 Moved out of Phase 1 by D-012 (reducer-level coupling): SearchEngineSelection → Phase 3 (Toolbar),
 ShortcutsLibrary → Phase 3 (Homepage/Tabs), StartAtHome → Phase 3 (BVC),
-TranslationSettings → Phase 2 (pairs with Translations).
+TranslationSettings → Phase 2 (the settings screen is separable; the runtime is not — D-018).
 
 ### Phase 2 — single inbound coupling
 
@@ -69,10 +69,10 @@ Numbering matches [PLAN.md](PLAN.md) Phase 2.
 | # | Module | LOC | Status | Commit |
 | - | - | - | - | - |
 | 6 | TranslationSettings | ~1,100 | ✅ | `b7215b3655`, `476a9d85f5` |
-| 7 | Translations (runtime) | ~700 | ⬜ | — |
+| 7 | Translations (runtime) | ~700 | ➡️ Phase 3 | moved by D-018 |
 | 8 | TermsOfUse | 1,481 | ✅ | `6f6f552cc4` |
-| 9 | MainMenu | 2,369 | ⬜ | — |
-| 10 | FeltPrivacy + ThemeSettings | ~400 | ⬜ | — |
+| 9 | MainMenu | 2,369 | ✅ | Extracted MainMenuTabInfoProvider; fixed FXIOS-13675 unsafe fan-out |
+| 10 | FeltPrivacy + ThemeSettings | ~120 | ✅ | Both deleted; the round trip set the same theme twice |
 
 Not in Phase 2: **ShortcutsLibrary** moved to Phase 3 by D-012 (its state reduces `TopSitesAction`),
 and **QuickAnswers** / **Summarizer** moved to Phase 3 by D-015 (neither is a screen). Earlier

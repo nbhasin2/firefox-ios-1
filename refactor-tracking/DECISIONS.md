@@ -431,3 +431,35 @@ migration is likely to hit, so a third notification should not appear.
 
 `refactor-tracking/burndown.sh` reports the count of migration-introduced notification posts so that
 row three staying rare is a measured fact rather than an intention.
+
+---
+
+## D-018 — Translations runtime moves to Phase 3, with Toolbar and BrowserViewController
+
+**Extends** [D-012](#d-012) and [D-015](#d-015) — the same test, applied to the third module that
+looked like a Phase 2 leaf and is not one.
+
+**Context.** PLAN listed "Translations runtime" as Phase 2 module 7. Measuring it against the
+D-012 three-part test:
+
+| Check | Result |
+| - | - |
+| Owns an `AppComponent` case | No — it has no screen state of its own |
+| Its own reducer consumes foreign actions | Yes — `TranslationsMiddleware` consumes `ToolbarAction` and `ToolbarMiddlewareAction` |
+| Foreign reducers consume its actions | Yes — `AddressBarState` and `ToolbarState` both reduce `TranslationsAction` |
+| Its one state type is free-standing | No — `AutoTranslatePromptState` is a stored property of `BrowserViewControllerState` |
+
+**Decision.** Move it to Phase 3, migrating with Toolbar (modules 14–16) and BrowserViewController
+(module 18).
+
+**Rationale.** It is coupled to Toolbar in *both* directions and keeps its only state inside the
+BVC state tree. There is nothing to cut at until both hosts have moved. Migrating it now would mean
+reaching into `AddressBarState`, `ToolbarState` and `BrowserViewControllerState` — the precise
+mistake D-012 was written to prevent.
+
+**Consequence.** Phase 2 is four modules, not five: TranslationSettings and TermsOfUse (both done),
+MainMenu, and FeltPrivacy + ThemeSettings. Note that TranslationSettings *was* separable and is
+already migrated — the settings screen owns its own component, while the runtime does not. Three
+modules have now been re-scoped out of Phase 2 by the same test (D-012, D-015, D-018); the
+lesson is that folder size is a poor proxy for separability, and the coupling maps are the only
+reliable input.

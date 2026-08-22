@@ -87,8 +87,9 @@ two coupling maps in [FILES_TO_CHANGE.md](FILES_TO_CHANGE.md).
 ### Phase 2 — Screens with one coupling edge
 Each has exactly one foreign edge, converted to a delegate call in the same commit.
 
-6. **TranslationSettings** — `TranslationSettingsState` consumes `TranslationsAction` ✅
-7. **Translations** (runtime, ~700 LOC) — pairs with 6
+6. **TranslationSettings** — the settings screen owns its own component, so it is separable ✅
+7. *(moved to Phase 3 by D-018)* **Translations** runtime — no component of its own, coupled to
+   Toolbar in both directions, and `AutoTranslatePromptState` lives in `BrowserViewControllerState`
 8. **TermsOfUse** (1,481 LOC) — consumes `HomepageAction` ✅
 9. **MainMenu** (2,369 LOC) — consumed by `TabManagerMiddleware` + `ThemeMiddleware`
 10. **FeltPrivacy** + **ThemeSettings** — consume `PrivateModeAction`

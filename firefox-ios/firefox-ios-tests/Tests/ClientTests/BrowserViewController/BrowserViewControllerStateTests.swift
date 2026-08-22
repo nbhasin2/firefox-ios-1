@@ -630,7 +630,6 @@ final class BrowserViewControllerStateTests: XCTestCase, StoreTestUtility {
         )
     }
 
-
     func getGeneralBrowserAction(selectedTabURL: URL? = nil,
                                  destinationURL: URL? = nil,
                                  isNativeErrorPage: Bool? = nil,
