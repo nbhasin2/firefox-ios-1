@@ -52,6 +52,7 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
 
         dataSource.updateSnapshot(
             state: HomepageState(windowUUID: .XCTestDefaultUUID),
+            viewModel: makeViewModel(),
             jumpBackInDisplayConfig: mockSectionConfig
         )
 
@@ -93,6 +94,7 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
 
         dataSource.updateSnapshot(
             state: updatedState,
+            viewModel: makeViewModel(),
             jumpBackInDisplayConfig: mockSectionConfig
         )
 
@@ -132,7 +134,9 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             )
         )
 
-        dataSource.updateSnapshot(state: updatedState, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(state: updatedState,
+                                  viewModel: makeViewModel(),
+                                  jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
         let numberOfTilesPerRow = updatedState.topSitesState.numberOfTilesPerRow
@@ -170,7 +174,9 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             )
         )
 
-        dataSource.updateSnapshot(state: updatedState, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(state: updatedState,
+                                  viewModel: makeViewModel(),
+                                  jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
         let numberOfTilesPerRow = updatedState.topSitesState.numberOfTilesPerRow
@@ -207,7 +213,9 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             )
         )
 
-        dataSource.updateSnapshot(state: updatedState, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(state: updatedState,
+                                  viewModel: makeViewModel(),
+                                  jumpBackInDisplayConfig: mockSectionConfig)
 
         let section = HomepageSection.topSites(nil, numberOfTilesPerRow, false)
         let items = dataSource.snapshot().itemIdentifiers(inSection: section)
@@ -243,7 +251,9 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             )
         )
 
-        dataSource.updateSnapshot(state: updatedState, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(state: updatedState,
+                                  viewModel: makeViewModel(),
+                                  jumpBackInDisplayConfig: mockSectionConfig)
 
         let section = HomepageSection.topSites(nil, numberOfTilesPerRow, true)
         let items = dataSource.snapshot().itemIdentifiers(inSection: section)
@@ -277,7 +287,7 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             )
         )
 
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(state: state, viewModel: makeViewModel(), jumpBackInDisplayConfig: mockSectionConfig)
 
         let section = HomepageSection.topSites(nil, state.topSitesState.numberOfTilesPerRow, false)
         let items = dataSource.snapshot().itemIdentifiers(inSection: section)
@@ -300,7 +310,7 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             )
         )
 
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(state: state, viewModel: makeViewModel(), jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfItems(inSection: .pocket(nil)), 20)
@@ -325,7 +335,7 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             )
         )
 
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(state: state, viewModel: makeViewModel(), jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
         let items = snapshot.itemIdentifiers(inSection: .pocket(nil))
@@ -349,6 +359,7 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
 
         dataSource.updateSnapshot(
             state: categorizedState,
+            viewModel: makeViewModel(),
             selectedNewsfeedCategoryID: "technology",
             jumpBackInDisplayConfig: mockSectionConfig
         )
@@ -375,6 +386,7 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
 
         dataSource.updateSnapshot(
             state: categorizedState,
+            viewModel: makeViewModel(),
             selectedNewsfeedCategoryID: "missing-category",
             jumpBackInDisplayConfig: mockSectionConfig
         )
@@ -393,16 +405,10 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             buttonLabel: "Example Button"
         )
 
-        let state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            MessageCardAction(
-                messageCardConfiguration: configuration,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: MessageCardMiddlewareActionType.initialize
-            )
-        )
-
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
+        let viewModel = makeViewModel(messageCardConfiguration: configuration)
+        dataSource.updateSnapshot(state: HomepageState(windowUUID: .XCTestDefaultUUID),
+                                  viewModel: viewModel,
+                                  jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfItems(inSection: .messageCard), 1)
@@ -442,7 +448,7 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
                             actionType: BookmarksActionType.toggleShowSectionSetting)
         )
 
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(state: state, viewModel: makeViewModel(), jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfItems(inSection: .bookmarks(nil)), 1)
@@ -475,7 +481,7 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
                              actionType: JumpBackInActionType.toggleShowSectionSetting)
         )
 
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(state: state, viewModel: makeViewModel(), jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfItems(inSection: .jumpBackIn(nil, mockSectionConfig)), 1)
@@ -492,16 +498,11 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
         setFeatureFlag(.homepageTrackerBlockerModule, isEnabled: true)
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        let state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            TrackerBlockerModuleAction(
-                isEnabled: true,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TrackerBlockerModuleActionType.toggleShowSectionSetting
-            )
-        )
+        let state = HomepageState(windowUUID: .XCTestDefaultUUID)
 
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(state: state,
+                                  viewModel: makeViewModel(trackerBlockerEnabled: true),
+                                  jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfItems(inSection: .trackerBlockerModule), 1)
@@ -529,14 +530,6 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
         )
         state = HomepageState.reducer.legacyReducer(
             state,
-            TrackerBlockerModuleAction(
-                isEnabled: true,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TrackerBlockerModuleActionType.toggleShowSectionSetting
-            )
-        )
-        state = HomepageState.reducer.legacyReducer(
-            state,
             TabManagerAction(
                 recentTabs: [createTab(urlString: "www.mozilla.org")],
                 windowUUID: .XCTestDefaultUUID,
@@ -551,7 +544,9 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
                 actionType: JumpBackInActionType.toggleShowSectionSetting
             )
         )
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(state: state,
+                                  viewModel: makeViewModel(trackerBlockerEnabled: true),
+                                  jumpBackInDisplayConfig: mockSectionConfig)
 
         let expectedSections: [HomepageSection] = [
             .header,
@@ -575,7 +570,7 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             )
         )
 
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(state: state, viewModel: makeViewModel(), jumpBackInDisplayConfig: mockSectionConfig)
         let snapshot = dataSource.snapshot()
         let expectedSections: [HomepageSection] = [
             .header,
@@ -602,6 +597,22 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
         let quickAnswersStore = MockQuickAnswersStore()
         quickAnswersStore.isQuickAnswersEnabled = showQuickAnswersButton
         return HeaderState(windowUUID: .XCTestDefaultUUID, quickAnswersStore: quickAnswersStore)
+    }
+
+    /// Sections that have migrated read from the view model; a seeded message card lets the data
+    /// source render one without going through the store.
+    private func makeViewModel(messageCardConfiguration: MessageCardConfiguration? = nil,
+                               trackerBlockerEnabled: Bool = false) -> HomepageViewModel {
+        let messageCard = MessageCardViewModel(
+            windowUUID: .XCTestDefaultUUID,
+            messagingManager: MockGleanPlumbMessageManagerProtocol(),
+            initialConfiguration: messageCardConfiguration
+        )
+        let viewModel = HomepageViewModel(windowUUID: .XCTestDefaultUUID, messageCard: messageCard)
+        if trackerBlockerEnabled {
+            viewModel.trackerBlockerModule.setSectionEnabled(true)
+        }
+        return viewModel
     }
 
     private func createSites(count: Int = 30) -> [TopSiteConfiguration] {

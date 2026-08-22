@@ -38,7 +38,6 @@ final class HomepageStateTests: XCTestCase {
         XCTAssertEqual(initialState.windowUUID, .XCTestDefaultUUID)
 
         XCTAssertFalse(initialState.headerState.isPrivate)
-        XCTAssertFalse(initialState.trackerBlockerModuleState.shouldShowSection)
     }
 
     @MainActor
@@ -106,58 +105,6 @@ final class HomepageStateTests: XCTestCase {
 
         XCTAssertFalse(newState.shouldShowPrivacyNotice)
         XCTAssertEqual(newState.windowUUID, .XCTestDefaultUUID)
-    }
-
-    @MainActor
-    func test_trackerBlockerModuleToggleAction_withToggleOn_returnsExpectedState() {
-        setFeatureFlag(.homepageTrackerBlockerModule, isEnabled: true)
-        let initialState = createSubject()
-        let reducer = homepageReducer()
-
-        let newState = reducer.legacyReducer(
-            initialState,
-            TrackerBlockerModuleAction(
-                isEnabled: true,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TrackerBlockerModuleActionType.toggleShowSectionSetting
-            )
-        )
-
-        XCTAssertTrue(newState.trackerBlockerModuleState.shouldShowSection)
-    }
-
-    func test_trackerBlockerModuleState_withFeatureDisabledAndPreferenceEnabled_returnsExpectedState() {
-        let profile = MockProfile()
-        let mockNimbusLayer = MockNimbusFeatureFlagLayer()
-        let userPreferences = UserFeaturePreferenceManager(prefs: profile.prefs, backendLayer: mockNimbusLayer)
-        userPreferences.setPreferenceFor(.homepageTrackerBlockerModule, to: true)
-        let featureFlagsProvider = FeatureFlagsProvider(prefs: profile.prefs, backendLayer: mockNimbusLayer)
-
-        let state = TrackerBlockerModuleState(
-            userPreferences: userPreferences,
-            featureFlagsProvider: featureFlagsProvider,
-            windowUUID: .XCTestDefaultUUID
-        )
-
-        XCTAssertFalse(state.shouldShowSection)
-    }
-
-    @MainActor
-    func test_trackerBlockerModuleToggleAction_withToggleOff_returnsExpectedState() {
-        setFeatureFlag(.homepageTrackerBlockerModule, isEnabled: true)
-        let initialState = createSubject()
-        let reducer = homepageReducer()
-
-        let newState = reducer.legacyReducer(
-            initialState,
-            TrackerBlockerModuleAction(
-                isEnabled: false,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TrackerBlockerModuleActionType.toggleShowSectionSetting
-            )
-        )
-
-        XCTAssertFalse(newState.trackerBlockerModuleState.shouldShowSection)
     }
 
     // MARK: - Private
