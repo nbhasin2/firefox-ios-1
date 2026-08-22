@@ -7,12 +7,12 @@ Baseline: `main` @ f2a42cbea7
 
 | Metric | Baseline | Current | Target |
 | - | - | - | - |
-| Files with `import Redux` | 200 | 188 | 0 |
-| `store.dispatch` call sites | 451 | 423 | 0 |
-| `Action` conforming types | 47 | 44 | 0 |
-| Registered middlewares | 28 | 26 | 0 |
-| `StoreSubscriber` screens | 20 | 18 | 0 |
-| Screens in `AppComponent` | 17 | 15 | 0 |
+| Files with `import Redux` | 200 | 182 | 0 |
+| `store.dispatch` call sites | 451 | 415 | 0 |
+| `Action` conforming types | 47 | 43 | 0 |
+| Registered middlewares | 28 | 25 | 0 |
+| `StoreSubscriber` screens | 20 | 17 | 0 |
+| Screens in `AppComponent` | 17 | 14 | 0 |
 
 Refresh with `refactor-tracking/burndown.sh`.
 
@@ -21,7 +21,7 @@ Refresh with `refactor-tracking/burndown.sh`.
 | Phase | Scope | Status |
 | - | - | - |
 | 0 — Analysis & scaffolding | Inventory, both coupling maps, tracking docs, branch | **Done** |
-| 1 — Isolated leaf screens | 5 modules (was 8; see D-012) | 2 of 5 done |
+| 1 — Isolated leaf screens | 5 modules (was 8; see D-012) | 3 of 5 done |
 | 2 — Single-coupling screens | 5 modules | Not started |
 | 3 — Hub modules | Homepage, Tabs, Toolbar, BVC | Not started |
 | 4 — Global teardown | Delete Redux core + AppState | Not started |
@@ -36,7 +36,7 @@ Legend: ⬜ not started · 🟡 in progress · ✅ done
 | - | - | - | - | - |
 | 1 | WebCompatReporter | 433 | ✅ | Fully Redux-free; app builds, 76 tests pass |
 | 2 | PasswordGenerator | 942 | ✅ | Fully Redux-free; removed `nonisolated(unsafe)` rules cache (FXIOS-12590) |
-| 3 | NativeErrorPage | 1,993 | ⬜ | Keeps browser-level dispatches (D-011) |
+| 3 | NativeErrorPage | 1,993 | ✅ | Fixed per-window error bleed; keeps browser-level dispatches (D-011) |
 | 4 | TrackingProtection | 4,349 | ⬜ | |
 | 5 | Microsurvey (survey) | ~800 | ⬜ | |
 
@@ -93,7 +93,10 @@ TranslationSettings → Phase 2 (pairs with Translations).
 | 2026-08-21 | Baseline Fennec simulator build | Pass (exit 0) |
 | 2026-08-21 | Fennec build after WebCompatReporter | Pass (exit 0) |
 | 2026-08-21 | WebCompatReporter tests (4 suites, 76 tests) | Pass |
-| 2026-08-21 | Fennec build after PasswordGenerator | Running |
+| 2026-08-21 | Fennec build after PasswordGenerator | Pass, after 3 Sendable fixes (D-013) |
+| 2026-08-21 | WebCompatReporter + PasswordGenerator tests | 197/199 pass; 2 pre-existing Google Lens camera failures |
+| 2026-08-22 | Fennec build after NativeErrorPage | Pass (exit 0) |
+| 2026-08-22 | NativeErrorPage + BrowserViewController tests (111) | Pass, 0 failures |
 
 ## Notes / blockers
 
@@ -105,6 +108,18 @@ TranslationSettings → Phase 2 (pairs with Translations).
 - **Shared-file churn is the real bottleneck.** Every module migration edits `AppState.swift`,
   `AppComponent.swift`, and `PresentedComponentsState.swift` at adjacent lines, which is why
   migrations run serially (D-010).
+- **Two latent bugs found and fixed so far**, both caused by middlewares holding mutable state
+  outside the store: `PasswordGeneratorMiddleware`'s racing `nonisolated(unsafe)` rules cache
+  (FXIOS-12590) and `NativeErrorPageMiddleware`'s single app-wide error helper, which bled one
+  window's error page into another on iPad.
+- **Two pre-existing test failures on this host.** `BrowserCoordinatorTests`
+  `testShowGoogleLensCamera_whenCameraUnavailable_*` assumes the simulator has no camera;
+  `CameraCoordinator` defaults `isCameraAvailable` to
+  `UIImagePickerController.isSourceTypeAvailable(.camera)`, which is true here via Mac camera
+  passthrough. Unrelated to this migration.
+- **Commit size.** Removing a module's Redux triple lands 600-1900 changed lines, over the
+  500-line target. It cannot be split further without intermediate commits that fail to compile,
+  because the new and old types collide on name. Each commit is module-scoped and builds.
 - **`Client.xcodeproj` needs hand editing per file.** Only 9 folders are
   `PBXFileSystemSynchronizedRootGroup`s; everything else is explicitly referenced. Adding or
   deleting a file requires four pbxproj lines, handled by `refactor-tracking/tools/pbx_add.py`
