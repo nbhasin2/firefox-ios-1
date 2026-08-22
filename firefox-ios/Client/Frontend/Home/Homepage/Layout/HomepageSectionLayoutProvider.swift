@@ -123,6 +123,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
     private let bookmarksSnapshot: () -> (bookmarks: [BookmarkConfiguration], shouldShowSection: Bool)
     private let searchBarIsVisible: () -> Bool
     private let headerState: () -> HeaderState?
+    private let availableContentHeight: () -> CGFloat
 
     init(windowUUID: WindowUUID,
          logger: Logger = DefaultLogger.shared,
@@ -131,7 +132,8 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
          bookmarksSnapshot: @escaping () -> (bookmarks: [BookmarkConfiguration],
                                              shouldShowSection: Bool) = { ([], false) },
          searchBarIsVisible: @escaping () -> Bool = { false },
-         headerState: @escaping () -> HeaderState? = { nil }) {
+         headerState: @escaping () -> HeaderState? = { nil },
+         availableContentHeight: @escaping () -> CGFloat = { 0 }) {
         self.windowUUID = windowUUID
         self.logger = logger
         self.trackerBlockerModuleIsVisible = trackerBlockerModuleIsVisible
@@ -139,6 +141,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
         self.bookmarksSnapshot = bookmarksSnapshot
         self.searchBarIsVisible = searchBarIsVisible
         self.headerState = headerState
+        self.availableContentHeight = availableContentHeight
     }
 
     func createLayoutSection(
@@ -883,10 +886,9 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
     /// Vertical stories: gets the height of the distance between the bottom of the last non-stories section, and the bottom
     /// of the viewport
     private func getRawSpacerHeight(environment: NSCollectionLayoutEnvironment) -> CGFloat {
-        let homepageState = store.state.componentState(HomepageState.self, for: .homepage, window: windowUUID)
         let collectionViewHeight = environment.container.contentSize.height
 
-        let availableContentHeight = homepageState?.wallpaperState.availableContentHeight ?? 0
+        let availableContentHeight = availableContentHeight()
         let height = availableContentHeight > 0 ? availableContentHeight : collectionViewHeight
 
         let headerLogoHeight = getHeaderLogoHeight(environment: environment)

@@ -63,6 +63,9 @@ final class HomepageViewController: UIViewController,
         },
         headerState: { [weak self] in
             self?.homepageViewModel.header.state
+        },
+        availableContentHeight: { [weak self] in
+            self?.homepageViewModel.wallpaper.state.availableContentHeight ?? 0
         }
     )
     // Tracks which tab the shared homepage instance is currently representing.
@@ -157,6 +160,9 @@ final class HomepageViewController: UIViewController,
 
         self.homepageViewModel.onSectionChange = { [weak self] in
             self?.refreshHomepageDataSourceSnapshot()
+        }
+        self.homepageViewModel.wallpaper.onChange = { [weak self] state, previous in
+            self?.applyWallpaper(state, previous: previous)
         }
         subscribeToRedux()
     }
@@ -381,7 +387,7 @@ final class HomepageViewController: UIViewController,
         updateNewsTransitionHeaderProgress()
 
         // We only handle status bar overlay alpha if there's a wallpaper applied on the homepage
-        if homepageState.wallpaperState.wallpaperConfiguration.hasImage {
+        if homepageViewModel.wallpaper.state.wallpaperConfiguration.hasImage {
             let theme = themeManager.getCurrentTheme(for: windowUUID)
             statusBarScrollDelegate?.scrollViewDidScroll(
                 scrollView,
@@ -464,22 +470,15 @@ final class HomepageViewController: UIViewController,
     }
 
     func newState(state: HomepageState) {
-        wallpaperView.wallpaperState = state.wallpaperState
-
         // TODO: - FXIOS-13346 / FXIOS-13343 - fix collection view being reloaded all the time also when data don't change
         // this is a quick workaround to avoid blocking the main thread by calling apply snapshot many times.
         if homepageState != state {
-            let animatingDifferences = state.wallpaperState.availableContentHeight
-                                        == homepageState.wallpaperState.availableContentHeight
             self.homepageState = state
 
-            refreshHomepageDataSourceSnapshot(
-                animatingDifferences: animatingDifferences
-            ) { [weak self] in
+            refreshHomepageDataSourceSnapshot { [weak self] in
                 self?.collectionView?.layoutIfNeeded()
                 self?.updateNewsTransitionHeaderProgress()
             }
-            updateWallpaperConstraints(availableWallpaperHeight: state.wallpaperState.availableWallpaperHeight)
         }
 
         // FXIOS-11523 - Trigger impression when user opens homepage view new tab + scroll to top
@@ -506,11 +505,30 @@ final class HomepageViewController: UIViewController,
 
     // MARK: - Layout
 
+    /// Called by `BrowserViewController`, which owns the geometry.
+    func updateAvailableHeights(content: CGFloat, wallpaper: CGFloat) {
+        homepageViewModel.wallpaper.updateAvailableHeights(content: content, wallpaper: wallpaper)
+    }
+
+    /// The snapshot is applied without animation when the available height changed, because the
+    /// spacer resizes with it and animating that reads as a jump.
+    private func applyWallpaper(_ state: WallpaperState, previous: WallpaperState) {
+        wallpaperView.wallpaperState = state
+        refreshHomepageDataSourceSnapshot(
+            animatingDifferences: state.availableContentHeight == previous.availableContentHeight
+        ) { [weak self] in
+            self?.collectionView?.layoutIfNeeded()
+            self?.updateNewsTransitionHeaderProgress()
+        }
+        updateWallpaperConstraints(availableWallpaperHeight: state.availableWallpaperHeight)
+    }
+
     private func configureWallpaperView() {
+        wallpaperView.wallpaperState = homepageViewModel.wallpaper.state
         view.addSubview(wallpaperView)
 
         let heightConstraint = wallpaperView.heightAnchor.constraint(
-            equalToConstant: homepageState.wallpaperState.availableWallpaperHeight
+            equalToConstant: homepageViewModel.wallpaper.state.availableWallpaperHeight
         )
         let topConstraint = wallpaperView.topAnchor.constraint(equalTo: view.topAnchor)
 
@@ -838,7 +856,7 @@ final class HomepageViewController: UIViewController,
         let transitionEnabled = isNewsTransitionEnabled()
         newsTransitionHeaderCell.configure(
             sectionHeaderConfiguration: MerinoSectionViewModel.Constants.sectionHeaderConfiguration,
-            textColor: homepageState.wallpaperState.wallpaperConfiguration.textColor,
+            textColor: homepageViewModel.wallpaper.state.wallpaperConfiguration.textColor,
             theme: currentTheme,
             transitionEnabled: transitionEnabled,
             categories: homepageViewModel.merino.availableCategories,

@@ -74,20 +74,12 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             logoTextColor: .blue
         )
 
-        let state = HomepageState(windowUUID: .XCTestDefaultUUID)
-
-        let updatedState = HomepageState.reducer.legacyReducer(
-            state,
-            WallpaperAction(
-                wallpaperConfiguration: wallpaperConfig,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: WallpaperMiddlewareActionType.wallpaperDidInitialize
-            )
+        let viewModel = makeViewModel(
+            merinoResponse: MerinoStoryResponse(stories: createStories()),
+            wallpaperConfiguration: wallpaperConfig
         )
-
-        let viewModel = makeViewModel(merinoResponse: MerinoStoryResponse(stories: createStories()))
         dataSource.updateSnapshot(
-            state: updatedState,
+            state: HomepageState(windowUUID: .XCTestDefaultUUID),
             viewModel: viewModel,
             jumpBackInDisplayConfig: mockSectionConfig
         )
@@ -564,7 +556,8 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     private func makeViewModel(messageCardConfiguration: MessageCardConfiguration? = nil,
                                trackerBlockerEnabled: Bool = false,
                                merinoResponse: MerinoStoryResponse? = nil,
-                               bookmarks: [BookmarkConfiguration] = []) -> HomepageViewModel {
+                               bookmarks: [BookmarkConfiguration] = [],
+                               wallpaperConfiguration: WallpaperConfiguration? = nil) -> HomepageViewModel {
         let messageCard = MessageCardViewModel(
             windowUUID: .XCTestDefaultUUID,
             messagingManager: MockGleanPlumbMessageManagerProtocol(),
@@ -576,7 +569,15 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             bookmarks: BookmarksSectionViewModel(bookmarksHandler: MockBookmarksHandler(),
                                                  initialBookmarks: bookmarks),
             merino: MerinoSectionViewModel(merinoManager: MockMerinoManager(),
-                                           initialResponse: merinoResponse)
+                                           initialResponse: merinoResponse),
+            // Defaults to an empty configuration rather than whatever the mock manager reports,
+            // so the section colours stay nil unless a test asks for a wallpaper.
+            wallpaper: WallpaperViewModel(
+                wallpaperManager: WallpaperManagerMock(),
+                initialState: WallpaperState(
+                    wallpaperConfiguration: wallpaperConfiguration ?? WallpaperConfiguration()
+                )
+            )
         )
         if trackerBlockerEnabled {
             viewModel.trackerBlockerModule.setSectionEnabled(true)

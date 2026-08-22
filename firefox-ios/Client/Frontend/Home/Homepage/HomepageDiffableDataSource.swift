@@ -121,9 +121,9 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
     ) {
         var snapshot = NSDiffableDataSourceSnapshot<HomeSection, HomeItem>()
 
-        let textColor = state.wallpaperState.wallpaperConfiguration.textColor
+        let textColor = viewModel.wallpaper.state.wallpaperConfiguration.textColor
         let headerItem = HomeItem.header(viewModel.header.state,
-                                         state.wallpaperState.wallpaperConfiguration.logoTextColor,
+                                         viewModel.wallpaper.state.wallpaperConfiguration.logoTextColor,
                                          showiPadSetup)
 
         snapshot.appendSections([.header])

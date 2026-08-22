@@ -60,17 +60,10 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
 
     func test_scrollViewDidScroll_updatesStatusBarScrollDelegate() {
         let mockStatusBarScrollDelegate = MockStatusBarScrollDelegate()
-        let homepageVC = createSubject(statusBarScrollDelegate: mockStatusBarScrollDelegate)
-        let wallpaperConfiguration = WallpaperConfiguration(hasImage: true)
-        let newState = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            WallpaperAction(
-                wallpaperConfiguration: wallpaperConfiguration,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: WallpaperMiddlewareActionType.wallpaperDidInitialize
-            )
+        let homepageVC = createSubject(
+            statusBarScrollDelegate: mockStatusBarScrollDelegate,
+            homepageViewModel: makeViewModelWithWallpaperImage()
         )
-        homepageVC.newState(state: newState)
         let scrollView = UIScrollView()
 
         mockStatusBarScrollDelegate.savedScrollView = nil
@@ -82,15 +75,9 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
 
     func test_scrollToTop_updatesStatusBarScrollDelegate_andSetsCollectionViewOffset() {
         let mockStatusBarScrollDelegate = MockStatusBarScrollDelegate()
-        let homepageVC = createSubject(statusBarScrollDelegate: mockStatusBarScrollDelegate)
-        let wallpaperConfiguration = WallpaperConfiguration(hasImage: true)
-        let newState = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            WallpaperAction(
-                wallpaperConfiguration: wallpaperConfiguration,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: WallpaperMiddlewareActionType.wallpaperDidInitialize
-            )
+        let homepageVC = createSubject(
+            statusBarScrollDelegate: mockStatusBarScrollDelegate,
+            homepageViewModel: makeViewModelWithWallpaperImage()
         )
 
         guard let collectionView = homepageVC.view.subviews.first(where: {
@@ -100,7 +87,6 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
             return
         }
 
-        homepageVC.newState(state: newState)
         homepageVC.scrollToTop()
 
         XCTAssertEqual(collectionView.contentOffset, CGPoint(x: 0, y: -collectionView.adjustedContentInset.top))
@@ -493,21 +479,12 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
         XCTAssertEqual(homepageTabStateStore.state(for: tab.tabUUID).scrollOffsetY, 140)
     }
 
-    func test_newState_updatesWallpaperHeightConstraint_withAvailableWallpaperHeight() throws {
+    /// BrowserViewController hands the geometry over directly now instead of dispatching.
+    func test_updateAvailableHeights_updatesWallpaperHeightConstraint() throws {
         let subject = createSubject()
         subject.loadViewIfNeeded()
 
-        let stateWithWallpaperHeight = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            HomepageAction(
-                availableContentHeight: 100,
-                availableWallpaperHeight: 300,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: HomepageActionType.availableContentHeightDidChange
-            )
-        )
-
-        subject.newState(state: stateWithWallpaperHeight)
+        subject.updateAvailableHeights(content: 100, wallpaper: 300)
 
         let wallpaperView = try XCTUnwrap(
             subject.view.subviews.first(where: { $0 is WallpaperBackgroundView }) as? WallpaperBackgroundView
@@ -516,6 +493,19 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
             wallpaperView.constraints.first(where: { $0.firstAttribute == .height && $0.firstItem === wallpaperView })
         )
         XCTAssertEqual(wallpaperHeightConstraint.constant, 300)
+    }
+
+    /// A homepage whose wallpaper reports an image, which is what gates the status-bar overlay.
+    private func makeViewModelWithWallpaperImage() -> HomepageViewModel {
+        return HomepageViewModel(
+            windowUUID: .XCTestDefaultUUID,
+            wallpaper: WallpaperViewModel(
+                wallpaperManager: WallpaperManagerMock(),
+                initialState: WallpaperState(
+                    wallpaperConfiguration: WallpaperConfiguration(hasImage: true)
+                )
+            )
+        )
     }
 
     private func createSubject(
@@ -588,7 +578,9 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
             windowUUID: .XCTestDefaultUUID,
             merino: MerinoSectionViewModel(merinoManager: MockMerinoManager()),
             header: HeaderViewModel(windowUUID: .XCTestDefaultUUID,
-                                    quickAnswersStore: MockQuickAnswersStore())
+                                    quickAnswersStore: MockQuickAnswersStore()),
+            wallpaper: WallpaperViewModel(wallpaperManager: WallpaperManagerMock(),
+                                          initialState: WallpaperState())
         )
     }
 

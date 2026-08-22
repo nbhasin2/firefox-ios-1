@@ -1511,7 +1511,7 @@ class BrowserViewController: UIViewController,
         updateContentContainerTopConstraint()
 
         // Update available height for the homepage
-        dispatchAvailableContentHeightChangedAction()
+        updateHomepageAvailableContentHeight()
     }
 
     func checkForJSAlerts() {
@@ -3228,11 +3228,10 @@ class BrowserViewController: UIViewController,
         store.dispatch(action)
     }
 
-    func dispatchAvailableContentHeightChangedAction() {
-        // Avoid redundant state updates when neither calculated value changed.
-        guard let browserViewControllerState,
-           browserViewControllerState.browserViewType == .normalHomepage || contentContainer.hasHomepage,
-           let homepageState = store.state.componentState(HomepageState.self, for: .homepage, window: windowUUID)
+    func updateHomepageAvailableContentHeight() {
+        // BVC embeds the homepage, so it hands the geometry over directly; the view model drops
+        // the update when neither value changed.
+        guard let homepageViewController = contentContainer.contentController as? HomepageViewController
         else { return }
 
         // Account for the status bar overlay so spacer layout and scroll-view geometry describe
@@ -3242,17 +3241,9 @@ class BrowserViewController: UIViewController,
         let availableContentHeight = getAvailableHomepageContentHeight()
         let availableWallpaperHeight = getAvailableHomepageWallpaperHeight(availableContentHeight: availableContentHeight)
 
-        guard homepageState.wallpaperState.availableContentHeight != availableContentHeight
-              || homepageState.wallpaperState.availableWallpaperHeight != availableWallpaperHeight
-        else { return }
-
-        store.dispatch(
-            HomepageAction(
-                availableContentHeight: availableContentHeight,
-                availableWallpaperHeight: availableWallpaperHeight,
-                windowUUID: windowUUID,
-                actionType: HomepageActionType.availableContentHeightDidChange
-            )
+        homepageViewController.updateAvailableHeights(
+            content: availableContentHeight,
+            wallpaper: availableWallpaperHeight
         )
     }
 

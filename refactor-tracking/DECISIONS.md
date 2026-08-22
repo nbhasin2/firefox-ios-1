@@ -517,3 +517,25 @@ and the type `HomepageHeaderCell.configure` takes. Turning it into a view-model-
 `HeaderConfiguration` would have churned the cell, the item enum and every measurement path for
 no gain, so only its `StateType` conformance and reducer go. `HeaderViewModel` owns an instance
 and republishes it. Same shape as the wallpaper slice that follows.
+
+## D-022 — The wallpaper picker reuses `.WallpaperDidChange` rather than a new notification
+
+`WallpaperMiddleware` existed to translate `WallpaperActionType.wallpaperSelected`, dispatched by
+`WallpaperSettingsViewModel`, into `wallpaperDidChange` for the homepage's reducer. But
+`WallpaperManager.setCurrentWallpaper` was *already* posting `.WallpaperDidChange` on the same
+code path — the action was a second, parallel announcement of the same event.
+
+`WallpaperViewModel` observes the notification that already exists and re-reads the manager. The
+settings screen goes back to just setting the wallpaper. No new notification, so the D-017
+budget stays at 3, and one of the two announcement paths goes away.
+
+## D-023 — BrowserViewController hands the homepage its available height directly
+
+`HomepageActionType.availableContentHeightDidChange` carried two CGFloats from BVC into
+`WallpaperState`. BVC embeds the homepage — `contentContainer.contentController as?
+HomepageViewController`, which it already does elsewhere — so this is D-017 row one, an
+ownership path, and becomes a method call. The redundant-update guard BVC held (it read
+`HomepageState` back out of the store to compare) moves into the view model's `didSet`.
+
+This is the first BVC→homepage edge cut. `HomepageActionType` loses a case and `HomepageAction`
+loses two fields.

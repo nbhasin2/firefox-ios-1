@@ -159,7 +159,7 @@ final class BrowserCoordinator: BaseCoordinator,
             statusBarScrollDelegate: statusBarScrollDelegate,
             toastContainer: toastContainer
         )
-        browserViewController.dispatchAvailableContentHeightChangedAction()
+        browserViewController.updateHomepageAvailableContentHeight()
         homepageController.termsOfUseDelegate = self
         homepageController.view.accessibilityElementsHidden = false
         dispatchActionForEmbeddingHomepage(with: isZeroSearch)

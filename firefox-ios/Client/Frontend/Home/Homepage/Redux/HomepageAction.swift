@@ -21,8 +21,6 @@ struct HomepageAction: Action {
     let numberOfTopSitesPerRow: Int?
     let telemetryExtras: HomepageTelemetryExtras?
     let isZeroSearch: Bool?
-    let availableContentHeight: CGFloat?
-    let availableWallpaperHeight: CGFloat?
 
     init(
         isSearchBarEnabled: Bool? = nil,
@@ -30,8 +28,6 @@ struct HomepageAction: Action {
         numberOfTopSitesPerRow: Int? = nil,
         telemetryExtras: HomepageTelemetryExtras? = nil,
         isZeroSearch: Bool? = nil,
-        availableContentHeight: CGFloat? = nil,
-        availableWallpaperHeight: CGFloat? = nil,
         windowUUID: WindowUUID,
         actionType: any ActionType
     ) {
@@ -42,8 +38,6 @@ struct HomepageAction: Action {
         self.numberOfTopSitesPerRow = numberOfTopSitesPerRow
         self.telemetryExtras = telemetryExtras
         self.isZeroSearch = isZeroSearch
-        self.availableContentHeight = availableContentHeight
-        self.availableWallpaperHeight = availableWallpaperHeight
     }
 }
 
@@ -58,7 +52,6 @@ enum HomepageActionType: ActionType {
     case didSelectItem
     case embeddedHomepage
     case sectionSeen
-    case availableContentHeightDidChange
     case privacyNoticeCloseButtonTapped
 }
 

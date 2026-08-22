@@ -22,6 +22,7 @@ final class HomepageViewModel: Notifiable {
     let merino: MerinoSectionViewModel
     let searchBar: SearchBarViewModel
     let header: HeaderViewModel
+    let wallpaper: WallpaperViewModel
 
     /// Fired when any owned section changes and the snapshot needs re-applying.
     var onSectionChange: (() -> Void)?
@@ -37,6 +38,7 @@ final class HomepageViewModel: Notifiable {
          merino: MerinoSectionViewModel? = nil,
          searchBar: SearchBarViewModel? = nil,
          header: HeaderViewModel? = nil,
+         wallpaper: WallpaperViewModel? = nil,
          notificationCenter: NotificationProtocol = NotificationCenter.default) {
         self.windowUUID = windowUUID
         self.messageCard = messageCard ?? MessageCardViewModel(windowUUID: windowUUID)
@@ -45,6 +47,7 @@ final class HomepageViewModel: Notifiable {
         self.merino = merino ?? MerinoSectionViewModel()
         self.searchBar = searchBar ?? SearchBarViewModel(windowUUID: windowUUID)
         self.header = header ?? HeaderViewModel(windowUUID: windowUUID)
+        self.wallpaper = wallpaper ?? WallpaperViewModel()
         self.notificationCenter = notificationCenter
         bindSections()
         // The migrated sections observe their own refresh triggers. `HomepageMiddleware` still
