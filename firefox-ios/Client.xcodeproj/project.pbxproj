@@ -1694,15 +1694,15 @@
 		C710FDB72DCBDBEF0046475F /* TopSiteCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C710FDB62DCBDBEF0046475F /* TopSiteCell.swift */; };
 		C71158CD2EEA0B19009766B8 /* PrivacyNoticeCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71158CC2EEA0B0A009766B8 /* PrivacyNoticeCell.swift */; };
 		C71169B32EF1CFFF009766B8 /* PrivacyNoticeHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71169B22EF1CFFB009766B8 /* PrivacyNoticeHelper.swift */; };
-		C714D27E2E4539BE00FC02E6 /* ShortcutsLibraryState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C714D27D2E4539BE00FC02E6 /* ShortcutsLibraryState.swift */; };
 		C714D2822E4549BB00FC02E6 /* ShortcutsLibraryAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = C714D2812E4549BB00FC02E6 /* ShortcutsLibraryAction.swift */; };
-		C714D6372E46570700FC02E6 /* ShortcutsLibraryStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C714D6362E46570700FC02E6 /* ShortcutsLibraryStateTests.swift */; };
 		C714D7752E46649600FC02E6 /* ShortcutsLibraryDiffableDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = C714D7742E46649600FC02E6 /* ShortcutsLibraryDiffableDataSource.swift */; };
+		8C257D412164D54D5532564E /* ShortcutsLibraryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02ECDA4147BFF1C609815C4D /* ShortcutsLibraryViewModel.swift */; };
 		C714D7B62E4673A300FC02E6 /* ShortcutsLibraryDiffableDataSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C714D7B52E4673A300FC02E6 /* ShortcutsLibraryDiffableDataSourceTests.swift */; };
 		C72748242ECE180E003B394D /* MerinoTestDataSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = C72748232ECE1809003B394D /* MerinoTestDataSetting.swift */; };
 		C7470EEB2E974E42000E1B6E /* MockStoryProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7470EEA2E974E3D000E1B6E /* MockStoryProvider.swift */; };
 		C787D8C32C1CB77900940123 /* FirefoxAccountSignInViewControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C787D8C22C1CB77900940123 /* FirefoxAccountSignInViewControllerTests.swift */; };
 		C78FC19E2E62448400B077DA /* ShortcutsLibraryViewControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C78FC19D2E62448400B077DA /* ShortcutsLibraryViewControllerTests.swift */; };
+		B950DB16B7725BCCD8E88B99 /* ShortcutsLibraryViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E7733DF9D2FB4BE04A822DB /* ShortcutsLibraryViewModelTests.swift */; };
 		C796E22A2E3D48D3005D6A1D /* ShortcutsLibraryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C796E2292E3D48D3005D6A1D /* ShortcutsLibraryViewController.swift */; };
 		C79CEE5E2EDF3C4B004C4EB8 /* JumpBackInCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C79CEE5D2EDF3C48004C4EB8 /* JumpBackInCell.swift */; };
 		C79CF6B22EE0E593004C4EB8 /* BookmarksCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C79CF6B12EE0E590004C4EB8 /* BookmarksCell.swift */; };
@@ -1715,8 +1715,6 @@
 		C7F051582D9F098200EC52C0 /* ContextMenuTelemetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F051572D9F098200EC52C0 /* ContextMenuTelemetryTests.swift */; };
 		C7F051692DB2F38000EC52C0 /* ContextMenuPreviewViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F051682DB2F38000EC52C0 /* ContextMenuPreviewViewController.swift */; };
 		C7F5331A2E5799AA0089DEC7 /* ShortcutsLibraryTelemetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F533192E5799AA0089DEC7 /* ShortcutsLibraryTelemetry.swift */; };
-		C7F5331E2E57A8A00089DEC7 /* ShortcutsLibraryMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F5331D2E57A8A00089DEC7 /* ShortcutsLibraryMiddleware.swift */; };
-		C7F538D52E5E66120089DEC7 /* ShortcutsLibraryMiddlewareTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F538D42E5E66120089DEC7 /* ShortcutsLibraryMiddlewareTests.swift */; };
 		C7F5683DC329455783CCB143 /* RemoteSettingsServiceSyncCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F5683DC329455783CCB141 /* RemoteSettingsServiceSyncCoordinatorTests.swift */; };
 		C7F5683DC329455783CCB144 /* MockRemoteSettingsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F5683DC329455783CCB142 /* MockRemoteSettingsService.swift */; };
 		C7F5684AA329455783CCB200 /* AdBlockerSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F5684AA329455783CCB201 /* AdBlockerSetting.swift */; };
@@ -10853,10 +10851,9 @@
 		C710FDB62DCBDBEF0046475F /* TopSiteCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSiteCell.swift; sourceTree = "<group>"; };
 		C71158CC2EEA0B0A009766B8 /* PrivacyNoticeCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyNoticeCell.swift; sourceTree = "<group>"; };
 		C71169B22EF1CFFB009766B8 /* PrivacyNoticeHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyNoticeHelper.swift; sourceTree = "<group>"; };
-		C714D27D2E4539BE00FC02E6 /* ShortcutsLibraryState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsLibraryState.swift; sourceTree = "<group>"; };
 		C714D2812E4549BB00FC02E6 /* ShortcutsLibraryAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsLibraryAction.swift; sourceTree = "<group>"; };
-		C714D6362E46570700FC02E6 /* ShortcutsLibraryStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsLibraryStateTests.swift; sourceTree = "<group>"; };
 		C714D7742E46649600FC02E6 /* ShortcutsLibraryDiffableDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsLibraryDiffableDataSource.swift; sourceTree = "<group>"; };
+		02ECDA4147BFF1C609815C4D /* ShortcutsLibraryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsLibraryViewModel.swift; sourceTree = "<group>"; };
 		C714D7B52E4673A300FC02E6 /* ShortcutsLibraryDiffableDataSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsLibraryDiffableDataSourceTests.swift; sourceTree = "<group>"; };
 		C72748232ECE1809003B394D /* MerinoTestDataSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerinoTestDataSetting.swift; sourceTree = "<group>"; };
 		C7354071A05454E7FF3C70D8 /* lt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = lt; path = lt.lproj/ErrorPages.strings; sourceTree = "<group>"; };
@@ -10864,6 +10861,7 @@
 		C7664A29B78A808DC314353C /* he */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = he; path = he.lproj/Search.strings; sourceTree = "<group>"; };
 		C787D8C22C1CB77900940123 /* FirefoxAccountSignInViewControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirefoxAccountSignInViewControllerTests.swift; sourceTree = "<group>"; };
 		C78FC19D2E62448400B077DA /* ShortcutsLibraryViewControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsLibraryViewControllerTests.swift; sourceTree = "<group>"; };
+		5E7733DF9D2FB4BE04A822DB /* ShortcutsLibraryViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsLibraryViewModelTests.swift; sourceTree = "<group>"; };
 		C796E2292E3D48D3005D6A1D /* ShortcutsLibraryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsLibraryViewController.swift; sourceTree = "<group>"; };
 		C79CEE5D2EDF3C48004C4EB8 /* JumpBackInCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JumpBackInCell.swift; sourceTree = "<group>"; };
 		C79CF6B12EE0E590004C4EB8 /* BookmarksCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksCell.swift; sourceTree = "<group>"; };
@@ -10881,8 +10879,6 @@
 		C7F051572D9F098200EC52C0 /* ContextMenuTelemetryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextMenuTelemetryTests.swift; sourceTree = "<group>"; };
 		C7F051682DB2F38000EC52C0 /* ContextMenuPreviewViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextMenuPreviewViewController.swift; sourceTree = "<group>"; };
 		C7F533192E5799AA0089DEC7 /* ShortcutsLibraryTelemetry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsLibraryTelemetry.swift; sourceTree = "<group>"; };
-		C7F5331D2E57A8A00089DEC7 /* ShortcutsLibraryMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsLibraryMiddleware.swift; sourceTree = "<group>"; };
-		C7F538D42E5E66120089DEC7 /* ShortcutsLibraryMiddlewareTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsLibraryMiddlewareTests.swift; sourceTree = "<group>"; };
 		C7F5683DC329455783CCB141 /* RemoteSettingsServiceSyncCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSettingsServiceSyncCoordinatorTests.swift; sourceTree = "<group>"; };
 		C7F5683DC329455783CCB142 /* MockRemoteSettingsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockRemoteSettingsService.swift; sourceTree = "<group>"; };
 		C7F5684AA329455783CCB201 /* AdBlockerSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdBlockerSetting.swift; sourceTree = "<group>"; };
@@ -15666,6 +15662,7 @@
 				C7C6CD742E54BBB2002C6495 /* Redux */,
 				C796E2292E3D48D3005D6A1D /* ShortcutsLibraryViewController.swift */,
 				C714D7742E46649600FC02E6 /* ShortcutsLibraryDiffableDataSource.swift */,
+				02ECDA4147BFF1C609815C4D /* ShortcutsLibraryViewModel.swift */,
 			);
 			path = ShortcutsLibrary;
 			sourceTree = "<group>";
@@ -15675,6 +15672,7 @@
 			children = (
 				C78FC19C2E62446B00B077DA /* Redux */,
 				C78FC19D2E62448400B077DA /* ShortcutsLibraryViewControllerTests.swift */,
+				5E7733DF9D2FB4BE04A822DB /* ShortcutsLibraryViewModelTests.swift */,
 			);
 			path = ShortcutsLibrary;
 			sourceTree = "<group>";
@@ -15682,9 +15680,7 @@
 		C78FC19C2E62446B00B077DA /* Redux */ = {
 			isa = PBXGroup;
 			children = (
-				C714D6362E46570700FC02E6 /* ShortcutsLibraryStateTests.swift */,
 				C714D7B52E4673A300FC02E6 /* ShortcutsLibraryDiffableDataSourceTests.swift */,
-				C7F538D42E5E66120089DEC7 /* ShortcutsLibraryMiddlewareTests.swift */,
 			);
 			path = Redux;
 			sourceTree = "<group>";
@@ -15692,9 +15688,7 @@
 		C7C6CD742E54BBB2002C6495 /* Redux */ = {
 			isa = PBXGroup;
 			children = (
-				C714D27D2E4539BE00FC02E6 /* ShortcutsLibraryState.swift */,
 				C714D2812E4549BB00FC02E6 /* ShortcutsLibraryAction.swift */,
-				C7F5331D2E57A8A00089DEC7 /* ShortcutsLibraryMiddleware.swift */,
 			);
 			path = Redux;
 			sourceTree = "<group>";
@@ -20253,7 +20247,6 @@
 				8A4B14852CF8D67800FCE2D0 /* UnifiedTile.swift in Sources */,
 				ABE856AD2C75029F00C56F47 /* TrackingProtectionStatusView.swift in Sources */,
 				8A8D12162DD671FE00E0B8BB /* TabTrayPanelSwipeTheme.swift in Sources */,
-				C714D27E2E4539BE00FC02E6 /* ShortcutsLibraryState.swift in Sources */,
 				8A46F5AB2C9E4389005B6422 /* PasswordRuleRecord.swift in Sources */,
 				E1442FD0294782D9003680B0 /* UIAlertController+Extension.swift in Sources */,
 				ED390D222CF4DEDB00A775F9 /* TitleSubtitleActivityItemProvider.swift in Sources */,
@@ -20329,6 +20322,7 @@
 				8A2D593E27DC0AA100713EC9 /* TopSite.swift in Sources */,
 				8A0A1BA32B22030100E8706F /* PrivateMessageCardCell.swift in Sources */,
 				C714D7752E46649600FC02E6 /* ShortcutsLibraryDiffableDataSource.swift in Sources */,
+				8C257D412164D54D5532564E /* ShortcutsLibraryViewModel.swift in Sources */,
 				EDB9BAC32F5F5BBD002168F0 /* AppComponent.swift in Sources */,
 				0E456F152C541CB300EE93BF /* PasswordGeneratorViewController.swift in Sources */,
 				213BF7532AC21D1B00C53A64 /* TabDisplayPanelViewController.swift in Sources */,
@@ -20540,7 +20534,6 @@
 				213B7AF02D779D2400DF0123 /* Download.swift in Sources */,
 				EECF6B61300682B5006FD44E /* SwipeGestureFeatureFlagProvider.swift in Sources */,
 				BDD262562CE3AC8200DF2C62 /* PrivacyWindowHelper.swift in Sources */,
-				C7F5331E2E57A8A00089DEC7 /* ShortcutsLibraryMiddleware.swift in Sources */,
 				21EA466A2B04130500AAAB2D /* TabsPanelState.swift in Sources */,
 				C2B31EC92EDCE79100D53FF5 /* TranslationsVersionHelper.swift in Sources */,
 				D04D1B862097859B0074B35F /* DownloadToast.swift in Sources */,
@@ -20711,7 +20704,6 @@
 				C0D3F1000000000000000004 /* SystemPhotoPickerTelemetryTests.swift in Sources */,
 				219935F12B07DFA200E5966F /* TabDisplayPanelTests.swift in Sources */,
 				0B7B053D2D647D00007FD7AC /* TemporaryDocumentTests.swift in Sources */,
-				C714D6372E46570700FC02E6 /* ShortcutsLibraryStateTests.swift in Sources */,
 				C24E2D2C2ECF9DEF00BBCFA7 /* TranslationsTelemetryTests.swift in Sources */,
 				E16941B42C4E4A2E00FF5F4E /* BrowserViewControllerStateTests.swift in Sources */,
 				0B7B05412D64C088007FD7AC /* MockURLResponse.swift in Sources */,
@@ -20752,7 +20744,6 @@
 				EC4F28183011A6BF00BAD351 /* CertificatesFetcherTests.swift in Sources */,
 				8ADED7EC27691351009C19E6 /* CalendarExtensionsTests.swift in Sources */,
 				D3EF586827F3488BB522F2FF /* PDFDocumentExtensionTests.swift in Sources */,
-				C7F538D52E5E66120089DEC7 /* ShortcutsLibraryMiddlewareTests.swift in Sources */,
 				C27484E22F558DDD00920313 /* MockSummarizerConfigProvider.swift in Sources */,
 				3B39EDBA1E16E18900EF029F /* CustomSearchEnginesTest.swift in Sources */,
 				8A44D3612DB7DFD700B7D80B /* MockThrottler.swift in Sources */,
@@ -21131,6 +21122,7 @@
 				8A97E6EF2C584C4900F94793 /* AddressLocaleFeatureValidatorTests.swift in Sources */,
 				C714D7B62E4673A300FC02E6 /* ShortcutsLibraryDiffableDataSourceTests.swift in Sources */,
 				C78FC19E2E62448400B077DA /* ShortcutsLibraryViewControllerTests.swift in Sources */,
+				B950DB16B7725BCCD8E88B99 /* ShortcutsLibraryViewModelTests.swift in Sources */,
 				AA06F1D2CB462730080E1DF0 /* RemoteSettingsGleanTelemetryTests.swift in Sources */,
 				C7F5683DC329455783CCB143 /* RemoteSettingsServiceSyncCoordinatorTests.swift in Sources */,
 				C7F5683DC329455783CCB144 /* MockRemoteSettingsService.swift in Sources */,

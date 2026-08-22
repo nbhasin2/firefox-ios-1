@@ -12,5 +12,4 @@ enum AppComponent {
     case tabPeek
     case toolbar
     case searchEngineSelection
-    case shortcutsLibrary
 }

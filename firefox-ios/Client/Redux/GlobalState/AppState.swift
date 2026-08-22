@@ -37,7 +37,6 @@ struct AppState: StateType, Sendable {
                 case (.tabsTray(let state), .tabsTray): return state as? S
                 case (.toolbar(let state), .toolbar): return state as? S
                 case (.searchEngineSelection(let state), .searchEngineSelection): return state as? S
-                case (.shortcutsLibrary(let state), .shortcutsLibrary): return state as? S
                 default: return nil
                 }
             }.first(where: {
@@ -72,7 +71,6 @@ let middlewares = [
     ToolbarMiddleware().toolbarProvider,
     SearchEngineSelectionMiddleware().searchEngineSelectionProvider,
     StartAtHomeMiddleware().startAtHomeProvider,
-    ShortcutsLibraryMiddleware().shortcutsLibraryProvider,
     SummarizerMiddleware().summarizerProvider,
     TranslationsMiddleware().translationsProvider
 ]

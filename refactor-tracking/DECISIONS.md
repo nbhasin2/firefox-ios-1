@@ -630,3 +630,19 @@ Three things worth recording from the finale:
 What the homepage still touches of Redux is navigation and browser-level actions it dispatches
 outward — `NavigationBrowserAction`, `GeneralBrowserAction`, `ToolbarAction`, `ContextMenuAction`
 — which is exactly the D-016 end state for a migrated screen.
+
+## D-029 — Shortcuts library migrated; D-025's shim is gone
+
+`ShortcutsLibraryState`, `ShortcutsLibraryMiddleware` and the `.shortcutsLibrary` `AppComponent`
+case are gone. The view model observes `TopSitesService` directly, so the service stops
+dispatching `TopSitesMiddlewareActionType.retrievedUpdatedSites` — the shim D-025 introduced,
+kept for exactly as long as a static reducer needed it. `TopSitesMiddlewareActionType` and
+`TopSitesAction` go with it, and `TopSitesService` no longer imports Redux.
+
+`ShortcutsLibraryActionType.switchTabToastButtonTapped` survives: `TabManagerMiddleware` consumes
+it to select a tab, which is a genuine cross-module command rather than a state announcement. It
+migrates with Tabs.
+
+`shouldRecordImpressionTelemetry` was a state field whose only job was "have I recorded the
+viewed event for this presentation" — a middleware read it, sent the event, and dispatched a
+second action to clear it. That round trip is a private `Bool` on the view model.

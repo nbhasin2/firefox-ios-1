@@ -4,17 +4,13 @@
 
 import Common
 import Foundation
-import Redux
 import Storage
 
 /// Fetching and mutating the top sites, extracted from `TopSitesMiddleware`.
 ///
 /// Two screens show top sites — the homepage and the shortcuts library — and each used to trigger
-/// a fetch by dispatching its own `initialize` action. They call `refresh(for:)` here instead.
-///
-/// The service still dispatches `TopSitesMiddlewareActionType.retrievedUpdatedSites` after a
-/// fetch. That is deliberate and temporary: `ShortcutsLibraryState` reduces it and cannot observe
-/// a service, being a static function. It goes when the shortcuts library migrates (D-025).
+/// a fetch by dispatching its own `initialize` action. They call `refresh(for:)` here instead and
+/// observe the result.
 @MainActor
 final class TopSitesService {
     static let shared = TopSitesService()
@@ -31,7 +27,6 @@ final class TopSitesService {
     private var sitesObservers: [ObjectIdentifier: SitesObserverBox] = [:]
 
     private let topSitesManager: TopSitesManagerInterface
-    private let featureFlagsProvider: FeatureFlagProviding
     /// One fetch at a time per window, so `initialize`, foregrounding and the top-sites
     /// notification do not fire parallel sponsored requests on launch. Slow networks otherwise
     /// see several in flight at once.
@@ -40,7 +35,6 @@ final class TopSitesService {
     init(
         profile: Profile = AppContainer.shared.resolve(),
         topSitesManager: TopSitesManagerInterface? = nil,
-        featureFlagsProvider: FeatureFlagProviding = AppContainer.shared.resolve(),
         searchEnginesManager: SearchEnginesManager = AppContainer.shared.resolve()
     ) {
         self.topSitesManager = topSitesManager ?? TopSitesManager(
@@ -49,7 +43,6 @@ final class TopSitesService {
             topSiteHistoryManager: TopSiteHistoryManager(profile: profile),
             searchEnginesManager: searchEnginesManager
         )
-        self.featureFlagsProvider = featureFlagsProvider
     }
 
     // MARK: - Observing
@@ -81,7 +74,7 @@ final class TopSitesService {
                 otherSites: otherSites,
                 sponsoredSites: sponsoredSites
             )
-            self.publish(sites, for: windowUUID)
+            self.publish(sites)
         }
     }
 
@@ -109,17 +102,9 @@ final class TopSitesService {
 
     // MARK: - Private
 
-    private func publish(_ sites: [TopSiteConfiguration], for windowUUID: WindowUUID) {
+    private func publish(_ sites: [TopSiteConfiguration]) {
         topSites = sites
         sitesObservers = sitesObservers.filter { $0.value.observer != nil }
         sitesObservers.values.forEach { $0.handler(sites) }
-        store.dispatch(
-            TopSitesAction(
-                topSites: sites,
-                shouldShowAddShortcutTile: featureFlagsProvider.isEnabled(.homepageAddShortcutTile),
-                windowUUID: windowUUID,
-                actionType: TopSitesMiddlewareActionType.retrievedUpdatedSites
-            )
-        )
     }
 }
