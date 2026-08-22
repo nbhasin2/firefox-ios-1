@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
+import Common
 import XCTest
 import Storage
 import MozillaAppServices
@@ -346,24 +347,11 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withValidState_returnJumpBackInSection() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        var state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            TabManagerAction(
-                recentTabs: [createTab(urlString: "www.mozilla.org")],
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TabManagerMiddlewareActionType.fetchedRecentTabs
-            )
+        dataSource.updateSnapshot(
+            state: HomepageState(windowUUID: .XCTestDefaultUUID),
+            viewModel: makeViewModel(jumpBackInTabs: [createTab(urlString: "www.mozilla.org")]),
+            jumpBackInDisplayConfig: mockSectionConfig
         )
-
-        // Enable the bookmarks section of the homepage since it's off by default
-        state = HomepageState.reducer.legacyReducer(
-            state,
-            JumpBackInAction(isEnabled: true,
-                             windowUUID: .XCTestDefaultUUID,
-                             actionType: JumpBackInActionType.toggleShowSectionSetting)
-        )
-
-        dataSource.updateSnapshot(state: state, viewModel: makeViewModel(), jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfItems(inSection: .jumpBackIn(nil, mockSectionConfig)), 1)
@@ -402,28 +390,13 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
         setFeatureFlag(.homepageTrackerBlockerModule, isEnabled: true)
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        var state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            TabManagerAction(
-                recentTabs: [createTab(urlString: "www.mozilla.org")],
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TabManagerMiddlewareActionType.fetchedRecentTabs
-            )
-        )
-        state = HomepageState.reducer.legacyReducer(
-            state,
-            JumpBackInAction(
-                isEnabled: true,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: JumpBackInActionType.toggleShowSectionSetting
-            )
-        )
-        dataSource.updateSnapshot(state: state,
+        dataSource.updateSnapshot(state: HomepageState(windowUUID: .XCTestDefaultUUID),
                                   viewModel: makeViewModel(
                                       trackerBlockerEnabled: true,
                                       topSites: topSitesState(sites: createSites(),
                                                               numberOfRows: 2,
-                                                              shouldShowSectionHeader: true)
+                                                              shouldShowSectionHeader: true),
+                                      jumpBackInTabs: [createTab(urlString: "www.mozilla.org")]
                                   ),
                                   jumpBackInDisplayConfig: mockSectionConfig)
 
@@ -485,7 +458,8 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
                                merinoResponse: MerinoStoryResponse? = nil,
                                bookmarks: [BookmarkConfiguration] = [],
                                wallpaperConfiguration: WallpaperConfiguration? = nil,
-                               topSites: TopSitesSectionState? = nil) -> HomepageViewModel {
+                               topSites: TopSitesSectionState? = nil,
+                               jumpBackInTabs: [Tab] = []) -> HomepageViewModel {
         let messageCard = MessageCardViewModel(
             windowUUID: .XCTestDefaultUUID,
             messagingManager: MockGleanPlumbMessageManagerProtocol(),
@@ -520,8 +494,22 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
                     shouldShowSectionHeader: false,
                     shouldShowAddShortcutTile: false
                 )
+            ),
+            jumpBackIn: JumpBackInSectionViewModel(
+                windowUUID: .XCTestDefaultUUID,
+                recentTabsProvider: StubRecentTabsProvider(tabs: jumpBackInTabs),
+                syncedTabProvider: StubSyncedTabProvider(),
+                bus: nil,
+                initialState: JumpBackInSectionState(
+                    jumpBackInTabs: [],
+                    mostRecentSyncedTab: nil,
+                    shouldShowSection: !jumpBackInTabs.isEmpty
+                )
             )
         )
+        if !jumpBackInTabs.isEmpty {
+            viewModel.jumpBackIn.refreshLocalTabs()
+        }
         if trackerBlockerEnabled {
             viewModel.trackerBlockerModule.setSectionEnabled(true)
         }
@@ -638,5 +626,25 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
         let tab = Tab(profile: MockProfile(), windowUUID: .XCTestDefaultUUID)
         tab.url = URL(string: urlString)!
         return tab
+    }
+}
+
+@MainActor
+private final class StubRecentTabsProvider: RecentTabsProviding {
+    private let tabs: [Tab]
+
+    init(tabs: [Tab]) {
+        self.tabs = tabs
+    }
+
+    func recentTabs(for windowUUID: WindowUUID) -> [Tab] {
+        return tabs
+    }
+}
+
+@MainActor
+private final class StubSyncedTabProvider: SyncedTabProviding {
+    func mostRecentSyncedTab() async -> RemoteTabConfiguration? {
+        return nil
     }
 }

@@ -33,13 +33,11 @@ final class HomepageMiddlewareTests: XCTestCase, StoreTestUtility {
     func test_init_setsUpNotifications() {
         _ = createSubject()
 
-        // The three top-sites refresh triggers moved to HomepageViewModel, which observes them
-        // per window instead of the middleware fanning out over every window.
-        XCTAssertEqual(mockNotificationCenter?.addObserverCallCount, 6)
+        // The top-sites and jump-back-in refresh triggers moved to HomepageViewModel, which
+        // observes them per window instead of the middleware fanning out over every window.
+        XCTAssertEqual(mockNotificationCenter?.addObserverCallCount, 4)
         XCTAssertEqual(mockNotificationCenter?.observers, [UIApplication.didBecomeActiveNotification,
                                                            UIApplication.didEnterBackgroundNotification,
-                                                           .FirefoxAccountChanged,
-                                                           .ProfileDidFinishSyncing,
                                                            .BookmarksUpdated,
                                                            .RustPlacesOpened
         ])
