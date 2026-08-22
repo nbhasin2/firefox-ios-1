@@ -50,6 +50,13 @@ final class HomepageViewController: UIViewController,
         windowUUID: windowUUID,
         trackerBlockerModuleIsVisible: { [weak self] in
             self?.homepageViewModel.trackerBlockerModule.shouldShowSection ?? false
+        },
+        merinoCategories: { [weak self] in
+            self?.homepageViewModel.merino.availableCategories ?? []
+        },
+        bookmarksSnapshot: { [weak self] in
+            guard let bookmarks = self?.homepageViewModel.bookmarks else { return ([], false) }
+            return (bookmarks.bookmarks, bookmarks.shouldShowSection)
         }
     )
     // Tracks which tab the shared homepage instance is currently representing.
@@ -104,7 +111,8 @@ final class HomepageViewController: UIViewController,
          toastContainer: UIView,
          notificationCenter: NotificationProtocol = NotificationCenter.default,
          logger: Logger = DefaultLogger.shared,
-         throttler: MainThreadThrottlerProtocol = MainThreadThrottler(seconds: 0.5)
+         throttler: MainThreadThrottlerProtocol = MainThreadThrottler(seconds: 0.5),
+         homepageViewModel: HomepageViewModel? = nil
     ) {
         self.windowUUID = windowUUID
         self.themeManager = themeManager
@@ -138,10 +146,10 @@ final class HomepageViewController: UIViewController,
         )
 
         homepageState = HomepageState(windowUUID: windowUUID)
-        homepageViewModel = HomepageViewModel(windowUUID: windowUUID)
+        self.homepageViewModel = homepageViewModel ?? HomepageViewModel(windowUUID: windowUUID)
         super.init(nibName: nil, bundle: nil)
 
-        homepageViewModel.onSectionChange = { [weak self] in
+        self.homepageViewModel.onSectionChange = { [weak self] in
             self?.refreshHomepageDataSourceSnapshot()
         }
         subscribeToRedux()
@@ -780,7 +788,7 @@ final class HomepageViewController: UIViewController,
             }
 
             if case .pocket = section,
-               MerinoState.Constants.sectionHeaderConfiguration.style == .newsAffordance {
+               MerinoSectionViewModel.Constants.sectionHeaderConfiguration.style == .newsAffordance {
                 guard let newsTransitionHeaderCell = collectionView.dequeueSupplementary(
                     of: kind,
                     cellType: NewsTransitionHeaderCell.self,
@@ -816,11 +824,11 @@ final class HomepageViewController: UIViewController,
     ) -> NewsTransitionHeaderCell {
         let transitionEnabled = isNewsTransitionEnabled()
         newsTransitionHeaderCell.configure(
-            sectionHeaderConfiguration: MerinoState.Constants.sectionHeaderConfiguration,
+            sectionHeaderConfiguration: MerinoSectionViewModel.Constants.sectionHeaderConfiguration,
             textColor: homepageState.wallpaperState.wallpaperConfiguration.textColor,
             theme: currentTheme,
             transitionEnabled: transitionEnabled,
-            categories: homepageState.merinoState.availableCategories,
+            categories: homepageViewModel.merino.availableCategories,
             selectedNewsfeedCategoryID: currentHomepageTabState.selectedNewsfeedCategoryID,
             newsfeedCategoryPickerOffsetX: currentHomepageTabState.newsfeedCategoryPickerOffsetX,
             onCategoryPickerScroll: updateNewsfeedCategoryPickerOffsetX,
@@ -861,7 +869,7 @@ final class HomepageViewController: UIViewController,
             return sectionLabelCell
         case .bookmarks(let textColor):
             sectionLabelCell.configure(
-                sectionHeaderConfiguration: BookmarksSectionState.Constants.sectionHeaderConfiguration,
+                sectionHeaderConfiguration: BookmarksSectionViewModel.Constants.sectionHeaderConfiguration,
                 moreButtonAction: { [weak self] _ in
                     self?.navigateToBookmarksPanel()
                 },
@@ -871,7 +879,7 @@ final class HomepageViewController: UIViewController,
             return sectionLabelCell
         case .pocket(let textColor):
             sectionLabelCell.configure(
-                sectionHeaderConfiguration: MerinoState.Constants.sectionHeaderConfiguration,
+                sectionHeaderConfiguration: MerinoSectionViewModel.Constants.sectionHeaderConfiguration,
                 textColor: textColor,
                 theme: currentTheme
             )
@@ -896,7 +904,7 @@ final class HomepageViewController: UIViewController,
     /// Returns whether there is enough room at the bottom of the unscrolled homepage for the header to transition.
     /// This is determined by the existence of the spacer with a meaningful height
     private func isNewsTransitionEnabled() -> Bool {
-        guard MerinoState.Constants.sectionHeaderConfiguration.style == .newsAffordance,
+        guard MerinoSectionViewModel.Constants.sectionHeaderConfiguration.style == .newsAffordance,
               let collectionView,
               let spacerSectionIndex = dataSource?.snapshot().sectionIdentifiers.firstIndex(where: {
                   if case .spacer = $0 {
@@ -1038,7 +1046,7 @@ final class HomepageViewController: UIViewController,
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(
                     .link,
-                    url: MerinoState.Constants.footerURL,
+                    url: MerinoSectionViewModel.Constants.footerURL,
                     visitType: .link
                 ),
                 windowUUID: self.windowUUID,

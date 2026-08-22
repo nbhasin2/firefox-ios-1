@@ -119,13 +119,20 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
     /// which no longer holds it. Injected as a closure so the provider does not need to own the
     /// view model.
     private let trackerBlockerModuleIsVisible: () -> Bool
+    private let merinoCategories: () -> [MerinoCategoryConfiguration]
+    private let bookmarksSnapshot: () -> (bookmarks: [BookmarkConfiguration], shouldShowSection: Bool)
 
     init(windowUUID: WindowUUID,
          logger: Logger = DefaultLogger.shared,
-         trackerBlockerModuleIsVisible: @escaping () -> Bool = { false }) {
+         trackerBlockerModuleIsVisible: @escaping () -> Bool = { false },
+         merinoCategories: @escaping () -> [MerinoCategoryConfiguration] = { [] },
+         bookmarksSnapshot: @escaping () -> (bookmarks: [BookmarkConfiguration],
+                                             shouldShowSection: Bool) = { ([], false) }) {
         self.windowUUID = windowUUID
         self.logger = logger
         self.trackerBlockerModuleIsVisible = trackerBlockerModuleIsVisible
+        self.merinoCategories = merinoCategories
+        self.bookmarksSnapshot = bookmarksSnapshot
     }
 
     func createLayoutSection(
@@ -236,7 +243,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
     ) -> NSCollectionLayoutSection {
         let itemSize: NSCollectionLayoutSize
         let traitCollection = environment.traitCollection
-        let sectionHeaderConfiguration = MerinoState.Constants.sectionHeaderConfiguration
+        let sectionHeaderConfiguration = MerinoSectionViewModel.Constants.sectionHeaderConfiguration
 
         let containerWidth = environment.container.effectiveContentSize.width
         let horizontalInset = UX.leadingInset(traitCollection: traitCollection)
@@ -525,7 +532,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
     private func createSpacerSectionLayout(for environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection {
         let rawSpacerHeight = getRawSpacerHeight(environment: environment)
 
-        let merinoHeaderConfiguration = MerinoState.Constants.sectionHeaderConfiguration
+        let merinoHeaderConfiguration = MerinoSectionViewModel.Constants.sectionHeaderConfiguration
         let headerHeight = getStoriesHeaderHeight(sectionHeaderConfiguration: merinoHeaderConfiguration,
                                                   environment: environment)
 
@@ -854,7 +861,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
                              textColor: nil,
                              theme: LightTheme(),
                              transitionEnabled: true,
-                             categories: state.merinoState.availableCategories)
+                             categories: merinoCategories())
             headerHeight = HomepageDimensionCalculator.fittingHeight(for: header, width: containerWidth)
 
         default:
@@ -905,11 +912,11 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
                 totalHeight: 0
             )
         }
-        let bookmarkState = state.bookmarkState
+        let bookmarkState = bookmarksSnapshot()
         let containerWidth = normalizedDimension(environment.container.contentSize.width)
         let key = HomepageLayoutMeasurementCache.BookmarksMeasurement.Key(
             bookmarks: bookmarkState.bookmarks,
-            headerState: BookmarksSectionState.Constants.sectionHeaderConfiguration,
+            headerState: BookmarksSectionViewModel.Constants.sectionHeaderConfiguration,
             containerWidth: containerWidth,
             shouldShowSection: bookmarkState.shouldShowSection,
             contentSizeCategory: environment.traitCollection.preferredContentSizeCategory
@@ -946,7 +953,7 @@ final class HomepageSectionLayoutProvider: FeatureFlaggable {
 
         // Get the rest of the section's height and cache and return the results
         let headerHeight = getHeaderHeight(
-            sectionHeaderConfiguration: BookmarksSectionState.Constants.sectionHeaderConfiguration,
+            sectionHeaderConfiguration: BookmarksSectionViewModel.Constants.sectionHeaderConfiguration,
             environment: environment
         )
         let totalHeight = headerHeight

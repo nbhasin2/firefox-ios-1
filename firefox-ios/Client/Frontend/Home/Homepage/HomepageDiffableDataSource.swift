@@ -162,7 +162,7 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
             snapshot.appendItems(tabs, toSection: .jumpBackIn(textColor, configuration))
         }
 
-        if let bookmarks = getBookmarks(with: state.bookmarkState) {
+        if let bookmarks = getBookmarks(with: viewModel.bookmarks) {
             snapshot.appendSections([.bookmarks(textColor)])
             snapshot.appendItems(bookmarks, toSection: .bookmarks(textColor))
         }
@@ -175,7 +175,8 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
             snapshot.appendItems([.searchBar], toSection: .searchBar)
         }
 
-        if let stories = getMerinoStories(with: state.merinoState, selectedNewsfeedCategoryID: selectedNewsfeedCategoryID) {
+        if let stories = getMerinoStories(with: viewModel.merino,
+                                          selectedNewsfeedCategoryID: selectedNewsfeedCategoryID) {
             let pocketSection = HomeSection.pocket(textColor)
             snapshot.appendSections([pocketSection])
             snapshot.appendItems(stories, toSection: pocketSection)
@@ -240,14 +241,14 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
     }
 
     private func getBookmarks(
-        with state: BookmarksSectionState
+        with viewModel: BookmarksSectionViewModel
     ) -> [HomepageDiffableDataSource.HomeItem]? {
-        guard state.shouldShowSection, !state.bookmarks.isEmpty else { return nil }
-        return state.bookmarks.compactMap { .bookmark($0) }
+        guard viewModel.shouldShowSection, !viewModel.bookmarks.isEmpty else { return nil }
+        return viewModel.bookmarks.compactMap { .bookmark($0) }
     }
 
     private func getMerinoStories(
-        with merinoState: MerinoState,
+        with merinoState: MerinoSectionViewModel,
         selectedNewsfeedCategoryID: String?
     ) -> [HomepageDiffableDataSource.HomeItem]? {
         let stories: [HomeItem] = merinoState.visibleStories(selectedNewsfeedCategoryID: selectedNewsfeedCategoryID).map {
