@@ -278,3 +278,39 @@ middlewares 0 (from 28), StoreSubscriber screens 0 (from 12), AppComponent cases
 The last three are the D-016 budget rather than a burn-down: `import Redux` and the dispatch count
 stay high because the bus is retained and every observer imports it. `burndown.sh` now groups them
 that way and fails if the action families or the migration-introduced notifications grow.
+
+## Phase 4 complete — the bus is all that is left
+
+`BrowserKit/Sources/Redux` is four files: `Action`, `ActionObserving`, `ActionDispatching` and
+`BrowserEventBus`. No state, no reducer, no subscriptions, nothing generic over an app state.
+
+- **Item 19/20.** `AppState`, `ScreenState`, `Reducer`, `StateType`, `StoreSubscriber` and
+  `Subscription` deleted. The five states that still reduce keep their bodies and expose
+  `reduce(_:with:)`; what they needed from `StateType` is `ResettableState` (D-045).
+- **Item 21.** `Store` → `BrowserEventBus`, `DispatchStore` → `ActionDispatching`,
+  `DefaultDispatchStore` → `BrowserEventBusing`, the global `store` → `browserEventBus`,
+  `MockStore` → `MockBrowserEventBus`, `StoreTestUtility` → `BusTestUtility`.
+- **Item 22.** The two D-014 tracking-protection notifications are `GeneralBrowserAction` types.
+  The notification budget is 1, and the one left is the legitimate one.
+- **Item 23.** `ReduxTests` covers the retained surface: delivery order, tiering, queueing, modern
+  actions, and one integration test for the command → service → announcement round trip. TestKit no
+  longer depends on Redux.
+- Three action families with no callers deleted (D-046).
+
+### Counters
+
+middleware plumbing 0, StoreSubscriber screens 0, AppComponent cases 0, action families 19,
+migration-introduced notifications 1, `import Redux` 98, dispatch sites 201.
+
+`import Redux` and the dispatch count stay where they are by design: the bus is retained, and every
+sender and observer imports it. That was D-016's call and it has not changed.
+
+### Known issue, not introduced here
+
+`BrowserCoordinatorTests` crashes its test host once per run: `testShouldShowNewTabToast_returnsFalse`
+calls `showShortcutsLibrary()`, and something on that path resolves `UserFeaturePreferring` out of
+`AppContainer` after `DependencyHelperMock().reset()` has emptied it. The resolver is
+`UserFeaturePreferenceProvider.userPreferences`, which `BrowserViewController` gets via
+`SearchBarLocationProvider` — a default argument evaluated on a deferred layout pass rather than
+inside the test. The runner restarts and the suite passes; it predates Phase 4 and is the same
+shape as D-026.

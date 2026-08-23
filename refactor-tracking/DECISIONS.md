@@ -926,3 +926,37 @@ Two of the call sites were asserting a *negative* — that a load leaves the sta
 was no condition to wait for, and a fixed spin could only ever produce a false pass. Both now wait
 on evidence the load ran: the provider's call count, and for `TabPeekViewModel` a state change,
 which its `onChange` publishes exactly once whether or not there is a tab.
+
+## D-045 — What Redux is now: `BrowserEventBus`
+
+Phase 4 finished the D-016 end state. `Store` held a state, a reducer and a subscriber list; what
+is left is `BrowserEventBus` — an action queue and two tiered observer lists. `Reducer`,
+`StateType`, `StoreSubscriber` and `Subscription` are deleted, and so are `AppState` and
+`ScreenState`: the store is not generic over anything any more.
+
+The names say it: `BrowserEventBus`, reached through the global `browserEventBus`, typed as
+`BrowserEventBusing` (`ActionDispatching & ActionObserving`). The global is deliberately not called
+`bus` — six view models already have a `bus` property, and the shorter name would have silently
+bound `bus.dispatch` call sites to the property instead of the global. That is the kind of rename
+that compiles and changes behaviour.
+
+Two things deliberately keep their names. The module is still `Redux`, so `import Redux` survives
+in the sender files (D-016 said it would), and the `*MiddlewareAction` families are still the bus's
+vocabulary (D-042).
+
+What the five remaining states needed from `StateType` was never about the store: it was
+`defaultState(from:)` and `resetTransientState()`. That is `ResettableState` now, a Client-side
+protocol about transient fields. And their `static let reducer` tuples became `reduce(_:with:)`
+functions — same bodies, called directly by their owner rather than through a closure the store
+held.
+
+## D-046 — Deleting an action family is how you tell the migration worked
+
+`TabManagerAction`, `TopSitesAction` and `TabPanelMiddlewareAction` had no callers left: the view
+models and handlers that used to send them do the work directly now. They were invisible while the
+burn-down counted every `: Action` it could find — including, once the reducers became functions,
+the `action: Action` parameters those functions take. A metric that counts declarations found them.
+
+The action-family count is a budget, not a burn-down (D-016 keeps the bus), so it only means
+something if it is measured honestly and ratcheted down when families go. It is 19 now, and the
+script fails if a new one appears without an owner.
