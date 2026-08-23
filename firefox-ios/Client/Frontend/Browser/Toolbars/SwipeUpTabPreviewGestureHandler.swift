@@ -60,7 +60,7 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
         self.swipeGestureFeatureFlagProvider = swipeGestureFeatureFlagProvider
         self.toolbarTelemetry = toolbarTelemetry
         super.init()
-        subscribeToRedux()
+        observeToolbarState()
     }
 
     deinit {
@@ -74,12 +74,12 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
         }
 
         MainActor.assumeIsolated {
-            unsubscribeFromRedux()
+            stopObservingToolbarState()
         }
     }
 
-    // MARK: - Redux
-    func subscribeToRedux() {
+    // MARK: - Toolbar state
+    func observeToolbarState() {
         let viewModel = ToolbarViewModel.instance(for: windowUUID)
         viewModel.addObserver(self) { [weak self] state in
             self?.applyToolbarState(state)
@@ -87,7 +87,7 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
         applyToolbarState(viewModel.state)
     }
 
-    private func unsubscribeFromRedux() {
+    private func stopObservingToolbarState() {
         ToolbarViewModel.instance(for: windowUUID).removeObserver(self)
     }
 

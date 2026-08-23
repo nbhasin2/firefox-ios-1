@@ -172,7 +172,7 @@ final class AddressToolbarContainer: UIView,
         }
 
         MainActor.assumeIsolated {
-            unsubscribeFromRedux()
+            stopObservingToolbarState()
         }
     }
 
@@ -189,7 +189,7 @@ final class AddressToolbarContainer: UIView,
         self.delegate = delegate
         self.isUnifiedSearchEnabled = isUnifiedSearchEnabled
         setupLayout(isBottomSearchBar: isBottomSearchBar)
-        subscribeToRedux()
+        observeToolbarState()
     }
 
     func updateProgressBar(progress: Double) {
@@ -308,9 +308,9 @@ final class AddressToolbarContainer: UIView,
         return toolbar.resignFirstResponder()
     }
 
-    // MARK: - Redux
+    // MARK: - Toolbar state
 
-    func subscribeToRedux() {
+    func observeToolbarState() {
         guard let windowUUID else { return }
         let viewModel = ToolbarViewModel.instance(for: windowUUID)
         viewModel.addObserver(self) { [weak self] state in
@@ -319,7 +319,7 @@ final class AddressToolbarContainer: UIView,
         applyToolbarState(viewModel.state)
     }
 
-    func unsubscribeFromRedux() {
+    func stopObservingToolbarState() {
         guard let windowUUID else { return }
         ToolbarViewModel.instance(for: windowUUID).removeObserver(self)
     }

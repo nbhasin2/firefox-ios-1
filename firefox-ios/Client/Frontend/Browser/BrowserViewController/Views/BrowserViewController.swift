@@ -507,7 +507,7 @@ class BrowserViewController: UIViewController,
 
         MainActor.assumeIsolated {
             logger.log("BVC deallocating (window: \(windowUUID))", level: .info, category: .lifecycle)
-            unsubscribeFromRedux()
+            stopObservingBrowserActions()
             stopObservingAllWebViews()
             googleLensTipObservationTask?.cancel()
         }
@@ -936,9 +936,9 @@ class BrowserViewController: UIViewController,
         dismissVC()
     }
 
-    // MARK: - Redux
+    // MARK: - Browser action bus
 
-    func subscribeToRedux() {
+    func observeBrowserActions() {
         browserViewControllerState = BrowserViewControllerState(windowUUID: windowUUID)
         actionBus?.addActionObserver(self) { [weak self] action in
             guard let self, let current = self.browserViewControllerState else { return }
@@ -954,7 +954,7 @@ class BrowserViewController: UIViewController,
         store.dispatch(browserAction)
     }
 
-    func unsubscribeFromRedux() {
+    func stopObservingBrowserActions() {
         actionBus?.removeActionObserver(self)
     }
 
@@ -1046,7 +1046,7 @@ class BrowserViewController: UIViewController,
         super.viewDidLoad()
 
         setupEssentialUI()
-        subscribeToRedux()
+        observeBrowserActions()
         tabManager.restoreTabs()
         updateAddressToolbarContainerPosition(for: traitCollection)
         if isTabScrollRefactoringEnabled {

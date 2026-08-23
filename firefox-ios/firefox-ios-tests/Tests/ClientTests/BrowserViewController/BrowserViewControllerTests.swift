@@ -364,7 +364,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     func test_tapOnHomepageSearchBarAction_withBVCState_triggersGeneralBrowserAction() throws {
         let subject = createSubject()
 
-        subject.subscribeToRedux()
+        subject.observeBrowserActions()
         mockStore.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.homepageZeroSearch),
@@ -385,7 +385,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
         setupStoreForSearchBar()
         let subject = createSubject()
 
-        subject.subscribeToRedux()
+        subject.observeBrowserActions()
         mockStore.dispatch(
             ToolbarMiddlewareAction(
                 buttonType: .search,
@@ -406,7 +406,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
         setupStoreForSearchBar()
         let subject = createSubject()
 
-        subject.subscribeToRedux()
+        subject.observeBrowserActions()
         mockStore.dispatch(
             ToolbarMiddlewareAction(
                 windowUUID: .XCTestDefaultUUID,
@@ -429,7 +429,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     func test_didTapButtonToolbarAction_withoutHomepageSearch_andSearchButtonType_doesNotTriggersGeneralBrowserAction() {
         let subject = createSubject()
 
-        subject.subscribeToRedux()
+        subject.observeBrowserActions()
         mockStore.dispatch(
             ToolbarMiddlewareAction(
                 buttonType: .search,
@@ -453,7 +453,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     func test_didTapButtonToolbarAction_withoutHomepageSearch_andNoSearchButtonType_doesNotTriggersGeneralBrowserAction() {
         let subject = createSubject()
 
-        subject.subscribeToRedux()
+        subject.observeBrowserActions()
         mockStore.dispatch(
             ToolbarMiddlewareAction(
                 windowUUID: .XCTestDefaultUUID,
@@ -476,7 +476,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     func testNewState_whenSummarizeDisplayRequested() {
         let subject = createSubject()
 
-        subject.subscribeToRedux()
+        subject.observeBrowserActions()
         mockStore.dispatch(
             GeneralBrowserAction(
                 summarizerConfig: .defaultConfig,
@@ -575,7 +575,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     func testResetObservationIsCalledForAddNewTabAction() throws {
         let subject = createSubject()
 
-        subject.subscribeToRedux()
+        subject.observeBrowserActions()
         mockStore.dispatch(
             GeneralBrowserAction(windowUUID: .XCTestDefaultUUID,
                                  actionType: GeneralBrowserActionType.addNewTab)

@@ -86,7 +86,7 @@ final class TabSwipeGestureHandler: NSObject, UIGestureRecognizerDelegate {
         self.prefs = prefs
         self.swipeGestureFeatureFlagProvider = swipeGestureFeatureFlagProvider
         super.init()
-        subscribeToRedux()
+        observeToolbarState()
         setupGesture()
     }
 
@@ -98,7 +98,7 @@ final class TabSwipeGestureHandler: NSObject, UIGestureRecognizerDelegate {
         }
 
         MainActor.assumeIsolated {
-            unsubscribeFromRedux()
+            stopObservingToolbarState()
         }
     }
 
@@ -114,8 +114,8 @@ final class TabSwipeGestureHandler: NSObject, UIGestureRecognizerDelegate {
         panGestureRecognizer = panGesture
     }
 
-    // MARK: - Redux
-    func subscribeToRedux() {
+    // MARK: - Toolbar state
+    func observeToolbarState() {
         let viewModel = ToolbarViewModel.instance(for: windowUUID)
         viewModel.addObserver(self) { [weak self] state in
             self?.applyToolbarState(state)
@@ -123,7 +123,7 @@ final class TabSwipeGestureHandler: NSObject, UIGestureRecognizerDelegate {
         applyToolbarState(viewModel.state)
     }
 
-    private func unsubscribeFromRedux() {
+    private func stopObservingToolbarState() {
         ToolbarViewModel.instance(for: windowUUID).removeObserver(self)
     }
 

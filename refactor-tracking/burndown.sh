@@ -11,16 +11,19 @@ SWIFT=(--include='*.swift')
 CLIENT=firefox-ios/Client
 BUS='GeneralBrowserAction|NavigationBrowserAction|GeneralBrowserMiddlewareAction'
 
-files() { grep -rlE "$1" "${SWIFT[@]}" firefox-ios BrowserKit 2>/dev/null | grep -v '\.build' | wc -l | tr -d ' '; }
-sites() { grep -rnE "$1" "${SWIFT[@]}" "$CLIENT" 2>/dev/null | wc -l | tr -d ' '; }
+# `|| true` on every grep: a metric reaching zero must not abort the script.
+files() { { grep -rlE "$1" "${SWIFT[@]}" firefox-ios BrowserKit 2>/dev/null || true; } | grep -v '\.build' | wc -l | tr -d ' '; }
+sites() { { grep -rnE "$1" "${SWIFT[@]}" "$CLIENT" 2>/dev/null || true; } | wc -l | tr -d ' '; }
 
 row() { printf '  %-42s %6s   target %s\n' "$1" "$2" "$3"; }
 
 middlewares=$(sites 'class .*Middleware\b.*\{')
-subscribers=$(sites 'func subscribeToRedux')
-components=$(grep -cE '^\s+case ' "$CLIENT/Redux/GlobalState/AppComponent.swift" 2>/dev/null || echo 0)
+# Renamed once screens stopped subscribing; both spellings counted so the metric stays honest.
+subscribers=$(sites 'func subscribeToRedux|store\.subscribe\(')
+# AppComponent.swift is deleted once the screen-state tree is gone.
+components=$({ grep -cE '^\s+case ' "$CLIENT/Redux/GlobalState/AppComponent.swift" 2>/dev/null || echo 0; })
 all_actions=$(sites 'class .*: Action\b|struct .*: Action\b|: ModernAction\b')
-bus_actions=$(grep -rnE "(class|struct|enum) ($BUS)" "${SWIFT[@]}" "$CLIENT" 2>/dev/null | wc -l | tr -d ' ')
+bus_actions=$({ grep -rnE "(class|struct|enum) ($BUS)" "${SWIFT[@]}" "$CLIENT" 2>/dev/null || true; } | wc -l | tr -d ' ')
 screen_actions=$(( all_actions - bus_actions ))
 
 echo "Screen state — must reach zero"

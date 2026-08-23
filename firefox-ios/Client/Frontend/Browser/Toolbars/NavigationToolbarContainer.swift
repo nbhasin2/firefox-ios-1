@@ -19,7 +19,7 @@ final class NavigationToolbarContainer: UIView, ThemeApplicable {
 
     var windowUUID: WindowUUID? {
         didSet {
-            subscribeToRedux()
+            observeToolbarState()
         }
     }
     lazy var toolbarHelper: ToolbarHelperInterface = ToolbarHelper()
@@ -55,7 +55,7 @@ final class NavigationToolbarContainer: UIView, ThemeApplicable {
         }
 
         MainActor.assumeIsolated {
-            unsubscribeFromRedux()
+            stopObservingToolbarState()
         }
     }
 
@@ -66,9 +66,9 @@ final class NavigationToolbarContainer: UIView, ThemeApplicable {
         toolbarHeightConstraint?.constant = bottomToolbarHeight
     }
 
-    // MARK: - Redux
+    // MARK: - Toolbar state
 
-    func subscribeToRedux() {
+    func observeToolbarState() {
         guard let windowUUID else { return }
         let viewModel = ToolbarViewModel.instance(for: windowUUID)
         viewModel.addObserver(self) { [weak self] state in
@@ -77,7 +77,7 @@ final class NavigationToolbarContainer: UIView, ThemeApplicable {
         applyToolbarState(viewModel.state)
     }
 
-    func unsubscribeFromRedux() {
+    func stopObservingToolbarState() {
         guard let windowUUID else { return }
         ToolbarViewModel.instance(for: windowUUID).removeObserver(self)
     }
