@@ -57,15 +57,14 @@ row "action families on the bus"        "$screen_actions" "<= $ACTION_BUDGET"
 # D-017 guardrail. Convention: a notification introduced by this migration is declared as a
 # Notification.Name inside a *ViewModel.swift file (as TrackingProtectionViewModel does).
 #
-# Budget of 3, each justified:
-#   1-2. trackingProtectionBlockedTrackersDidChange / ...ConnectionStatusDidChange (D-014).
-#        Browser-level and therefore on the wrong side of D-017; they move to the bus in
-#        Phase 4 item 22, once dispatching no longer traverses the whole reducer chain.
-#     3. homepageSectionSettingsChanged (D-017 row three, legitimate and permanent).
-#        Settings screens have no ownership path to the homepage and a section toggle is not a
-#        browser-level event. One notification carries all six homepage section toggles, so this
-#        does not grow as the remaining homepage sections migrate.
-NOTIF_BUDGET=3
+# Budget of 1, justified: homepageSectionSettingsChanged (D-017 row three, legitimate and
+# permanent). Settings screens have no ownership path to the homepage and a section toggle is not a
+# browser-level event. One notification carries all six homepage section toggles, so this does not
+# grow as the remaining homepage sections migrate.
+#
+# The two tracking-protection signals were here until Phase 4 item 22; they are browser-level, so
+# they are on the bus now that dispatching no longer traverses a reducer chain.
+NOTIF_BUDGET=1
 notifs=$(grep -rn 'Notification\.Name("' "${SWIFT[@]}" "$CLIENT" 2>/dev/null \
   | grep -c 'ViewModel\.swift' || true)
 

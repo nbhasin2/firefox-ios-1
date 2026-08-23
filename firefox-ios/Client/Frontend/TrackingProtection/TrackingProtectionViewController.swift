@@ -141,7 +141,7 @@ class TrackingProtectionViewController: UIViewController,
         self.notificationCenter = notificationCenter
         self.logger = logger
         self.viewModel = trackingProtectionViewModel
-            ?? TrackingProtectionViewModel(windowUUID: windowUUID, notificationCenter: notificationCenter)
+            ?? TrackingProtectionViewModel(windowUUID: windowUUID)
         super.init(nibName: nil, bundle: nil)
         self.viewModel.delegate = self
         self.model.onDidClearCookiesAndSiteData = { [weak self] in

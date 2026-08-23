@@ -48,8 +48,10 @@ extension TabContentBlocker {
                     }
 
                     guard let windowUUID = self.tab?.currentWebView()?.currentWindowUUID else { return }
-                    TrackingProtectionNotification.post(.trackingProtectionBlockedTrackersDidChange,
-                                                        windowUUID: windowUUID)
+                    browserEventBus.dispatch(
+                        GeneralBrowserAction(windowUUID: windowUUID,
+                                             actionType: GeneralBrowserActionType.blockedTrackersDidChange)
+                    )
                 }
             }
         }

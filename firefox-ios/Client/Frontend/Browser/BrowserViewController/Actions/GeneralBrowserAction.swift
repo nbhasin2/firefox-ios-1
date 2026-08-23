@@ -91,6 +91,10 @@ enum GeneralBrowserActionType: ActionType {
     case showTranslationLanguagePicker
     case showGoogleLensPhotoPicker
     case showGoogleLensCamera
+    /// The blocked-tracker count for the window changed; posted by `TabContentBlocker`.
+    case blockedTrackersDidChange
+    /// A page's secure-content status changed; posted by `BrowserViewController`.
+    case connectionStatusDidChange
 }
 
 struct GeneralBrowserMiddlewareAction: Action {

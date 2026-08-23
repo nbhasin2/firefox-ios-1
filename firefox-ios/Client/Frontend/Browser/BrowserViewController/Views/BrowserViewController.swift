@@ -2544,8 +2544,8 @@ class BrowserViewController: UIViewController,
     }
 
     private func handleHasOnlySecureContentChanged(webView: WKWebView) {
-        TrackingProtectionNotification.post(.trackingProtectionConnectionStatusDidChange,
-                                            windowUUID: windowUUID)
+        browserEventBus.dispatch(GeneralBrowserAction(windowUUID: windowUUID,
+                                                      actionType: GeneralBrowserActionType.connectionStatusDidChange))
 
         guard let selectedTabURL = tabManager.selectedTab?.url,
               let webViewURL = webView.url,

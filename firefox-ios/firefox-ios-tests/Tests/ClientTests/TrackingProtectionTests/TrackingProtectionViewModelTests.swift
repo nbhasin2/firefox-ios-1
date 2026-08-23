@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
 import Common
+import Redux
 import XCTest
 
 @testable import Client
@@ -13,18 +14,18 @@ import XCTest
 @MainActor
 final class TrackingProtectionViewModelTests: XCTestCase {
     private var delegate: MockTrackingProtectionViewModelDelegate!
-    private var notificationCenter: MockNotificationCenter!
+    private var mockBus: MockBrowserEventBus!
 
     override func setUp() async throws {
         try await super.setUp()
         await DependencyHelperMock().bootstrapDependencies()
         delegate = MockTrackingProtectionViewModelDelegate()
-        notificationCenter = MockNotificationCenter()
+        mockBus = MockBrowserEventBus()
     }
 
     override func tearDown() async throws {
         delegate = nil
-        notificationCenter = nil
+        mockBus = nil
         DependencyHelperMock().reset()
         try await super.tearDown()
     }
@@ -73,62 +74,55 @@ final class TrackingProtectionViewModelTests: XCTestCase {
 
     // MARK: - Refresh signals
 
-    func test_blockedTrackersNotification_forThisWindow_refreshesTheCount() async {
+    func test_blockedTrackersAction_forThisWindow_refreshesTheCount() {
         let subject = createSubject()
 
-        post(.trackingProtectionBlockedTrackersDidChange, windowUUID: .XCTestDefaultUUID, to: subject)
-        await Task.yield()
+        dispatch(.blockedTrackersDidChange, windowUUID: .XCTestDefaultUUID)
 
         XCTAssertEqual(delegate.updateBlockedTrackersCalled, 1)
+        XCTAssertNotNil(subject)
     }
 
-    func test_connectionStatusNotification_forThisWindow_refreshesTheStatus() async {
+    func test_connectionStatusAction_forThisWindow_refreshesTheStatus() {
         let subject = createSubject()
 
-        post(.trackingProtectionConnectionStatusDidChange, windowUUID: .XCTestDefaultUUID, to: subject)
-        await Task.yield()
+        dispatch(.connectionStatusDidChange, windowUUID: .XCTestDefaultUUID)
 
         XCTAssertEqual(delegate.updateConnectionStatusCalled, 1)
+        XCTAssertNotNil(subject)
     }
 
-    func test_notificationForAnotherWindow_isIgnored() async {
+    func test_actionForAnotherWindow_isIgnored() {
         let subject = createSubject()
         let otherWindow = WindowUUID(uuidString: "44BA0B7D-097A-484D-8358-91A6E374451D")!
 
-        post(.trackingProtectionBlockedTrackersDidChange, windowUUID: otherWindow, to: subject)
-        await Task.yield()
+        dispatch(.blockedTrackersDidChange, windowUUID: otherWindow)
 
         // This is the reducer's windowUUID guard, kept where it still matters.
         XCTAssertEqual(delegate.updateBlockedTrackersCalled, 0)
+        XCTAssertNotNil(subject)
     }
 
-    func test_notificationWithoutAWindowUUID_isIgnored() async {
+    func test_unrelatedBrowserAction_isIgnored() {
         let subject = createSubject()
 
-        subject.handleNotifications(
-            Notification(name: .trackingProtectionBlockedTrackersDidChange, object: nil, userInfo: nil)
-        )
-        await Task.yield()
+        dispatch(.showToast, windowUUID: .XCTestDefaultUUID)
 
         XCTAssertEqual(delegate.updateBlockedTrackersCalled, 0)
+        XCTAssertEqual(delegate.updateConnectionStatusCalled, 0)
+        XCTAssertNotNil(subject)
     }
 
     // MARK: - Private Helpers
 
-    private func post(_ name: Notification.Name, windowUUID: WindowUUID, to subject: TrackingProtectionViewModel) {
-        subject.handleNotifications(
-            Notification(
-                name: name,
-                object: nil,
-                userInfo: [TrackingProtectionNotification.windowUUIDKey: windowUUID]
-            )
-        )
+    private func dispatch(_ actionType: GeneralBrowserActionType, windowUUID: WindowUUID) {
+        mockBus.dispatch(GeneralBrowserAction(windowUUID: windowUUID, actionType: actionType))
     }
 
     private func createSubject() -> TrackingProtectionViewModel {
         let subject = TrackingProtectionViewModel(
             windowUUID: .XCTestDefaultUUID,
-            notificationCenter: notificationCenter
+            bus: mockBus
         )
         subject.delegate = delegate
         trackForMemoryLeaks(subject)

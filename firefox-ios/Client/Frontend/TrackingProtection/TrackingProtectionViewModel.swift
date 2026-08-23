@@ -4,29 +4,7 @@
 
 import Common
 import Foundation
-
-extension Notification.Name {
-    /// The blocked-tracker count for a window changed. Posted by `TabContentBlocker`, replacing
-    /// `TrackingProtectionActionType.updateBlockedTrackerStats`.
-    public static let trackingProtectionBlockedTrackersDidChange =
-        Notification.Name("trackingProtectionBlockedTrackersDidChange")
-    /// A page's secure-content status changed. Posted by `BrowserViewController`, replacing
-    /// `TrackingProtectionActionType.updateConnectionStatus`.
-    public static let trackingProtectionConnectionStatusDidChange =
-        Notification.Name("trackingProtectionConnectionStatusDidChange")
-}
-
-enum TrackingProtectionNotification {
-    /// `WindowUUID` of the window whose tracking protection changed.
-    static let windowUUIDKey = "windowUUID"
-
-    @MainActor
-    static func post(_ name: Notification.Name,
-                     windowUUID: WindowUUID,
-                     notificationCenter: NotificationProtocol = NotificationCenter.default) {
-        notificationCenter.post(name: name, withObject: nil, withUserInfo: [windowUUIDKey: windowUUID])
-    }
-}
+import Redux
 
 @MainActor
 protocol TrackingProtectionViewModelDelegate: AnyObject {
@@ -47,28 +25,25 @@ protocol TrackingProtectionViewModelDelegate: AnyObject {
 /// information the caller did not already have, so they are delegate calls now.
 ///
 /// The two refresh signals that arrive from outside the module — from `TabContentBlocker` and
-/// `BrowserViewController` — were the only genuinely stateful part. They become notifications,
-/// because unlike the navigation intents they have no caller holding a reference to this screen.
+/// `BrowserViewController` — were the only genuinely stateful part. Unlike the navigation intents
+/// they have no caller holding a reference to this screen, and they are browser-level events, so
+/// they stay on the bus (D-017).
 @MainActor
-final class TrackingProtectionViewModel: Notifiable {
+final class TrackingProtectionViewModel {
     weak var delegate: TrackingProtectionViewModelDelegate?
 
     private let windowUUID: WindowUUID
     private let telemetry: TrackingProtectionTelemetry
-    private let notificationCenter: NotificationProtocol
+    /// The bus holds observers weakly and sweeps dead ones, so there is nothing to unregister.
+    private let bus: (any ActionObserving)?
 
     init(windowUUID: WindowUUID,
          telemetry: TrackingProtectionTelemetry = TrackingProtectionTelemetry(),
-         notificationCenter: NotificationProtocol = NotificationCenter.default) {
+         bus: (any ActionObserving)? = browserEventBus) {
         self.windowUUID = windowUUID
         self.telemetry = telemetry
-        self.notificationCenter = notificationCenter
-        startObservingNotifications(
-            withNotificationCenter: notificationCenter,
-            forObserver: self,
-            observing: [.trackingProtectionBlockedTrackersDidChange,
-                        .trackingProtectionConnectionStatusDidChange]
-        )
+        self.bus = bus
+        observeRefreshSignals()
     }
 
     // MARK: - Intents
@@ -101,17 +76,13 @@ final class TrackingProtectionViewModel: Notifiable {
 
     // MARK: - Refresh signals
 
-    /// `@objc` notification handlers cannot be actor-isolated, so hop back to the main actor before
-    /// touching the delegate.
-    nonisolated func handleNotifications(_ notification: Notification) {
-        let name = notification.name
-        let uuid = notification.userInfo?[TrackingProtectionNotification.windowUUIDKey] as? WindowUUID
-        Task { @MainActor [weak self] in
-            guard let self, uuid == self.windowUUID else { return }
-            switch name {
-            case .trackingProtectionBlockedTrackersDidChange:
+    private func observeRefreshSignals() {
+        bus?.addActionObserver(self) { [weak self] action in
+            guard let self, action.windowUUID == self.windowUUID else { return }
+            switch action.actionType {
+            case GeneralBrowserActionType.blockedTrackersDidChange:
                 self.delegate?.trackingProtectionViewModelDidUpdateBlockedTrackers()
-            case .trackingProtectionConnectionStatusDidChange:
+            case GeneralBrowserActionType.connectionStatusDidChange:
                 self.delegate?.trackingProtectionViewModelDidUpdateConnectionStatus()
             default:
                 break
