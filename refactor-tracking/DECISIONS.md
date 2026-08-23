@@ -740,3 +740,42 @@ The pattern that has settled instead is an `initialState:` parameter on the view
 view controller also takes for injection. `HeaderViewModel`, `WallpaperViewModel`,
 `TopSitesSectionViewModel`, `JumpBackInSectionViewModel`, `ShortcutsLibraryViewModel` and now
 `RemoteTabsPanelViewModel` all have one.
+
+## D-036 — Tabs: the tray, the panels and the peek all off Redux
+
+`TabTrayState`, `TabsPanelState` and their reducers lose their Redux conformance; the `.tabsTray`
+and `.tabsPanel` `AppComponent` cases go, leaving two. `TabManagerMiddleware` drops from 697 lines
+to 138 and now does three things only: write a screenshot to disk, select a tab for jump back in,
+and select a tab for the shortcuts-library toast.
+
+The middleware's real content was `TabsPanelService`: add a tab, move one, close one, close them
+all, delete the old ones, select one, prefetch a screenshot. Every one was a command against
+`TabManager` followed by a dispatched refresh. The commands are methods; the refresh is an
+observer list, because one service serves the tray and its three panels.
+
+Three things still leave the tab tray and stay dispatches, all browser-level:
+`TabTrayActionType.dismissTabTray` (the homepage observes it for jump back in, and the tray
+observes it to close), `GeneralBrowserActionType.showOverlay`, and
+`TabTrayActionType.firefoxAccountChanged` from the synced-tabs panel. `ScreenshotActionType`
+arrives on the bus in the other direction — the tab manager takes a screenshot, the panel rebinds.
+
+Two deletions worth naming:
+
+- **FXIOS-15973's workaround is gone.** `TabDisplayPanelViewController` carried a static
+  `latestSubscriptionGeneration` map because the `.tabsPanel` component was shared per window
+  across panel instances, so a closing panel could wipe the state a newly-opened one depended on.
+  With state per panel there is nothing shared to wipe.
+- **`TabPeekActionType` and `RemoteTabsPanelAction` are gone entirely.** Tab peek closes through
+  the panel's service (the display view hands it over when building the peek), and the synced-tabs
+  panel runs its three commands directly.
+
+## D-037 — Two test-suite hazards worth remembering
+
+`wait(for:)` with no timeout on an expectation that can no longer be fulfilled does not fail the
+test — it hangs the whole suite. Three `TabManagerMiddlewareTests` cases waited on a refresh
+dispatch that had moved to the bus, and the run never finished rather than reporting a failure.
+When an action stops being dispatched, grep the tests for `dispatchCalled` before assuming a
+compile-clean suite is a passing one.
+
+`MockTabManager` keeps `tabs`, `normalTabs` and `privateTabs` as three independent arrays; seeding
+`tabs` alone leaves `normalTabs` empty and the panel reads nothing.
