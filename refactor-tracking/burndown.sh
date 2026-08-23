@@ -21,15 +21,17 @@ row() { printf '  %-42s %6s   target %s\n' "$1" "$2" "$3"; }
 
 # The middleware type itself, not the *MiddlewareAction families, which are retained bus
 # vocabulary (D-042). Counted across the whole repo because the machinery lived in BrowserKit.
-middlewares=$(files 'Middleware<|MiddlewareClosure|middlewares:')
+middlewares=$(files 'Middleware<|MiddlewareClosure|middlewares: \[')
 # Renamed once screens stopped subscribing; both spellings counted so the metric stays honest.
 subscribers=$(sites 'func subscribeToRedux|store\.subscribe\(')
 # AppComponent.swift is deleted once the screen-state tree is gone.
 components=$({ grep -cE '^\s+case ' "$CLIENT/Redux/GlobalState/AppComponent.swift" 2>/dev/null || echo 0; })
-all_actions=$(sites 'class .*: Action\b|struct .*: Action\b|: ModernAction\b')
-bus_actions=$({ grep -rnE "(class|struct|enum) ($BUS)" "${SWIFT[@]}" "$CLIENT" 2>/dev/null || true; } | wc -l | tr -d ' ')
+# Type declarations only. A parameter typed `Action` is not a new family, and since the reducers
+# became functions there are plenty of those.
+all_actions=$(sites '^(struct|final class|class|enum) [A-Za-z]+: (Action|ModernAction)\b')
+bus_actions=$({ grep -rnE "^(struct|final class|class|enum) ($BUS): " "${SWIFT[@]}" "$CLIENT" 2>/dev/null || true; } | wc -l | tr -d ' ')
 screen_actions=$(( all_actions - bus_actions ))
-ACTION_BUDGET=21
+ACTION_BUDGET=19
 
 echo "Screen state — must reach zero"
 row "files with middleware plumbing"     "$middlewares"     0

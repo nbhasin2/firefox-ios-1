@@ -984,7 +984,6 @@
 		8A454D362CB86993009436D9 /* MerinoStoryConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A454D352CB86993009436D9 /* MerinoStoryConfiguration.swift */; };
 		8A454D3F2CB9B8A0009436D9 /* TopSitesSectionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A454D3E2CB9B8A0009436D9 /* TopSitesSectionState.swift */; };
 		F8A6EE1D09E9592C4A13FA6C /* TopSitesSectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B9F66E2C542B15A2135E1FE /* TopSitesSectionViewModel.swift */; };
-		8A454D412CB9B8AA009436D9 /* TopSitesAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A454D402CB9B8AA009436D9 /* TopSitesAction.swift */; };
 		8A454D432CB9B8F5009436D9 /* TopSitesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A454D422CB9B8F5009436D9 /* TopSitesManager.swift */; };
 		CEAACDE62ADADB1B84949546 /* TopSitesTelemetryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9C9143939E36331EBC7B70C /* TopSitesTelemetryService.swift */; };
 		050A16EF5D5CE4A40EC1112F /* TopSitesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0C4238A96E579FD23CA019 /* TopSitesService.swift */; };
@@ -1103,7 +1102,6 @@
 		8A87B4382CC1A92D003A9239 /* MockPocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A87B4362CC1A910003A9239 /* MockPocketManager.swift */; };
 		8A87E98C2E707932006F0239 /* FxSuggestTelemetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A87E98B2E70792F006F0239 /* FxSuggestTelemetryTests.swift */; };
 		8A88815E2B21071E009635AE /* GCDWebServers in Frameworks */ = {isa = PBXBuildFile; productRef = 8A88815D2B21071E009635AE /* GCDWebServers */; };
-		8A8904132D511E6A00A5BB29 /* TabManagerAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8904122D511E6A00A5BB29 /* TabManagerAction.swift */; };
 		8A89046D2D52874600A5BB29 /* SyncedTabCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A89046C2D52874200A5BB29 /* SyncedTabCell.swift */; };
 		8A8BAE122B2107E400D774EB /* GCDWebServers in Frameworks */ = {isa = PBXBuildFile; productRef = 8A8BAE112B2107E400D774EB /* GCDWebServers */; };
 		8A8BAE142B21110000D774EB /* GCDWebServers in Frameworks */ = {isa = PBXBuildFile; productRef = 8A8BAE132B21110000D774EB /* GCDWebServers */; };
@@ -9724,7 +9722,6 @@
 		8A454D352CB86993009436D9 /* MerinoStoryConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerinoStoryConfiguration.swift; sourceTree = "<group>"; };
 		8A454D3E2CB9B8A0009436D9 /* TopSitesSectionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesSectionState.swift; sourceTree = "<group>"; };
 		6B9F66E2C542B15A2135E1FE /* TopSitesSectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesSectionViewModel.swift; sourceTree = "<group>"; };
-		8A454D402CB9B8AA009436D9 /* TopSitesAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesAction.swift; sourceTree = "<group>"; };
 		8A454D422CB9B8F5009436D9 /* TopSitesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesManager.swift; sourceTree = "<group>"; };
 		A9C9143939E36331EBC7B70C /* TopSitesTelemetryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesTelemetryService.swift; sourceTree = "<group>"; };
 		3A0C4238A96E579FD23CA019 /* TopSitesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopSitesService.swift; sourceTree = "<group>"; };
@@ -9851,7 +9848,6 @@
 		8A87B4362CC1A910003A9239 /* MockPocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockPocketManager.swift; sourceTree = "<group>"; };
 		8A87E98B2E70792F006F0239 /* FxSuggestTelemetryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FxSuggestTelemetryTests.swift; sourceTree = "<group>"; };
 		8A880C432C63CFE200B77F23 /* MockLoginViewModelDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockLoginViewModelDelegate.swift; sourceTree = "<group>"; };
-		8A8904122D511E6A00A5BB29 /* TabManagerAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabManagerAction.swift; sourceTree = "<group>"; };
 		8A89046C2D52874200A5BB29 /* SyncedTabCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncedTabCell.swift; sourceTree = "<group>"; };
 		8A8D12132DD671DC00E0B8BB /* TabTrayPanelSwipePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabTrayPanelSwipePalette.swift; sourceTree = "<group>"; };
 		8A8D12152DD671FE00E0B8BB /* TabTrayPanelSwipeTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabTrayPanelSwipeTheme.swift; sourceTree = "<group>"; };
@@ -12847,7 +12843,6 @@
 		219914032AF963E000153598 /* Action */ = {
 			isa = PBXGroup;
 			children = (
-				8A8904122D511E6A00A5BB29 /* TabManagerAction.swift */,
 				219914042AF963F900153598 /* TabTrayAction.swift */,
 				8A505BA42D9198900070EB44 /* TopTabsAction.swift */,
 				219935E82B070F9000E5966F /* TabPanelAction.swift */,
@@ -14280,7 +14275,6 @@
 				8A454D3E2CB9B8A0009436D9 /* TopSitesSectionState.swift */,
 				6B9F66E2C542B15A2135E1FE /* TopSitesSectionViewModel.swift */,
 				8A454D422CB9B8F5009436D9 /* TopSitesManager.swift */,
-				8A454D402CB9B8AA009436D9 /* TopSitesAction.swift */,
 				A9C9143939E36331EBC7B70C /* TopSitesTelemetryService.swift */,
 				3A0C4238A96E579FD23CA019 /* TopSitesService.swift */,
 				8AE938182CD91D5A0020E6CF /* TopSiteConfiguration.swift */,
@@ -19824,7 +19818,6 @@
 				8A93080927BFE88F0052167D /* PhotonActionSheetContainerCell.swift in Sources */,
 				F85C7F0E2711C556004BDBA4 /* SettingsViewController.swift in Sources */,
 				0BDDB3442CA6E43100D501DF /* FolderHierarchyFetcher.swift in Sources */,
-				8A8904132D511E6A00A5BB29 /* TabManagerAction.swift in Sources */,
 				8A0636F62DF0CDAD0076823A /* TabTraySelectorButtonModel.swift in Sources */,
 				E1AFBAF9292EA0330065E35E /* SendToDeviceHelper.swift in Sources */,
 				E17798982BD6B44B00F6F0EB /* AddressToolbarContainer.swift in Sources */,
@@ -20334,7 +20327,6 @@
 				E68AEDB01B18F81A00133D99 /* SwipeAnimator.swift in Sources */,
 				1DDE3DB32AC34E1E0039363B /* TabCell.swift in Sources */,
 				5A1947152B8FA9E0009C7A6C /* BrowserViewType.swift in Sources */,
-				8A454D412CB9B8AA009436D9 /* TopSitesAction.swift in Sources */,
 				8C4B0F5D2C076B12008B3E74 /* UpdatableAddressFields+Decodable.swift in Sources */,
 				ED67B2962D0C921600BDC599 /* ShareTelemetry.swift in Sources */,
 				8ADAE4222A33A113007BF926 /* SendDataSetting.swift in Sources */,
