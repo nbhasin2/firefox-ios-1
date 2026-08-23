@@ -199,8 +199,7 @@ class TopTabsViewController: UIViewController, Themeable, Notifiable {
         let colors = currentTheme.colors
 
         view.backgroundColor = .clear
-        if let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID),
-           toolbarState.isTranslucent {
+        if ToolbarViewModel.instance(for: windowUUID).state.isTranslucent {
             collectionView.backgroundColor = .clear
         } else {
             collectionView.backgroundColor = view.backgroundColor

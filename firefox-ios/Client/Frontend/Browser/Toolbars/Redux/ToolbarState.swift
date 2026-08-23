@@ -8,7 +8,7 @@ import Redux
 import ToolbarKit
 
 @Copyable
-struct ToolbarState: ScreenState, Sendable {
+struct ToolbarState: Equatable, Sendable {
     var windowUUID: WindowUUID
     var toolbarPosition: AddressToolbarPosition
     var toolbarLayout: ToolbarLayoutStyle
@@ -30,39 +30,6 @@ struct ToolbarState: ScreenState, Sendable {
     var nextTabScreenshot: UIImage?
     // Whether the address bar renders as its full toolbar or its minimized "pill" shape
     var isAddressBarMinimized: Bool
-
-    init(appState: AppState, uuid: WindowUUID) {
-        guard let toolbarState = appState.componentState(
-            ToolbarState.self,
-            for: .toolbar,
-            window: uuid)
-        else {
-            self.init(windowUUID: uuid)
-            return
-        }
-
-        self.init(windowUUID: toolbarState.windowUUID,
-                  toolbarPosition: toolbarState.toolbarPosition,
-                  toolbarLayout: toolbarState.toolbarLayout,
-                  tabTrayButtonStyle: toolbarState.tabTrayButtonStyle,
-                  isPrivateMode: toolbarState.isPrivateMode,
-                  addressToolbar: toolbarState.addressToolbar,
-                  navigationToolbar: toolbarState.navigationToolbar,
-                  isShowingNavigationToolbar: toolbarState.isShowingNavigationToolbar,
-                  isShowingTopTabs: toolbarState.isShowingTopTabs,
-                  canGoBack: toolbarState.canGoBack,
-                  canGoForward: toolbarState.canGoForward,
-                  numberOfTabs: toolbarState.numberOfTabs,
-                  showMenuWarningBadge: toolbarState.showMenuWarningBadge,
-                  canShowNavigationHint: toolbarState.canShowNavigationHint,
-                  shouldAnimate: toolbarState.shouldAnimate,
-                  isTranslucent: toolbarState.isTranslucent,
-                  isTranslationsEnabled: toolbarState.isTranslationsEnabled,
-                  previousTabScreenshot: toolbarState.previousTabScreenshot,
-                  nextTabScreenshot: toolbarState.nextTabScreenshot,
-                  isAddressBarMinimized: toolbarState.isAddressBarMinimized
-        )
-    }
 
     init(windowUUID: WindowUUID) {
         self.init(
@@ -133,9 +100,19 @@ struct ToolbarState: ScreenState, Sendable {
         self.isAddressBarMinimized = isAddressBarMinimized
     }
 
-    static let reducer: Reducer<Self> = (legacyReducer, modernReducer)
+    /// Kept verbatim from the reducer; `ToolbarViewModel` calls it from its bus observer.
+    @MainActor
+    static func reduce(_ state: ToolbarState, with action: Action) -> ToolbarState {
+        return handleReducer(state: state, action: action)
+    }
 
-    static let modernReducer: ReducerMethod<Self> = { state, action, actionWindowUUID in
+    /// The modern-action half, kept for the same reason as `reduce`.
+    @MainActor
+    static func reduceModern(_ state: ToolbarState, with action: ToolbarModernAction) -> ToolbarState {
+        return modernReducer(state, action, state.windowUUID)
+    }
+
+    private static let modernReducer: ReducerMethod<Self> = { state, action, actionWindowUUID in
         guard let action = action as? ToolbarModernAction else { return defaultState(from: state) }
 
         switch action {
@@ -148,7 +125,7 @@ struct ToolbarState: ScreenState, Sendable {
         }
     }
 
-    static let legacyReducer: LegacyReducerMethod<Self> = { state, action in
+    private static let legacyReducer: LegacyReducerMethod<Self> = { state, action in
         return handleReducer(state: state, action: action)
     }
 

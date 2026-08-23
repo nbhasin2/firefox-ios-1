@@ -269,10 +269,8 @@ final class MainMenuTabInfoProvider: MainMenuTabInfoProviding {
         )
     }
 
-    /// The toolbar still keeps this in Redux; it moves to a direct read when Toolbar migrates.
     private func translationConfiguration(for windowUUID: WindowUUID) -> TranslationConfiguration? {
-        let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID)
-        return toolbarState?.addressToolbar.translationConfiguration
+        return ToolbarViewModel.instance(for: windowUUID).state.addressToolbar.translationConfiguration
     }
 
     private func siteProtectionState(for selectedTab: Tab) -> SiteProtectionsState {

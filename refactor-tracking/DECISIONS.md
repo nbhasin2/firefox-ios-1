@@ -779,3 +779,27 @@ compile-clean suite is a passing one.
 
 `MockTabManager` keeps `tabs`, `normalTabs` and `privateTabs` as three independent arrays; seeding
 `tabs` alone leaves `normalTabs` empty and the panel reads nothing.
+
+## D-038 — Toolbar: keep the reducer, drop the screen state
+
+`ToolbarState` is the one screen where almost everything displayed is browser state announced from
+somewhere else — the URL changed, the page finished loading, reader mode became available, the tab
+count moved, the search engine changed. Those announcements come from `BrowserViewController`, the
+tab manager, Settings, the translations middleware and the search-engine picker, none of which
+owns the toolbar. That is precisely what D-016 retains the bus for.
+
+So the transitions do not move at all. `ToolbarState.reduce(_:with:)` *is* the old reducer body,
+unchanged, and `ToolbarViewModel` calls it from a bus observer. What goes is the screen state in
+the store, the four `store.subscribe` calls, and the last `AppComponent` case besides
+`browserViewController`.
+
+The ~1,900 lines of reducer in `ToolbarState`, `AddressBarState` and `NavigationBarState` are
+untouched, and so are their test suites — 63 reducer tests kept their coverage by changing
+`ToolbarState.reducer.legacyReducer(a, b)` to `ToolbarState.reduce(a, with: b)`. For a screen this
+central, not rewriting the logic is the point.
+
+`ToolbarViewModel` is per-window and reached through a small registry, because the toolbar's four
+views, `BrowserViewController`, `TopTabsViewController`, the main menu and the translations
+middleware all read the same state for a window. Ten `store.state.componentState(ToolbarState...)`
+reads became `ToolbarViewModel.instance(for:).state`, and non-optional in the process — the store
+lookup could fail, the instance cannot.

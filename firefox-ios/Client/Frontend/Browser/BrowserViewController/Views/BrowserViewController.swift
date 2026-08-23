@@ -648,11 +648,7 @@ class BrowserViewController: UIViewController,
         let theme = themeManager.getCurrentTheme(for: windowUUID)
         let isKeyboardShowing = keyboardState != nil
 
-        let isToolbarCollapsed = store.state.componentState(
-            ToolbarState.self,
-            for: .toolbar,
-            window: windowUUID
-        )?.isAddressBarMinimized == true
+        let isToolbarCollapsed = ToolbarViewModel.instance(for: windowUUID).state.isAddressBarMinimized == true
         let isScrollAlphaZero = if #available(iOS 26.0, *) { isToolbarCollapsed } else { false }
 
         // Prevent homepage from showing behind the keyboard when content isn't scrollable.
@@ -729,11 +725,7 @@ class BrowserViewController: UIViewController,
         let isActionNeeded = RustFirefoxAccounts.shared.isActionNeeded
         let showWarningBadge = isActionNeeded
 
-        let shouldShowWarningBadge = store.state.componentState(
-            ToolbarState.self,
-            for: .toolbar,
-            window: windowUUID
-        )?.showMenuWarningBadge
+        let shouldShowWarningBadge = ToolbarViewModel.instance(for: windowUUID).state.showMenuWarningBadge
 
         guard showWarningBadge != shouldShowWarningBadge else { return }
 
@@ -782,8 +774,7 @@ class BrowserViewController: UIViewController,
         guard isSwipingTabsEnabled else { return }
 
         if isBottomSearchBar,
-           let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID),
-           !toolbarState.addressToolbar.isEditing {
+           !ToolbarViewModel.instance(for: windowUUID).state.addressToolbar.isEditing {
             tabSwipeGestureHandler?.enablePanGestureRecognizer()
             addressToolbarContainer.updateSkeletonAddressBarsVisibility(tabManager: tabManager)
         } else {
@@ -1336,13 +1327,9 @@ class BrowserViewController: UIViewController,
     /// The homepage search bar should not appear if we are in editing mode.
     private func shouldHideAddressToolbar() {
         guard featureFlagsProvider.isEnabled(.homepageSearchBar) else { return }
-        let toolbarState = store.state.componentState(
-            ToolbarState.self,
-            for: .toolbar,
-            window: windowUUID
-        )
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
 
-        let isEditing = toolbarState?.addressToolbar.isEditing ?? false
+        let isEditing = toolbarState.addressToolbar.isEditing
 
         let shouldShowSearchBar = SearchBarVisibilityStore.shared.isSearchBarVisible(for: windowUUID)
 
@@ -1803,8 +1790,8 @@ class BrowserViewController: UIViewController,
         }
 
         // Temporary sitecompat workaround for FXIOS-15487. See comments in `bug15487_isGoogleAIPage()`.
-        let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID)
-        let isEditing = toolbarState?.addressToolbar.isEditing == true
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
+        let isEditing = toolbarState.addressToolbar.isEditing
         if !isEditing,
            tabManager.selectedTab?.bug15487_isGoogleAIPage() ?? false,
            traitCollection.verticalSizeClass != .compact,
@@ -2374,11 +2361,7 @@ class BrowserViewController: UIViewController,
     }
 
     private func updateToolbarAnimationStateIfNeeded() {
-        let shouldAnimate = store.state.componentState(
-            ToolbarState.self,
-            for: .toolbar,
-            window: windowUUID
-        )?.shouldAnimate
+        let shouldAnimate = ToolbarViewModel.instance(for: windowUUID).state.shouldAnimate
 
         guard shouldAnimate == false else { return }
         store.dispatch(
@@ -2655,11 +2638,7 @@ class BrowserViewController: UIViewController,
             safeListedURLImageName: safeListedURLImageName,
             translationConfiguration: tab.translationConfiguration ?? TranslationConfiguration(
                 prefs: profile.prefs,
-                isUserSettingEnabled: store.state.componentState(
-                    ToolbarState.self,
-                    for: .toolbar,
-                    window: windowUUID
-                )?.isTranslationsEnabled ?? true
+                isUserSettingEnabled: ToolbarViewModel.instance(for: windowUUID).state.isTranslationsEnabled ?? true
             ),
             windowUUID: windowUUID,
             actionType: ToolbarActionType.urlDidChange)
@@ -3215,8 +3194,9 @@ class BrowserViewController: UIViewController,
 
         // Only dispatch action when the value of top tabs being shown is different from what is saved in the state
         // to avoid having the toolbar re-displayed
-        guard let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID),
-              toolbarState.isShowingTopTabs != showTopTabs || toolbarState.isShowingNavigationToolbar != showNavToolbar
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
+        guard toolbarState.isShowingTopTabs != showTopTabs
+                || toolbarState.isShowingNavigationToolbar != showNavToolbar
         else { return }
 
         let action = ToolbarAction(
@@ -4890,9 +4870,7 @@ extension BrowserViewController: TabManagerDelegate {
     private func updateToolbarTabCount(_ count: Int) {
         // Only dispatch action when the number of tabs is different from what is saved in the state
         // to avoid having the toolbar re-displayed
-        guard let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID),
-              toolbarState.numberOfTabs != count
-        else { return }
+        guard ToolbarViewModel.instance(for: windowUUID).state.numberOfTabs != count else { return }
 
         let action = ToolbarAction(numberOfTabs: count,
                                    windowUUID: windowUUID,
@@ -5024,8 +5002,8 @@ extension BrowserViewController: KeyboardHelperDelegate {
 
     func keyboardHelper(_ keyboardHelper: KeyboardHelper, keyboardDidHideWithState state: KeyboardState) {
         keyboardState = nil
-        let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID)
-        let isEditing = toolbarState?.addressToolbar.isEditing == true
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
+        let isEditing = toolbarState.addressToolbar.isEditing
         if !isEditing {
             store.dispatch(
                 ToolbarAction(
@@ -5075,11 +5053,7 @@ extension BrowserViewController: KeyboardHelperDelegate {
         let newTabChoice = NewTabAccessors.getNewTabPage(profile.prefs)
         guard newTabChoice != .topSites, newTabChoice != .blankPage else { return false }
 
-        let searchTerm = store.state.componentState(
-            ToolbarState.self,
-            for: .toolbar,
-            window: windowUUID
-        )?.addressToolbar.searchTerm
+        let searchTerm = ToolbarViewModel.instance(for: windowUUID).state.addressToolbar.searchTerm
 
         return searchTerm == nil
     }

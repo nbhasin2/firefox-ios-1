@@ -67,7 +67,7 @@ extension BrowserViewController: PhotonActionSheetProtocol {
 
     // MARK: - Summarize CFR / Contextual Hint
     func configureSummarizeToolbarEntryContextualHint(for view: UIView) {
-        guard let state = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID) else { return }
+        let state = ToolbarViewModel.instance(for: windowUUID).state
         // Show up arrow for iPad and landscape or top address bar; otherwise show down arrow
         let showNavToolbar = toolbarHelper.shouldShowNavigationToolbar(for: traitCollection)
         let shouldShowUpArrow = state.toolbarPosition == .top || !showNavToolbar
@@ -96,7 +96,7 @@ extension BrowserViewController: PhotonActionSheetProtocol {
 
     // MARK: - Translation CFR
     func configureTranslationContextualHint(for view: UIView) {
-        guard let state = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID) else { return }
+        let state = ToolbarViewModel.instance(for: windowUUID).state
         // Show up arrow for iPad and landscape or top address bar; otherwise show down arrow
         let showNavToolbar = toolbarHelper.shouldShowNavigationToolbar(for: traitCollection)
         let shouldShowUpArrow = state.toolbarPosition == .top || !showNavToolbar
@@ -141,11 +141,9 @@ extension BrowserViewController: PhotonActionSheetProtocol {
                 case .available:
                     guard let button,
                           button.window != nil,
-                          self.presentedViewController == nil,
-                          let toolbarState = store.state.componentState(ToolbarState.self,
-                                                                        for: .toolbar,
-                                                                        window: self.windowUUID)
+                          self.presentedViewController == nil
                     else { return }
+                    let toolbarState = ToolbarViewModel.instance(for: self.windowUUID).state
 
                     let tipViewController = TipUIPopoverViewController(tip, sourceItem: button)
                     tipViewController.popoverPresentationController?.permittedArrowDirections =
@@ -180,13 +178,7 @@ extension BrowserViewController: PhotonActionSheetProtocol {
     }
 
     func dismissToolbarCFRs(with windowUUID: WindowUUID) {
-        guard let toolbarState = store.state.componentState(
-            ToolbarState.self,
-            for: .toolbar,
-            window: windowUUID
-        ) else {
-            return
-        }
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
         let translationAction = toolbarState.addressToolbar.leadingPageActions.first(where: { $0.actionType == .translate })
         if translationAction == nil {
             resetTranslationCFRTimer()

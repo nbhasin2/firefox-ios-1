@@ -7,7 +7,7 @@ import Common
 import Redux
 
 @MainActor
-final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelegate, StoreSubscriber {
+final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelegate {
     private struct UX {
         static let closeTabAnimationsDuration: CGFloat = 0.3
         static let dismissPreviewDelay: CGFloat = 0.4
@@ -80,19 +80,18 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
 
     // MARK: - Redux
     func subscribeToRedux() {
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            $0.select({ appState in
-                return ToolbarState(appState: appState, uuid: uuid)
-            })
-        })
+        let viewModel = ToolbarViewModel.instance(for: windowUUID)
+        viewModel.addObserver(self) { [weak self] state in
+            self?.applyToolbarState(state)
+        }
+        applyToolbarState(viewModel.state)
     }
 
     private func unsubscribeFromRedux() {
-        store.unsubscribe(self)
+        ToolbarViewModel.instance(for: windowUUID).removeObserver(self)
     }
 
-    func newState(state: ToolbarState) {
+    private func applyToolbarState(_ state: ToolbarState) {
         toolbarState = state
         setGestureHandlers(toolbarState: state)
     }

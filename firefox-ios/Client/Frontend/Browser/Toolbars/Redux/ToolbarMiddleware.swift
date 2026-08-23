@@ -155,8 +155,7 @@ final class ToolbarMiddleware {
             updateTopAddressBorderPosition(scrollOffset: scrollOffset, windowUUID: action.windowUUID, state: state)
 
         case ToolbarMiddlewareActionType.didClearSearch:
-            guard let toolbarState = state.componentState(ToolbarState.self, for: .toolbar, window: action.windowUUID)
-            else { return }
+            let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
             let action = ToolbarAction(windowUUID: action.windowUUID, actionType: ToolbarActionType.clearSearch)
             store.dispatch(action)
             toolbarTelemetry.clearSearchButtonTapped(isPrivate: toolbarState.isPrivateMode)
@@ -197,13 +196,7 @@ final class ToolbarMiddleware {
         case ToolbarActionType.didSubmitSearchTerm:
             // After a user submits a search term, we want to record it in our history storage via recent search provider.
             // We only want to record when in normal mode since recent searches is not available for private mode.
-            guard let toolbarState = state.componentState(
-                ToolbarState.self,
-                for: .toolbar,
-                window: action.windowUUID
-            ) else {
-                return
-            }
+            let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
 
             guard let url = action.url, let searchTerm = action.searchTerm, !toolbarState.isPrivateMode else { return }
             recentSearchProvider.addRecentSearch(searchTerm, url: url.absoluteString)
@@ -241,8 +234,7 @@ final class ToolbarMiddleware {
 
     @MainActor
     private func handleToolbarButtonTapActions(action: ToolbarMiddlewareAction, state: AppState) {
-        guard let toolbarState = state.componentState(ToolbarState.self, for: .toolbar, window: action.windowUUID)
-        else { return }
+        let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
 
         switch action.buttonType {
         case .home:
@@ -364,8 +356,7 @@ final class ToolbarMiddleware {
     }
 
     private func handleToolbarButtonLongPressActions(action: ToolbarMiddlewareAction, state: AppState) {
-        guard let toolbarState = state.componentState(ToolbarState.self, for: .toolbar, window: action.windowUUID)
-        else { return }
+        let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
 
         switch action.buttonType {
         case .back:
@@ -427,11 +418,8 @@ final class ToolbarMiddleware {
     // MARK: - Border
     // For the top placement of the address bar, the border is only visible on scroll. This is due to a design choice.
     private func updateTopAddressBorderPosition(scrollOffset: CGPoint, windowUUID: WindowUUID, state: AppState) {
-        guard let toolbarState = state.componentState(ToolbarState.self,
-                                                      for: .toolbar,
-                                                      window: windowUUID),
-              toolbarState.toolbarPosition == .top
-        else { return }
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
+        guard toolbarState.toolbarPosition == .top else { return }
 
         let addressBorderPosition = getAddressBorderPosition(
             toolbarPosition: toolbarState.toolbarPosition,
@@ -464,9 +452,7 @@ final class ToolbarMiddleware {
     //  - When survey is shown and address bar is at bottom, hide borders for address and nav toolbar
     //  - When survey is dismissed, show border as expected based on the toolbar requirements
     private func updateToolbarBorders(windowUUID: WindowUUID, state: AppState, isMicrosurveyShown: Bool) {
-        guard let toolbarState = state.componentState(ToolbarState.self,
-                                                      for: .toolbar,
-                                                      window: windowUUID) else { return }
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
 
         if toolbarState.toolbarPosition == .top {
             let toolbarAction = ToolbarAction(displayNavBorder: !isMicrosurveyShown,
@@ -484,11 +470,9 @@ final class ToolbarMiddleware {
 
     private func updateToolbarPosition(action: GeneralBrowserMiddlewareAction, state: AppState) {
         guard let searchBarPosition = action.toolbarPosition,
-              let scrollOffset = action.scrollOffset,
-              let toolbarState = state.componentState(ToolbarState.self,
-                                                      for: .toolbar,
-                                                      window: action.windowUUID)
+              let scrollOffset = action.scrollOffset
         else { return }
+        let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
 
         let addressToolbarPosition = addressToolbarPositionFromSearchBarPosition(searchBarPosition)
         var addressBorderPosition = getAddressBorderPosition(toolbarPosition: addressToolbarPosition,
@@ -567,7 +551,7 @@ final class ToolbarMiddleware {
     }
 
     private func recordReaderModeTelemetry(state: AppState, windowUUID: WindowUUID) {
-        guard let toolbarState = state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID) else { return }
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
 
         let isReaderModeEnabled = switch toolbarState.addressToolbar.readerModeState {
         case .available: true // will be enabled after action gets executed
@@ -584,8 +568,7 @@ final class ToolbarMiddleware {
     // Only re-dispatch when Google Lens availability would actually change (i.e. the browsing mode flipped it),
     // to avoid churning on every URL.
     private func updateGoogleLensAvailabilityIfBrowsingModeChanged(windowUUID: WindowUUID, state: AppState) {
-        guard let toolbarState = state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID)
-        else { return }
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
 
         let shouldShow = isGoogleLensAvailable(for: windowUUID)
         let isShowing = toolbarState.addressToolbar.editingAccessoryAction?.actionType == .googleLens

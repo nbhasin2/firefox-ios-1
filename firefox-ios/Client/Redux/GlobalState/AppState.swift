@@ -31,7 +31,6 @@ struct AppState: StateType, Sendable {
             .compactMap {
                 switch ($0, component) {
                 case (.browserViewController(let state), .browserViewController): return state as? S
-                case (.toolbar(let state), .toolbar): return state as? S
                 default: return nil
                 }
             }.first(where: {

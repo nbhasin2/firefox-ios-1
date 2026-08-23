@@ -6,5 +6,4 @@ import Foundation
 
 enum AppComponent {
     case browserViewController
-    case toolbar
 }

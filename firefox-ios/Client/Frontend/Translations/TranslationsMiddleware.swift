@@ -133,11 +133,9 @@ final class TranslationsMiddleware: FeatureFlaggable, Notifiable {
     private func handleTranslationSettingsChange(action: TranslationsAction, windowUUID: WindowUUID) {
         if action.isTranslationsEnabled == false {
             for uuid in translationFlowIds.keys {
-                let translationState = store.state.componentState(
-                    ToolbarState.self,
-                    for: .toolbar,
-                    window: uuid
-                )?.addressToolbar.translationConfiguration?.state
+                let translationConfig = ToolbarViewModel.instance(for: uuid)
+                    .state.addressToolbar.translationConfiguration
+                let translationState = translationConfig?.state
                 guard translationState == .active || translationState == .loading else { continue }
                 store.dispatch(GeneralBrowserAction(
                     windowUUID: uuid,
@@ -161,13 +159,7 @@ final class TranslationsMiddleware: FeatureFlaggable, Notifiable {
               type == .translate
         else { return }
 
-        guard let toolbarState = state.componentState(
-            ToolbarState.self,
-            for: .toolbar,
-            window: action.windowUUID
-        ) else {
-            return
-        }
+        let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
 
         guard let translationConfiguration = toolbarState.addressToolbar.translationConfiguration else {
             self.logger.log(
@@ -316,11 +308,7 @@ final class TranslationsMiddleware: FeatureFlaggable, Notifiable {
             )
             return
         }
-        let isPrivate = state.componentState(
-            ToolbarState.self,
-            for: .toolbar,
-            window: action.windowUUID
-        )?.isPrivateMode ?? false
+        let isPrivate = ToolbarViewModel.instance(for: action.windowUUID).state.isPrivateMode
         let originatingTab = selectedTab(for: action.windowUUID)
         self.handleUpdatingTranslationIcon(windowUUID: action.windowUUID, with: .loading, on: originatingTab)
         retrieveTranslations(
@@ -332,11 +320,7 @@ final class TranslationsMiddleware: FeatureFlaggable, Notifiable {
     }
 
     private func handleLanguageSelected(for action: TranslationLanguageSelectedAction, and state: AppState) {
-        guard let toolbarState = state.componentState(
-            ToolbarState.self,
-            for: .toolbar,
-            window: action.windowUUID
-        ) else { return }
+        let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
 
         let originatingTab = selectedTab(for: action.windowUUID)
         let isCurrentlyTranslated = toolbarState.addressToolbar.translationConfiguration?.state == .active
@@ -399,11 +383,7 @@ final class TranslationsMiddleware: FeatureFlaggable, Notifiable {
         if restoringWindows.remove(windowUUID) != nil { return false }
 
         if let pendingLanguage = pendingLanguageSwitchTargets.removeValue(forKey: windowUUID) {
-            let isPrivate = store.state.componentState(
-                ToolbarState.self,
-                for: .toolbar,
-                window: windowUUID
-            )?.isPrivateMode ?? false
+            let isPrivate = ToolbarViewModel.instance(for: windowUUID).state.isPrivateMode
             let newFlowId = UUID()
             translationFlowIds[windowUUID] = newFlowId
             selectedTargetLanguages[windowUUID] = pendingLanguage
@@ -419,11 +399,7 @@ final class TranslationsMiddleware: FeatureFlaggable, Notifiable {
         let pageLanguage = try? await translationsService.detectPageLanguage(for: windowUUID)
         if let pageLanguage, preferred.contains(pageLanguage) { return false }
         guard let targetLanguage = preferred.first else { return false }
-        let isPrivate = store.state.componentState(
-            ToolbarState.self,
-            for: .toolbar,
-            window: windowUUID
-        )?.isPrivateMode ?? false
+        let isPrivate = ToolbarViewModel.instance(for: windowUUID).state.isPrivateMode
         let newFlowId = UUID()
         translationFlowIds[windowUUID] = newFlowId
         selectedTargetLanguages[windowUUID] = targetLanguage
@@ -480,11 +456,9 @@ final class TranslationsMiddleware: FeatureFlaggable, Notifiable {
         // The action's `isTranslationsEnabled` carries the explicit new value for settings-change
         // actions (where store.state hasn't been updated yet). For `urlDidChange` it is nil, so we
         // fall back to ToolbarState which is always up-to-date by the time `urlDidChange` fires.
-        let translationsEnabled = isTranslationsEnabled(from: action) ?? (store.state.componentState(
-            ToolbarState.self,
-            for: .toolbar,
-            window: action.windowUUID
-        )?.isTranslationsEnabled ?? true)
+        let toolbarTranslationsEnabled = ToolbarViewModel.instance(for: action.windowUUID)
+            .state.isTranslationsEnabled
+        let translationsEnabled = isTranslationsEnabled(from: action) ?? toolbarTranslationsEnabled
 
         guard featureFlagsProvider.isEnabled(.translation), translationsEnabled else {
             dispatchClearTranslationIcon(windowUUID: action.windowUUID, on: originatingTab)
@@ -660,11 +634,7 @@ final class TranslationsMiddleware: FeatureFlaggable, Notifiable {
         backgroundTimestamp = nil
 
         for uuid in translationFlowIds.keys {
-            let translationState = store.state.componentState(
-                ToolbarState.self,
-                for: .toolbar,
-                window: uuid
-            )?.addressToolbar.translationConfiguration?.state
+            let translationState = ToolbarViewModel.instance(for: uuid).state.addressToolbar.translationConfiguration?.state
             guard translationState == .active else { continue }
             guard let targetLanguage = selectedTargetLanguages[uuid] else { continue }
 

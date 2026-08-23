@@ -12,9 +12,7 @@ protocol NavigationToolbarContainerDelegate: AnyObject {
     func configureContextualHint(for: UIButton, with contextualHintType: String)
 }
 
-final class NavigationToolbarContainer: UIView, ThemeApplicable, StoreSubscriber {
-    typealias SubscriberStateType = ToolbarState
-
+final class NavigationToolbarContainer: UIView, ThemeApplicable {
     private enum UX {
         static let toolbarHeight: CGFloat = 48
     }
@@ -72,19 +70,19 @@ final class NavigationToolbarContainer: UIView, ThemeApplicable, StoreSubscriber
 
     func subscribeToRedux() {
         guard let windowUUID else { return }
-
-        store.subscribe(self, transform: {
-            $0.select({ appState in
-                return ToolbarState(appState: appState, uuid: windowUUID)
-            })
-        })
+        let viewModel = ToolbarViewModel.instance(for: windowUUID)
+        viewModel.addObserver(self) { [weak self] state in
+            self?.applyToolbarState(state)
+        }
+        applyToolbarState(viewModel.state)
     }
 
     func unsubscribeFromRedux() {
-        store.unsubscribe(self)
+        guard let windowUUID else { return }
+        ToolbarViewModel.instance(for: windowUUID).removeObserver(self)
     }
 
-    func newState(state: ToolbarState) {
+    private func applyToolbarState(_ state: ToolbarState) {
         updateModel(toolbarState: state)
     }
 
@@ -125,8 +123,8 @@ final class NavigationToolbarContainer: UIView, ThemeApplicable, StoreSubscriber
 
 extension NavigationToolbarContainer: BrowserNavigationToolbarDelegate {
     func configureContextualHint(for button: UIButton, with contextualHintType: String) {
-        guard let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID)
-        else { return }
+        guard let windowUUID else { return }
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
 
         // On iPad the bottom navigation toolbar is hidden; the CFR must be anchored
         // by AddressToolbarContainer in that case, not here.

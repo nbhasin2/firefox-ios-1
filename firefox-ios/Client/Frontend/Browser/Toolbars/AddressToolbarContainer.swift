@@ -52,7 +52,6 @@ final class AddressToolbarContainer: UIView,
                                      ThemeApplicable,
                                      TopBottomInterchangeable,
                                      AlphaDimmable,
-                                     StoreSubscriber,
                                      AddressToolbarDelegate,
                                      Autocompletable,
                                      URLBarViewProtocol,
@@ -69,8 +68,6 @@ final class AddressToolbarContainer: UIView,
         static let keyboardAccessoryViewOffset: CGFloat = 22
         static let accessoryViewGradientOffset: CGFloat = 74
     }
-
-    typealias SubscriberStateType = ToolbarState
 
     private let toolbarHelper: ToolbarHelperInterface
     private var windowUUID: WindowUUID?
@@ -315,33 +312,19 @@ final class AddressToolbarContainer: UIView,
 
     func subscribeToRedux() {
         guard let windowUUID else { return }
-
-        let action = ComponentAction(windowUUID: windowUUID,
-                                     actionType: ComponentActionType.addComponent,
-                                     component: .toolbar)
-        store.dispatch(action)
-
-        store.subscribe(self, transform: {
-            $0.select({ appState in
-                return ToolbarState(appState: appState, uuid: windowUUID)
-            })
-        })
+        let viewModel = ToolbarViewModel.instance(for: windowUUID)
+        viewModel.addObserver(self) { [weak self] state in
+            self?.applyToolbarState(state)
+        }
+        applyToolbarState(viewModel.state)
     }
 
     func unsubscribeFromRedux() {
-        guard let windowUUID else {
-            store.unsubscribe(self)
-            return
-        }
-
-        let action = ComponentAction(windowUUID: windowUUID,
-                                     actionType: ComponentActionType.removeComponent,
-                                     component: .toolbar)
-        store.dispatch(action)
-        store.unsubscribe(self)
+        guard let windowUUID else { return }
+        ToolbarViewModel.instance(for: windowUUID).removeObserver(self)
     }
 
-    func newState(state: ToolbarState) {
+    private func applyToolbarState(_ state: ToolbarState) {
         self.state = state
         updateModel(toolbarState: state)
     }
@@ -554,8 +537,8 @@ final class AddressToolbarContainer: UIView,
 
     // MARK: - AddressToolbarDelegate
     func searchSuggestions(searchTerm: String) {
-        if let windowUUID,
-           let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID) {
+        if let windowUUID {
+            let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
             if searchTerm.isEmpty, !toolbarState.addressToolbar.isEmptySearch {
                 let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.didDeleteSearchTerm)
                 store.dispatch(action)
@@ -616,9 +599,8 @@ final class AddressToolbarContainer: UIView,
         for button: UIButton,
         with contextualHintType: String
     ) {
-        guard addressToolbar == toolbar,
-              let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID)
-        else { return }
+        guard addressToolbar == toolbar, let windowUUID else { return }
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
 
         if contextualHintType == ContextualHintType.navigation.rawValue && !toolbarState.canShowNavigationHint { return }
 
@@ -671,9 +653,8 @@ final class AddressToolbarContainer: UIView,
     }
 
     func leaveOverlayMode(reason: URLBarLeaveOverlayModeReason, shouldCancelLoading cancel: Bool) {
-        guard let windowUUID,
-              let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID)
-        else { return }
+        guard let windowUUID else { return }
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
 
         _ = toolbar.resignFirstResponder()
         inOverlayMode = false

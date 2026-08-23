@@ -8,7 +8,6 @@ import Common
 
 enum ComponentState: Sendable, Equatable {
     case browserViewController(BrowserViewControllerState)
-    case toolbar(ToolbarState)
 
     static let reducer: Reducer<Self> = (legacyReducer, modernReducer)
 
@@ -17,8 +16,6 @@ enum ComponentState: Sendable, Equatable {
         switch state {
         case .browserViewController(let state):
             return .browserViewController(BrowserViewControllerState.reducer.modernReducer(state, action, actionWindowUUID))
-        case .toolbar(let state):
-            return .toolbar(ToolbarState.reducer.modernReducer(state, action, actionWindowUUID))
         }
     }
 
@@ -26,8 +23,6 @@ enum ComponentState: Sendable, Equatable {
         switch state {
         case .browserViewController(let state):
             return .browserViewController(BrowserViewControllerState.reducer.legacyReducer(state, action))
-        case .toolbar(let state):
-            return .toolbar(ToolbarState.reducer.legacyReducer(state, action))
         }
     }
     // swiftlint:enable closure_body_length
@@ -36,14 +31,12 @@ enum ComponentState: Sendable, Equatable {
     var associatedAppComponent: AppComponent {
         switch self {
         case .browserViewController: return .browserViewController
-        case .toolbar: return .toolbar
         }
     }
 
     var windowUUID: WindowUUID? {
         switch self {
         case .browserViewController(let state): return state.windowUUID
-        case .toolbar(let state): return state.windowUUID
         }
     }
 }
@@ -97,8 +90,6 @@ struct PresentedComponentsState: Sendable, Equatable {
             switch action.component {
             case .browserViewController:
                 components.append(.browserViewController(BrowserViewControllerState(windowUUID: uuid)))
-            case .toolbar:
-                components.append(.toolbar(ToolbarState(windowUUID: uuid)))
             }
         default:
             return components
