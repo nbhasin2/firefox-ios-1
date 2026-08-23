@@ -7,7 +7,7 @@ import Redux
 import Common
 
 @MainActor
-final class MicrosurveyPromptMiddleware {
+final class MicrosurveyPromptActionHandler {
     private let microsurveyManager: MicrosurveyManager
 
     init(microsurveyManager: MicrosurveyManager = AppContainer.shared.resolve()) {

@@ -11,7 +11,7 @@ import XCTest
 @testable import Client
 
 final class TabManagerRestoreScreenshotTests: TabManagerTestsBase, StoreTestUtility {
-    var mockStore: MockStoreForMiddleware<AppState>!
+    var mockStore: MockStore<AppState>!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -74,7 +74,7 @@ final class TabManagerRestoreScreenshotTests: TabManagerTestsBase, StoreTestUtil
 
     @MainActor
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

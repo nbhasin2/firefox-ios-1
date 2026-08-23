@@ -15,7 +15,7 @@ import struct Storage.ShareItem
 import struct Storage.Site
 
 @MainActor
-final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark {
+final class TabManagerActionHandler: FeatureFlaggable, CanRemoveQuickActionBookmark {
     private let profile: Profile
     private let logger: Logger
     private let windowManager: WindowManager
@@ -43,7 +43,7 @@ final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark
          logger: Logger = DefaultLogger.shared,
          windowManager: WindowManager = AppContainer.shared.resolve(),
          summarizerNimbusUtility: SummarizerNimbusUtils = DefaultSummarizerNimbusUtils(),
-         summarizerConfigFactory: SummarizerConfigFactory = SummarizerMiddleware(),
+         summarizerConfigFactory: SummarizerConfigFactory = SummarizerActionHandler(),
          bookmarksSaver: BookmarksSaver? = nil,
          gleanWrapper: GleanWrapper = DefaultGleanWrapper()
     ) {

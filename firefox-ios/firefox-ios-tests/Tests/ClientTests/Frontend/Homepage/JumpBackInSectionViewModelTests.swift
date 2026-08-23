@@ -10,10 +10,10 @@ import XCTest
 @testable import Client
 
 /// Replaces `JumpBackInSectionStateTests` and the jump-back-in halves of
-/// `TabManagerMiddlewareTests` and `RemoteTabsMiddlewareTests`.
+/// `TabManagerActionHandlerTests` and `DefaultSyncedTabProviderTests`.
 @MainActor
 final class JumpBackInSectionViewModelTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStoreForMiddleware<AppState>!
+    var mockStore: MockStore<AppState>!
     private var recentTabsProvider: MockRecentTabsProvider!
     private var syncedTabProvider: MockSyncedTabProvider!
 
@@ -191,7 +191,7 @@ final class JumpBackInSectionViewModelTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

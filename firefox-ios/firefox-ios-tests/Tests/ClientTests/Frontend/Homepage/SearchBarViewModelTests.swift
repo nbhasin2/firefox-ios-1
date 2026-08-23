@@ -14,7 +14,7 @@ import XCTest
 /// rather than as a state change.
 @MainActor
 final class SearchBarViewModelTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStoreForMiddleware<AppState>!
+    var mockStore: MockStore<AppState>!
     private var visibilityStore: SearchBarVisibilityStore!
 
     override func setUp() async throws {
@@ -177,7 +177,7 @@ final class SearchBarViewModelTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

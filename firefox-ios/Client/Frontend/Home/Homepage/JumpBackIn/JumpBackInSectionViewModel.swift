@@ -8,7 +8,7 @@ import Redux
 import Shared
 import Storage
 
-/// Replaces `JumpBackInSectionState`'s reducer and the homepage halves of `TabManagerMiddleware`
+/// Replaces `JumpBackInSectionState`'s reducer and the homepage halves of `TabManagerActionHandler`
 /// and `RemoteTabsPanelMiddleware`.
 ///
 /// `JumpBackInSectionState` stays a plain struct because the diffable data source and the layout

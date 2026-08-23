@@ -8,7 +8,7 @@ import Shared
 import Storage
 import UIKit
 
-/// Replaces `TabPeekState` and the tab-peek block of `TabManagerMiddleware`.
+/// Replaces `TabPeekState` and the tab-peek block of `TabManagerActionHandler`.
 ///
 /// `TabPeekState` stays a plain struct because the view controller reads its fields directly;
 /// only its Redux conformance goes.

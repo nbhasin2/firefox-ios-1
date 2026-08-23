@@ -11,10 +11,10 @@ import struct Storage.ClientAndTabs
 
 @testable import Client
 
-/// Replaces `RemoteTabPanelStateTests` and `RemoteTabsMiddlewareTests`' sync-state half.
+/// Replaces `RemoteTabPanelStateTests` and `DefaultSyncedTabProviderTests`' sync-state half.
 @MainActor
 final class RemoteTabsPanelViewModelTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStoreForMiddleware<AppState>!
+    var mockStore: MockStore<AppState>!
     private var profile: MockProfile!
     private var notificationCenter: MockNotificationCenter!
 
@@ -172,7 +172,7 @@ final class RemoteTabsPanelViewModelTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

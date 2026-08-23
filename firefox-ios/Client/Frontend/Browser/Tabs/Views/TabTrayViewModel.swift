@@ -6,7 +6,7 @@ import Common
 import Foundation
 import Redux
 
-/// Replaces `TabTrayState`'s reducer and the tray half of `TabManagerMiddleware`.
+/// Replaces `TabTrayState`'s reducer and the tray half of `TabManagerActionHandler`.
 ///
 /// The tray's own counters come from `TabsPanelService`. Two things reach it from elsewhere and
 /// come off the bus (D-016): the synced-tabs panel announcing the account state, and anything in

@@ -9,7 +9,7 @@ import Shared
 import UIKit
 
 @MainActor
-final class TranslationsMiddleware: FeatureFlaggable, Notifiable {
+final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
     private let profile: Profile
     private let logger: Logger
     private let windowManager: WindowManager

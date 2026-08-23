@@ -25,7 +25,7 @@ protocol MainMenuTabInfoProviding: AnyObject {
     func addToBookmarks(tabID: TabUUID?, windowUUID: WindowUUID) -> String?
 }
 
-/// Assembles the main menu's view of the selected tab. Extracted from `TabManagerMiddleware`, which
+/// Assembles the main menu's view of the selected tab. Extracted from `TabManagerActionHandler`, which
 /// reached this code through six `MainMenuAction` cases.
 ///
 /// The three profile lookups were a `DispatchGroup` fan-out writing into three
@@ -44,7 +44,7 @@ final class MainMenuTabInfoProvider: MainMenuTabInfoProviding {
 
     init(profile: Profile = AppContainer.shared.resolve(),
          windowManager: WindowManager = AppContainer.shared.resolve(),
-         summarizerConfigFactory: SummarizerConfigFactory = SummarizerMiddleware(),
+         summarizerConfigFactory: SummarizerConfigFactory = SummarizerActionHandler(),
          summarizerNimbusUtility: SummarizerNimbusUtils = DefaultSummarizerNimbusUtils(),
          bookmarksSaver: BookmarksSaver? = nil,
          topSitesTelemetry: TopSitesTelemetryService = .shared,
@@ -155,7 +155,7 @@ final class MainMenuTabInfoProvider: MainMenuTabInfoProviding {
         topSitesTelemetry.sendShortcutUnpinned(source: .appMenu)
     }
 
-    /// TODO: `TabManagerMiddleware` keeps its own copy for the tab-peek path; the two converge
+    /// TODO: `TabManagerActionHandler` keeps its own copy for the tab-peek path; the two converge
     /// when Tabs migrates in Phase 3.
     func addToBookmarks(tabID: TabUUID?, windowUUID: WindowUUID) -> String? {
         guard let tabID,

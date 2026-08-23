@@ -10,7 +10,7 @@ import XCTest
 @MainActor
 final class MainMenuCoordinatorTests: XCTestCase, StoreTestUtility {
     private var mockRouter: MockRouter!
-    private var mockStore: MockStoreForMiddleware<AppState>!
+    private var mockStore: MockStore<AppState>!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -31,7 +31,7 @@ final class MainMenuCoordinatorTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

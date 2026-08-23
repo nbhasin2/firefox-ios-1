@@ -9,7 +9,7 @@ import SummarizeKit
 import Shared
 
 @MainActor
-final class ToolbarMiddleware {
+final class ToolbarActionHandler {
     private let manager: ToolbarManager
     private let toolbarHelper: ToolbarHelperInterface
     private let windowManager: WindowManager
@@ -37,7 +37,7 @@ final class ToolbarMiddleware {
          toolbarTelemetry: ToolbarTelemetry = ToolbarTelemetry(),
          profile: Profile = AppContainer.shared.resolve(),
          summarizerNimbusUtils: SummarizerNimbusUtils = DefaultSummarizerNimbusUtils(),
-         summarizerConfigFactory: SummarizerConfigFactory = SummarizerMiddleware(),
+         summarizerConfigFactory: SummarizerConfigFactory = SummarizerActionHandler(),
          recentSearchProvider: RecentSearchProvider? = nil,
          featureFlagsProvider: FeatureFlagProviding = AppContainer.shared.resolve(),
          userPreferences: UserFeaturePreferring = AppContainer.shared.resolve(),
@@ -142,10 +142,10 @@ final class ToolbarMiddleware {
     private func resolveToolbarMiddlewareActions(action: ToolbarMiddlewareAction, state: AppState) {
         switch action.actionType {
         case ToolbarMiddlewareActionType.customA11yAction:
-            resolveToolbarMiddlewareCustomA11yActions(action: action, state: state)
+            resolveToolbarActionHandlerCustomA11yActions(action: action, state: state)
 
         case ToolbarMiddlewareActionType.didTapButton:
-            resolveToolbarMiddlewareButtonTapActions(action: action, state: state)
+            resolveToolbarActionHandlerButtonTapActions(action: action, state: state)
 
         case ToolbarMiddlewareActionType.urlDidChange:
             guard let scrollOffset = action.scrollOffset else { return }
@@ -208,7 +208,7 @@ final class ToolbarMiddleware {
     }
 
     @MainActor
-    private func resolveToolbarMiddlewareButtonTapActions(action: ToolbarMiddlewareAction, state: AppState) {
+    private func resolveToolbarActionHandlerButtonTapActions(action: ToolbarMiddlewareAction, state: AppState) {
         guard let gestureType = action.gestureType else { return }
 
         switch gestureType {
@@ -219,7 +219,7 @@ final class ToolbarMiddleware {
         }
     }
 
-    func resolveToolbarMiddlewareCustomA11yActions(action: ToolbarMiddlewareAction, state: AppState) {
+    func resolveToolbarActionHandlerCustomA11yActions(action: ToolbarMiddlewareAction, state: AppState) {
         switch action.buttonType {
         case .readerMode:
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
@@ -342,7 +342,7 @@ final class ToolbarMiddleware {
             }
         case .translate:
             // The effects of tapping on the translate button is also handled in
-            // the `TranslationsMiddleware`. This is because we want to
+            // the `TranslationsActionHandler`. This is because we want to
             // separate the translations logic from the toolbar middleware.
             // And anything that needs to interact with our translations scripts
             // can listen and respond to events in that specific middleware.
@@ -405,7 +405,7 @@ final class ToolbarMiddleware {
                 store.dispatch(action)
             }
         case .translate:
-            // Long-press on translate is handled in TranslationsMiddleware.
+            // Long-press on translate is handled in TranslationsActionHandler.
             break
         default:
             break

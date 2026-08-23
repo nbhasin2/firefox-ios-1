@@ -8,7 +8,7 @@ import Shared
 @testable import Client
 
 class AIControlsModelTests: XCTestCase, StoreTestUtility {
-    private var mockStore: MockStoreForMiddleware<AppState>!
+    private var mockStore: MockStore<AppState>!
     var mockPrefs: MockProfilePrefs!
     var mockProfile: MockProfile!
     var mockGleanWrapper: MockGleanWrapper!
@@ -377,7 +377,7 @@ class AIControlsModelTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

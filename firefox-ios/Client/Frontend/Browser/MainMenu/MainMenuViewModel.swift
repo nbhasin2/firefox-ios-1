@@ -20,7 +20,7 @@ protocol MainMenuViewModelDelegate: AnyObject {
 /// `shouldDismiss` and `navigationDestination` were transient fields that `newState` turned
 /// straight back into a coordinator call and the next action then had to clear; they are delegate
 /// calls here. The tab data the menu renders comes from `MainMenuTabInfoProvider`, which
-/// `TabManagerMiddleware` used to push in through six `MainMenuAction` cases.
+/// `TabManagerActionHandler` used to push in through six `MainMenuAction` cases.
 @MainActor
 final class MainMenuViewModel {
     /// Glean option strings, moved verbatim from `MainMenuMiddleware`.

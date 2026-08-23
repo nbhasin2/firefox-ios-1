@@ -47,15 +47,15 @@ let store: any DefaultDispatchStore<AppState> = Store(state: AppState(),
 ///
 /// Held for the app's lifetime: the store keeps observers weakly.
 @MainActor
-final class BrowserActionServices {
-    static let shared = BrowserActionServices()
+final class BrowserActionHandlers {
+    static let shared = BrowserActionHandlers()
 
-    private let microsurveyPrompt = MicrosurveyPromptMiddleware()
-    private let tabManager = TabManagerMiddleware()
-    private let toolbar = ToolbarMiddleware()
-    private let startAtHome = StartAtHomeMiddleware()
-    private let summarizer = SummarizerMiddleware()
-    private let translations = TranslationsMiddleware()
+    private let microsurveyPrompt = MicrosurveyPromptActionHandler()
+    private let tabManager = TabManagerActionHandler()
+    private let toolbar = ToolbarActionHandler()
+    private let startAtHome = StartAtHomeActionHandler()
+    private let summarizer = SummarizerActionHandler()
+    private let translations = TranslationsActionHandler()
 
     private var isRegistered = false
 

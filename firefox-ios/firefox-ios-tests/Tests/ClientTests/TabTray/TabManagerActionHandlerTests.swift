@@ -8,10 +8,10 @@ import XCTest
 
 @testable import Client
 
-final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility {
+final class TabManagerActionHandlerTests: XCTestCase, StoreTestUtility {
     private var mockProfile: MockProfile!
     private var mockWindowManager: MockWindowManager!
-    private var mockStore: MockStoreForMiddleware<AppState>!
+    private var mockStore: MockStore<AppState>!
     private var mockTabManager: MockTabManager!
     private var summarizerConfigFactory: MockSummarizerConfigFactory!
     private var appState: AppState!
@@ -161,8 +161,8 @@ final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility {
     // middleware, because it needs the tabs panel's private-mode flag.
 
     // MARK: - Helpers
-    private func createSubject() -> TabManagerMiddleware {
-        return TabManagerMiddleware(
+    private func createSubject() -> TabManagerActionHandler {
+        return TabManagerActionHandler(
             profile: mockProfile,
             windowManager: mockWindowManager,
             summarizerConfigFactory: summarizerConfigFactory
@@ -195,7 +195,7 @@ final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

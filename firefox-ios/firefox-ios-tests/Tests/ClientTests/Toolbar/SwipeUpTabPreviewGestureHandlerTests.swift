@@ -16,7 +16,7 @@ final class SwipeUpTabPreviewGestureHandlerTests: XCTestCase, StoreTestUtility {
     private var themeManager: MockThemeManager!
     private var mockFlags: MockNimbusFeatureFlags!
     private var tabPreview: SwipeUpTabWebViewPreview!
-    private var mockStore: MockStoreForMiddleware<AppState>!
+    private var mockStore: MockStore<AppState>!
     private var mockGleanWrapper: MockGleanWrapper!
 
     // releaseOutcome thresholds against a 600pt tall preview: close (1/3) y = 200, tabTray (2/3) y = 400.
@@ -353,7 +353,7 @@ final class SwipeUpTabPreviewGestureHandlerTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

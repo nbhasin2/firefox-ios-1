@@ -11,7 +11,7 @@ import XCTest
 @testable import Client
 
 /// Replaces `MainMenuStateTests` and `MainMenuMiddlewareTests`, plus the tab-info assembly tests
-/// that lived in `TabManagerMiddlewareTests` before that code moved to `MainMenuTabInfoProvider`.
+/// that lived in `TabManagerActionHandlerTests` before that code moved to `MainMenuTabInfoProvider`.
 @MainActor
 final class MainMenuViewModelTests: XCTestCase {
     private var provider: MockMainMenuTabInfoProvider!
@@ -154,7 +154,7 @@ final class MainMenuViewModelTests: XCTestCase {
 
         subject.tapAddToBookmarks()
 
-        // The menu used to rely on TabManagerMiddleware for this; the operation must still happen.
+        // The menu used to rely on TabManagerActionHandler for this; the operation must still happen.
         XCTAssertEqual(provider.addToBookmarksTabIDs, ["tab-1"])
     }
 

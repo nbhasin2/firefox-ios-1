@@ -11,7 +11,7 @@ import Common
 final class ToolbarStateTests: XCTestCase, StoreTestUtility {
     let storeUtilityHelper = StoreTestUtilityHelper()
     let windowUUID: WindowUUID = .XCTestDefaultUUID
-    var mockStore: MockStoreForMiddleware<AppState>!
+    var mockStore: MockStore<AppState>!
     var mockProfile: MockProfile!
 
     override func setUp() async throws {
@@ -588,7 +588,7 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

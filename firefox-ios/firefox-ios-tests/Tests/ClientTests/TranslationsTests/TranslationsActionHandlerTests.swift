@@ -12,8 +12,8 @@ import XCTest
 @testable import Client
 
 @MainActor
-final class TranslationsMiddlewareIntegrationTests: XCTestCase, StoreTestUtility {
-    private var mockStore: MockStoreForMiddleware<AppState>!
+final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtility {
+    private var mockStore: MockStore<AppState>!
     private var mockProfile: MockProfile!
     private var mockLogger: MockLogger!
     private var mockWindowManager: MockWindowManager!
@@ -1442,7 +1442,7 @@ final class TranslationsMiddlewareIntegrationTests: XCTestCase, StoreTestUtility
     /// Seeds `selectedTargetLanguages` in the middleware by dispatching a `TranslationLanguageSelectedAction`
     /// and waiting for `successDispatchCount` actions to be dispatched (then clears them).
     private func seedTargetLanguage(
-        in subject: TranslationsMiddleware,
+        in subject: TranslationsActionHandler,
         language: String = "de",
         successDispatchCount: Int
     ) {
@@ -1464,8 +1464,8 @@ final class TranslationsMiddlewareIntegrationTests: XCTestCase, StoreTestUtility
         translationsService: TranslationsServiceProtocol = MockTranslationsService(),
         manager: PreferredTranslationLanguagesManager? = nil,
         localeProvider: LocaleProvider = MockLocaleProvider()
-    ) -> TranslationsMiddleware {
-        let subject = TranslationsMiddleware(
+    ) -> TranslationsActionHandler {
+        let subject = TranslationsActionHandler(
             profile: mockProfile,
             logger: mockLogger,
             windowManager: mockWindowManager,
@@ -1541,7 +1541,7 @@ final class TranslationsMiddlewareIntegrationTests: XCTestCase, StoreTestUtility
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

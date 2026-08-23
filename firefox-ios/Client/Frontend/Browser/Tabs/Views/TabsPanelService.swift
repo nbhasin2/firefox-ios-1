@@ -7,7 +7,7 @@ import Foundation
 import Redux
 import Shared
 
-/// The tab-manager operations `TabManagerMiddleware` performed for the tab tray.
+/// The tab-manager operations `TabManagerActionHandler` performed for the tab tray.
 ///
 /// Every one of them was a command — add a tab, move one, close one, close them all, select one —
 /// that the middleware ran against `TabManager` and then announced by dispatching a refresh. The

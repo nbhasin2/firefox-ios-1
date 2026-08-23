@@ -148,7 +148,7 @@ final class TranslationSettingsService: TranslationSettingsServicing {
     // MARK: - Broadcast
 
     /// `didTranslationSettingsChange` is also reduced by `AddressBarState`, `ToolbarState` and
-    /// `TranslationsMiddleware`, none of which have migrated yet, so this stays a dispatch
+    /// `TranslationsActionHandler`, none of which have migrated yet, so this stays a dispatch
     /// (DECISIONS.md D-011). It is injectable so the service is testable without the store.
     private static func dispatchSettingsChange(isEnabled: Bool?,
                                                configuration: TranslationConfiguration,

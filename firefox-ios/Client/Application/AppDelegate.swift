@@ -95,7 +95,7 @@ class AppDelegate: UIResponder,
         // The services that used to be Redux middlewares; they listen on the browser event bus
         // and have to be live before the first action is dispatched.
         if !AppConstants.isRunningUnitTest {
-            BrowserActionServices.shared.register()
+            BrowserActionHandlers.shared.register()
         }
 
         appLaunchUtil = AppLaunchUtil(profile: profile)

@@ -9,11 +9,11 @@ import XCTest
 
 @testable import Client
 
-final class StartAtHomeMiddlewareTests: XCTestCase, StoreTestUtility {
+final class StartAtHomeActionHandlerTests: XCTestCase, StoreTestUtility {
     private var mockProfile: MockProfile!
     private var mockTabManager: MockTabManager!
     private var mockWindowManager: MockWindowManager!
-    private var mockStore: MockStoreForMiddleware<AppState>!
+    private var mockStore: MockStore<AppState>!
     private var appState: AppState!
 
     override func setUp() async throws {
@@ -123,7 +123,7 @@ final class StartAtHomeMiddlewareTests: XCTestCase, StoreTestUtility {
     }
 
     // MARK: - Helpers
-    private func createSubject(with mockProfile: Profile = MockProfile()) -> StartAtHomeMiddleware {
+    private func createSubject(with mockProfile: Profile = MockProfile()) -> StartAtHomeActionHandler {
         /// 9 Sep 2001 8:00 pm GMT + 0
         let testDate = Date(timeIntervalSince1970: 1_000_065_600)
         let lastSessionDate = Calendar.current.date(
@@ -132,7 +132,7 @@ final class StartAtHomeMiddlewareTests: XCTestCase, StoreTestUtility {
             to: testDate
         )!
         UserDefaults.standard.setValue(lastSessionDate, forKey: "LastActiveTimestamp")
-        return StartAtHomeMiddleware(
+        return StartAtHomeActionHandler(
             profile: mockProfile,
             windowManager: mockWindowManager,
             dateProvider: MockDateProvider(fixedDate: testDate))
@@ -146,7 +146,7 @@ final class StartAtHomeMiddlewareTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

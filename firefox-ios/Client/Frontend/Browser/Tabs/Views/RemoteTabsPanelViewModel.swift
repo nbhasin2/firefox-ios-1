@@ -19,7 +19,7 @@ import struct Storage.ClientAndTabs
 /// store — begin, succeed, fail, sync-began, devices-changed. All five were announcements this
 /// screen made to itself, so they are state transitions on the view model. What still dispatches
 /// is what leaves the screen: `TabTrayActionType.firefoxAccountChanged`, and the three commands
-/// `TabManagerMiddleware` performs (open, close, flush).
+/// `TabManagerActionHandler` performs (open, close, flush).
 @MainActor
 final class RemoteTabsPanelViewModel: Notifiable {
     private(set) var state: RemoteTabsPanelState {
@@ -93,7 +93,7 @@ final class RemoteTabsPanelViewModel: Notifiable {
         fetchTabsAndDevices(useCache: useCache)
     }
 
-    /// The three commands `TabManagerMiddleware` used to run for this panel.
+    /// The three commands `TabManagerActionHandler` used to run for this panel.
     func openSelectedURL(_ url: URL) {
         TelemetryWrapper.recordEvent(category: .action, method: .open, object: .syncTab)
         tabsService.addNewTab(with: URLRequest(url: url), isPrivate: false, showOverlay: false)

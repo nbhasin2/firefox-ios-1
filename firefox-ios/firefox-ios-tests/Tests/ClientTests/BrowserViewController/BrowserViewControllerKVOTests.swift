@@ -16,7 +16,7 @@ import Shared
 final class BrowserViewControllerKVOTests: XCTestCase, StoreTestUtility {
     var profile: MockProfile!
     var tabManager: MockTabManager!
-    var mockStore: MockStoreForMiddleware<AppState>!
+    var mockStore: MockStore<AppState>!
     var appState: AppState!
 
     override func setUp() async throws {
@@ -254,7 +254,7 @@ final class BrowserViewControllerKVOTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

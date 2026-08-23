@@ -7,7 +7,7 @@ import Foundation
 
 /// Whether the microsurvey prompt is on screen, per window.
 ///
-/// `ToolbarMiddleware` needs this to decide which toolbar borders to hide — a survey sitting
+/// `ToolbarActionHandler` needs this to decide which toolbar borders to hide — a survey sitting
 /// between the address bar and the navigation bar should look like part of the app, which means
 /// suppressing the border between them. It used to read `BrowserViewControllerState` out of the
 /// store; with that state owned by `BrowserViewController` there is no shared place to read it

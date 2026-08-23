@@ -14,7 +14,7 @@ final class SearchSettingsTableViewControllerTests: XCTestCase, StoreTestUtility
     private var profile: Profile!
     private var featureFlags: MockNimbusFeatureFlags!
     private var userPreferences: MockUserFeaturePreferences!
-    private var mockStore: MockStoreForMiddleware<AppState>!
+    private var mockStore: MockStore<AppState>!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -119,7 +119,7 @@ final class SearchSettingsTableViewControllerTests: XCTestCase, StoreTestUtility
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

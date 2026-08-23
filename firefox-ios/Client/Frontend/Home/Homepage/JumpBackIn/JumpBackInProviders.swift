@@ -6,12 +6,12 @@ import Common
 import Foundation
 import Storage
 
-/// The homepage's two reads out of the tab layer, extracted from `TabManagerMiddleware` and
+/// The homepage's two reads out of the tab layer, extracted from `TabManagerActionHandler` and
 /// `RemoteTabsPanelMiddleware`.
 ///
 /// Both middlewares did the same thing for jump back in: read something cheap and dispatch it for
 /// `JumpBackInSectionState` to reduce. Neither read needed the store, and neither middleware
-/// otherwise had anything to do with the homepage — `TabManagerMiddleware` even carried a
+/// otherwise had anything to do with the homepage — `TabManagerActionHandler` even carried a
 /// "FXIOS-11740 this should go to the homepage middleware" note on its half. The section's view
 /// model calls these instead, which is what lets it migrate before Tabs does.
 @MainActor

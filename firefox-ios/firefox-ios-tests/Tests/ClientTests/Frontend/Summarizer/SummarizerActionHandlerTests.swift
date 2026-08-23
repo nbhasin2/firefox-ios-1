@@ -8,7 +8,7 @@ import XCTest
 
 @testable import Client
 
-final class SummarizerMiddlewareTests: XCTestCase, StoreTestUtility {
+final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
     private var mockWindowManager: MockWindowManager!
     private var mockTabManager: MockTabManager!
     private var mockSummarizationChecker: MockSummarizationChecker!
@@ -17,7 +17,7 @@ final class SummarizerMiddlewareTests: XCTestCase, StoreTestUtility {
     private var mockSummarizerLanguageProvider: MockSummarizerLanguageProvider!
     private let mockURL = URL(string: "https://example.com")!
     private var mockProfile: MockProfile!
-    private var mockStore: MockStoreForMiddleware<AppState>!
+    private var mockStore: MockStore<AppState>!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -424,8 +424,8 @@ final class SummarizerMiddlewareTests: XCTestCase, StoreTestUtility {
     }
 
     // MARK: - Helpers
-    private func createSubject() -> SummarizerMiddleware {
-        let subject = SummarizerMiddleware(
+    private func createSubject() -> SummarizerActionHandler {
+        let subject = SummarizerActionHandler(
             logger: MockLogger(),
             windowManager: mockWindowManager,
             profile: mockProfile,
@@ -457,7 +457,7 @@ final class SummarizerMiddlewareTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

@@ -15,7 +15,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     let windowUUID: WindowUUID = .XCTestDefaultUUID
     var mockProfile: MockProfile!
     /// Held: the store keeps action observers weakly.
-    private var toolbarService: ToolbarMiddleware!
+    private var toolbarService: ToolbarActionHandler!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -23,7 +23,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         setIsHostedSummarizerFeatureEnabled(enabled: false)
         setIsSummarizerLanguageExpansionEnabled(enabled: false)
         DependencyHelperMock().bootstrapDependencies(injectedTabManager: MockTabManager())
-        toolbarService = ToolbarMiddleware()
+        toolbarService = ToolbarActionHandler()
     }
 
     override func tearDown() async throws {

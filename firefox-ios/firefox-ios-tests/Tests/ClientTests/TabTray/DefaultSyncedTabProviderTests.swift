@@ -8,9 +8,9 @@ import XCTest
 
 @testable import Client
 
-final class RemoteTabsMiddlewareTests: XCTestCase, StoreTestUtility {
+final class DefaultSyncedTabProviderTests: XCTestCase, StoreTestUtility {
     var mockProfile: MockProfile!
-    var mockStore: MockStoreForMiddleware<AppState>!
+    var mockStore: MockStore<AppState>!
     var appState: AppState!
 
     override func setUp() async throws {
@@ -95,7 +95,7 @@ final class RemoteTabsMiddlewareTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

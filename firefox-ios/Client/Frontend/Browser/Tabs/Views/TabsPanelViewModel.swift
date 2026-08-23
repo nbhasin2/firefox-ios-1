@@ -6,7 +6,7 @@ import Common
 import Foundation
 import Redux
 
-/// Replaces `TabsPanelState`'s reducer and the panel half of `TabManagerMiddleware`.
+/// Replaces `TabsPanelState`'s reducer and the panel half of `TabManagerActionHandler`.
 ///
 /// `TabsPanelState` stays a plain struct because the display view and its layout both take one;
 /// only its Redux conformance goes.

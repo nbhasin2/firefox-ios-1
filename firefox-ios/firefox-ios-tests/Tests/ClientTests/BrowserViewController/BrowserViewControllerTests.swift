@@ -17,7 +17,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     var tabManager: MockTabManager!
     var screenshotHelper: MockScreenshotHelper!
     var browserCoordinator: MockBrowserCoordinator!
-    var mockStore: MockStoreForMiddleware<AppState>!
+    var mockStore: MockStore<AppState>!
     var appStartupTelemetry: MockAppStartupTelemetry!
     var appState: AppState!
     var recordVisitManager: MockRecordVisitObservationManager!
@@ -751,7 +751,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
         let mismatchedWindow = WindowUUID.DefaultUITestingUUID
 
         let state = AppState()
-        mockStore = MockStoreForMiddleware(state: state)
+        mockStore = MockStore(state: state)
         StoreTestUtilityHelper.setupStore(with: mockStore)
 
         createSubject().dismissToolbarCFRs(with: mismatchedWindow)
@@ -760,12 +760,12 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     func testDismissToolbarCFRs_ToolbarAddedForWindow() {
         let window = WindowUUID.XCTestDefaultUUID
 
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
         createSubject().dismissToolbarCFRs(with: window)
 
         let state = AppState()
-        mockStore = MockStoreForMiddleware(state: state)
+        mockStore = MockStore(state: state)
         StoreTestUtilityHelper.setupStore(with: mockStore)
         createSubject().dismissToolbarCFRs(with: window)
     }
@@ -878,7 +878,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     /// `HomepageState`, so this only has to set that.
     func setupStoreForSearchBar() {
         SearchBarVisibilityStore.shared.setSearchBarVisible(true, for: .XCTestDefaultUUID)
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 
@@ -890,7 +890,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

@@ -14,7 +14,7 @@ protocol SummarizerConfigFactory: Sendable {
 }
 
 @MainActor
-final class SummarizerMiddleware: SummarizerConfigFactory {
+final class SummarizerActionHandler: SummarizerConfigFactory {
     private let summarizerNimbusUtils: SummarizerNimbusUtils
     private let summarizationChecker: SummarizationCheckerProtocol
     private let summarizerServiceFactory: SummarizerServiceFactory

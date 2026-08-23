@@ -960,7 +960,7 @@ class BrowserViewController: UIViewController,
 
     private func applyState(_ state: BrowserViewControllerState) {
         browserViewControllerState = state
-        // ToolbarMiddleware reads this to decide which toolbar borders to hide; see
+        // ToolbarActionHandler reads this to decide which toolbar borders to hide; see
         // MicrosurveyPromptVisibilityStore.
         MicrosurveyPromptVisibilityStore.shared.setPromptVisible(state.microsurveyState.showPrompt,
                                                                  for: windowUUID)

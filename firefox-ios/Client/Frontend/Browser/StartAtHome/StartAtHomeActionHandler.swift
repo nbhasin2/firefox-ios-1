@@ -7,7 +7,7 @@ import Redux
 import Shared
 
 @MainActor
-final class StartAtHomeMiddleware {
+final class StartAtHomeActionHandler {
     private let windowManager: WindowManager
     private let logger: Logger
     private let prefs: Prefs

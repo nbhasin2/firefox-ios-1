@@ -8,9 +8,9 @@ import XCTest
 @testable import Client
 
 @MainActor
-final class MicrosurveyPromptMiddlewareTests: XCTestCase {
+final class MicrosurveyPromptActionHandlerTests: XCTestCase {
     private var mockMicrosurveyManager: MockMicrosurveySurfaceManager!
-    var mockStore: MockStoreForMiddleware<AppState>!
+    var mockStore: MockStore<AppState>!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -96,8 +96,8 @@ final class MicrosurveyPromptMiddlewareTests: XCTestCase {
     }
 
     // MARK: - Helpers
-    private func createSubject(microsurveyManager: MockMicrosurveySurfaceManager) -> MicrosurveyPromptMiddleware {
-        return MicrosurveyPromptMiddleware(microsurveyManager: microsurveyManager)
+    private func createSubject(microsurveyManager: MockMicrosurveySurfaceManager) -> MicrosurveyPromptActionHandler {
+        return MicrosurveyPromptActionHandler(microsurveyManager: microsurveyManager)
     }
 
     // MARK: StoreTestUtility
@@ -108,7 +108,7 @@ final class MicrosurveyPromptMiddlewareTests: XCTestCase {
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

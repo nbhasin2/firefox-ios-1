@@ -15,7 +15,7 @@ final class RemoteTabsPanelTests: XCTestCase, StoreTestUtility {
     }
 
     private let windowUUID: WindowUUID = .XCTestDefaultUUID
-    private var mockStore: MockStoreForMiddleware<AppState>!
+    private var mockStore: MockStore<AppState>!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -109,7 +109,7 @@ final class RemoteTabsPanelTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
+        mockStore = MockStore(state: setupAppState())
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 
