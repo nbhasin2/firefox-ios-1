@@ -59,18 +59,16 @@ final class TabManagerActionHandler: FeatureFlaggable, CanRemoveQuickActionBookm
 
     /// Registered on the browser event bus in place of the middleware this used to be.
     func handle(_ action: Action) {
-        let state = AppState()
-        _ = state
         if let action = action as? ScreenshotAction {
-            self.resolveScreenshotActions(action: action, state: state)
+            self.resolveScreenshotActions(action: action)
         } else if let action = action as? ShortcutsLibraryAction {
-            self.resolveShortcutsLibraryActions(action: action, state: state)
+            self.resolveShortcutsLibraryActions(action: action)
         } else {
             self.resolveHomepageActions(with: action)
         }
     }
 
-    private func resolveShortcutsLibraryActions(action: ShortcutsLibraryAction, state: AppState) {
+    private func resolveShortcutsLibraryActions(action: ShortcutsLibraryAction) {
         switch action.actionType {
         case ShortcutsLibraryActionType.switchTabToastButtonTapped:
             tabManager(for: action.windowUUID)?.selectTab(action.tab)
@@ -79,7 +77,7 @@ final class TabManagerActionHandler: FeatureFlaggable, CanRemoveQuickActionBookm
         }
     }
 
-    private func resolveScreenshotActions(action: ScreenshotAction, state: AppState) {
+    private func resolveScreenshotActions(action: ScreenshotAction) {
         // TODO: FXIOS-12101 this should be removed once we figure out screenshots
         guard windowManager.windows[action.windowUUID]?.tabManager != nil else {
             logger.log("Tab manager does not exist for this window, bailing from taking a screenshot.", level: .fatal, category: .tabs, extra: ["windowUUID": "\(action.windowUUID)"])

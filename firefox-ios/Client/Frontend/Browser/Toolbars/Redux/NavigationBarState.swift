@@ -30,7 +30,7 @@ enum NavigationBarMiddleButtonType: String, Equatable, CaseIterable {
 }
 
 @Copyable
-struct NavigationBarState: StateType, Equatable {
+struct NavigationBarState: ResettableState {
     var windowUUID: WindowUUID
     var actions: [ToolbarActionConfiguration]
     var displayBorder: Bool
@@ -78,14 +78,28 @@ struct NavigationBarState: StateType, Equatable {
         self.isNovaDesignEnabled = isNovaDesignEnabled
     }
 
-    static let reducer: Reducer<Self> = (legacyReducer, modernReducer)
+    /// The reducer body, unchanged; what went is the tuple the store used to call it through.
+    @MainActor
+    static func reduce(_ state: NavigationBarState, with action: Action) -> NavigationBarState {
+        return legacyReducer(state, action)
+    }
 
-    static let modernReducer: ReducerMethod<Self> = { state, action, actionWindowUUID in
+    @MainActor
+
+    static func reduceModern(_ state: NavigationBarState, with action: ModernAction) -> NavigationBarState {
+        return modernReducer(state, action, state.windowUUID)
+    }
+
+    @MainActor
+
+    static func modernReducer(_ state: Self, _ action: ModernAction, _ actionWindowUUID: WindowUUID) -> Self {
         // Does not handle any modern actions
         return defaultState(from: state)
     }
 
-    static let legacyReducer: LegacyReducerMethod<Self> = { state, action in
+    @MainActor
+
+    static func legacyReducer(_ state: Self, _ action: Action) -> Self {
         guard action.windowUUID == .unavailable || action.windowUUID == state.windowUUID
         else {
             return defaultState(from: state)

@@ -25,8 +25,6 @@ final class StartAtHomeActionHandler {
 
     /// Registered on the browser event bus in place of the middleware this used to be.
     func handle(_ action: Action) {
-        let state = AppState()
-        _ = state
         switch action.actionType {
         case StartAtHomeActionType.didBrowserBecomeActive:
             let shouldStartAtHome = self.startAtHomeCheck(windowUUID: action.windowUUID)

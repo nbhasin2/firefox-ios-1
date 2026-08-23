@@ -9,7 +9,7 @@ import ToolbarKit
 import SummarizeKit
 
 @Copyable
-struct AddressBarState: StateType, Sendable, Equatable {
+struct AddressBarState: ResettableState, Sendable {
     var windowUUID: WindowUUID
     var navigationActions: [ToolbarActionConfiguration]
     var leadingPageActions: [ToolbarActionConfiguration]
@@ -160,15 +160,28 @@ struct AddressBarState: StateType, Sendable, Equatable {
         self.isNovaDesignEnabled = isNovaDesignEnabled
     }
 
-    static let reducer: Reducer<Self> = (legacyReducer, modernReducer)
+    /// The reducer body, unchanged; what went is the tuple the store used to call it through.
+    @MainActor
+    static func reduce(_ state: AddressBarState, with action: Action) -> AddressBarState {
+        return legacyReducer(state, action)
+    }
 
-    static let modernReducer: ReducerMethod<Self> = { state, action, actionWindowUUID in
+    @MainActor
+
+    static func reduceModern(_ state: AddressBarState, with action: ModernAction) -> AddressBarState {
+        return modernReducer(state, action, state.windowUUID)
+    }
+
+    @MainActor
+
+    static func modernReducer(_ state: Self, _ action: ModernAction, _ actionWindowUUID: WindowUUID) -> Self {
         // Does not handle any modern actions
         return defaultState(from: state)
     }
 
     // swiftlint:disable:next closure_body_length
-    static let legacyReducer: LegacyReducerMethod<Self> = { state, action in
+    @MainActor
+    static func legacyReducer(_ state: Self, _ action: Action) -> Self {
         guard action.windowUUID == .unavailable || action.windowUUID == state.windowUUID
         else {
             return defaultState(from: state)

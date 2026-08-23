@@ -60,23 +60,21 @@ final class ToolbarActionHandler {
 
     /// Registered on the browser event bus in place of the middleware this used to be.
     func handle(_ action: Action) {
-        let state = AppState()
-        _ = state
         if let action = action as? GeneralBrowserMiddlewareAction {
-            self.resolveGeneralBrowserMiddlewareActions(action: action, state: state)
+            self.resolveGeneralBrowserMiddlewareActions(action: action)
         } else if let action = action as? MicrosurveyPromptMiddlewareAction {
-            self.resolveMicrosurveyActions(windowUUID: action.windowUUID, actionType: action.actionType, state: state)
+            self.resolveMicrosurveyActions(windowUUID: action.windowUUID, actionType: action.actionType)
         } else if let action = action as? MicrosurveyPromptAction {
-            self.resolveMicrosurveyActions(windowUUID: action.windowUUID, actionType: action.actionType, state: state)
+            self.resolveMicrosurveyActions(windowUUID: action.windowUUID, actionType: action.actionType)
         } else if let action = action as? ToolbarMiddlewareAction {
-            self.resolveToolbarMiddlewareActions(action: action, state: state)
+            self.resolveToolbarMiddlewareActions(action: action)
         } else if let action = action as? ToolbarAction {
-            self.resolveToolbarActions(action: action, state: state)
+            self.resolveToolbarActions(action: action)
         }
     }
 
     @MainActor
-    private func resolveGeneralBrowserMiddlewareActions(action: GeneralBrowserMiddlewareAction, state: AppState) {
+    private func resolveGeneralBrowserMiddlewareActions(action: GeneralBrowserMiddlewareAction) {
         let uuid = action.windowUUID
 
         switch action.actionType {
@@ -117,39 +115,39 @@ final class ToolbarActionHandler {
 
         case GeneralBrowserMiddlewareActionType.websiteDidScroll:
             guard let scrollOffset = action.scrollOffset else { return }
-            updateTopAddressBorderPosition(scrollOffset: scrollOffset, windowUUID: action.windowUUID, state: state)
+            updateTopAddressBorderPosition(scrollOffset: scrollOffset, windowUUID: action.windowUUID)
 
         case GeneralBrowserMiddlewareActionType.toolbarPositionChanged:
-            updateToolbarPosition(action: action, state: state)
+            updateToolbarPosition(action: action)
 
         default:
             break
         }
     }
 
-    private func resolveMicrosurveyActions(windowUUID: WindowUUID, actionType: ActionType, state: AppState) {
+    private func resolveMicrosurveyActions(windowUUID: WindowUUID, actionType: ActionType) {
         switch actionType {
         case MicrosurveyPromptMiddlewareActionType.initialize:
-            updateToolbarBorders(windowUUID: windowUUID, state: state, isMicrosurveyShown: true)
+            updateToolbarBorders(windowUUID: windowUUID, isMicrosurveyShown: true)
         case MicrosurveyPromptActionType.closePrompt:
-            updateToolbarBorders(windowUUID: windowUUID, state: state, isMicrosurveyShown: false)
+            updateToolbarBorders(windowUUID: windowUUID, isMicrosurveyShown: false)
         default:
             break
         }
     }
 
     @MainActor
-    private func resolveToolbarMiddlewareActions(action: ToolbarMiddlewareAction, state: AppState) {
+    private func resolveToolbarMiddlewareActions(action: ToolbarMiddlewareAction) {
         switch action.actionType {
         case ToolbarMiddlewareActionType.customA11yAction:
-            resolveToolbarActionHandlerCustomA11yActions(action: action, state: state)
+            resolveToolbarActionHandlerCustomA11yActions(action: action)
 
         case ToolbarMiddlewareActionType.didTapButton:
-            resolveToolbarActionHandlerButtonTapActions(action: action, state: state)
+            resolveToolbarActionHandlerButtonTapActions(action: action)
 
         case ToolbarMiddlewareActionType.urlDidChange:
             guard let scrollOffset = action.scrollOffset else { return }
-            updateTopAddressBorderPosition(scrollOffset: scrollOffset, windowUUID: action.windowUUID, state: state)
+            updateTopAddressBorderPosition(scrollOffset: scrollOffset, windowUUID: action.windowUUID)
 
         case ToolbarMiddlewareActionType.didClearSearch:
             let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
@@ -174,7 +172,7 @@ final class ToolbarActionHandler {
         }
     }
 
-    private func resolveToolbarActions(action: ToolbarAction, state: AppState) {
+    private func resolveToolbarActions(action: ToolbarAction) {
         switch action.actionType {
         case ToolbarActionType.cancelEdit:
             // When editing ends, we need to also clear the address bar's search engine selection (if not default)
@@ -188,7 +186,7 @@ final class ToolbarActionHandler {
             dispatchGoogleLensAvailability(for: action.windowUUID)
 
         case ToolbarActionType.urlDidChange:
-            updateGoogleLensAvailabilityIfBrowsingModeChanged(windowUUID: action.windowUUID, state: state)
+            updateGoogleLensAvailabilityIfBrowsingModeChanged(windowUUID: action.windowUUID)
 
         case ToolbarActionType.didSubmitSearchTerm:
             // After a user submits a search term, we want to record it in our history storage via recent search provider.
@@ -208,18 +206,18 @@ final class ToolbarActionHandler {
     }
 
     @MainActor
-    private func resolveToolbarActionHandlerButtonTapActions(action: ToolbarMiddlewareAction, state: AppState) {
+    private func resolveToolbarActionHandlerButtonTapActions(action: ToolbarMiddlewareAction) {
         guard let gestureType = action.gestureType else { return }
 
         switch gestureType {
         case .tap:
-            handleToolbarButtonTapActions(action: action, state: state)
+            handleToolbarButtonTapActions(action: action)
         case .longPress:
-            handleToolbarButtonLongPressActions(action: action, state: state)
+            handleToolbarButtonLongPressActions(action: action)
         }
     }
 
-    func resolveToolbarActionHandlerCustomA11yActions(action: ToolbarMiddlewareAction, state: AppState) {
+    func resolveToolbarActionHandlerCustomA11yActions(action: ToolbarMiddlewareAction) {
         switch action.buttonType {
         case .readerMode:
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
@@ -230,7 +228,7 @@ final class ToolbarActionHandler {
     }
 
     @MainActor
-    private func handleToolbarButtonTapActions(action: ToolbarMiddlewareAction, state: AppState) {
+    private func handleToolbarButtonTapActions(action: ToolbarMiddlewareAction) {
         let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
 
         switch action.buttonType {
@@ -286,7 +284,7 @@ final class ToolbarActionHandler {
             cancelEditMode(windowUUID: action.windowUUID)
 
         case .readerMode, .readerModeWithSummarizer:
-            recordReaderModeTelemetry(state: state, windowUUID: action.windowUUID)
+            recordReaderModeTelemetry(windowUUID: action.windowUUID)
             let action = NavigationBrowserAction(navigationDestination: NavigationDestination(.readerMode),
                                                  windowUUID: action.windowUUID,
                                                  actionType: NavigationBrowserActionType.tapOnReaderMode)
@@ -352,7 +350,7 @@ final class ToolbarActionHandler {
         }
     }
 
-    private func handleToolbarButtonLongPressActions(action: ToolbarMiddlewareAction, state: AppState) {
+    private func handleToolbarButtonLongPressActions(action: ToolbarMiddlewareAction) {
         let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
 
         switch action.buttonType {
@@ -414,7 +412,7 @@ final class ToolbarActionHandler {
 
     // MARK: - Border
     // For the top placement of the address bar, the border is only visible on scroll. This is due to a design choice.
-    private func updateTopAddressBorderPosition(scrollOffset: CGPoint, windowUUID: WindowUUID, state: AppState) {
+    private func updateTopAddressBorderPosition(scrollOffset: CGPoint, windowUUID: WindowUUID) {
         let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
         guard toolbarState.toolbarPosition == .top else { return }
 
@@ -432,7 +430,7 @@ final class ToolbarActionHandler {
         store.dispatch(toolbarAction)
     }
 
-    private func isMicrosurveyShown(action: GeneralBrowserMiddlewareAction, state: AppState) -> Bool {
+    private func isMicrosurveyShown(action: GeneralBrowserMiddlewareAction) -> Bool {
         return MicrosurveyPromptVisibilityStore.shared.isPromptVisible(for: action.windowUUID)
     }
 
@@ -443,7 +441,7 @@ final class ToolbarActionHandler {
     //  - When survey is shown and address bar is at top, hide border in between survey and nav toolbar
     //  - When survey is shown and address bar is at bottom, hide borders for address and nav toolbar
     //  - When survey is dismissed, show border as expected based on the toolbar requirements
-    private func updateToolbarBorders(windowUUID: WindowUUID, state: AppState, isMicrosurveyShown: Bool) {
+    private func updateToolbarBorders(windowUUID: WindowUUID, isMicrosurveyShown: Bool) {
         let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
 
         if toolbarState.toolbarPosition == .top {
@@ -460,7 +458,7 @@ final class ToolbarActionHandler {
         }
     }
 
-    private func updateToolbarPosition(action: GeneralBrowserMiddlewareAction, state: AppState) {
+    private func updateToolbarPosition(action: GeneralBrowserMiddlewareAction) {
         guard let searchBarPosition = action.toolbarPosition,
               let scrollOffset = action.scrollOffset
         else { return }
@@ -476,7 +474,7 @@ final class ToolbarActionHandler {
         // and the toolbars should have no borders if they are stacked underneath the microsurvey.
         // This is to avoid spoofing. In the case where the address bar is on top, then the microsurvey
         // should not affect its address border position.
-        if isMicrosurveyShown(action: action, state: state) {
+        if isMicrosurveyShown(action: action) {
             displayNavToolbarBorder = false
             let isAddressToolbarOnBottom = addressToolbarPosition == .bottom
             addressBorderPosition = isAddressToolbarOnBottom ? .none : addressBorderPosition
@@ -542,7 +540,7 @@ final class ToolbarActionHandler {
         return manager.shouldDisplayNavigationBorder(toolbarPosition: toolbarPosition)
     }
 
-    private func recordReaderModeTelemetry(state: AppState, windowUUID: WindowUUID) {
+    private func recordReaderModeTelemetry(windowUUID: WindowUUID) {
         let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
 
         let isReaderModeEnabled = switch toolbarState.addressToolbar.readerModeState {
@@ -559,7 +557,7 @@ final class ToolbarActionHandler {
 
     // Only re-dispatch when Google Lens availability would actually change (i.e. the browsing mode flipped it),
     // to avoid churning on every URL.
-    private func updateGoogleLensAvailabilityIfBrowsingModeChanged(windowUUID: WindowUUID, state: AppState) {
+    private func updateGoogleLensAvailabilityIfBrowsingModeChanged(windowUUID: WindowUUID) {
         let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
 
         let shouldShow = isGoogleLensAvailable(for: windowUUID)

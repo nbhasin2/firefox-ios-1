@@ -84,8 +84,6 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
 
     /// Registered on the browser event bus in place of the middleware this used to be.
     func handle(_ action: Action) {
-        let state = AppState()
-        _ = state
         let windowUUID = action.windowUUID
         switch action.actionType {
         case ToolbarActionType.urlDidChange:
@@ -105,15 +103,15 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
 
         case ToolbarMiddlewareActionType.didTapButton:
             guard let action = (action as? ToolbarMiddlewareAction) else { return }
-            self.handleTappingOnTranslateButton(for: action, and: state)
+            self.handleTappingOnTranslateButton(for: action)
 
         case TranslationsActionType.didTapRetryFailedTranslation:
             guard let action = (action as? TranslationsAction) else { return }
-            self.handleTappingRetryButtonOnToast(for: action, and: state)
+            self.handleTappingRetryButtonOnToast(for: action)
 
         case TranslationsActionType.didSelectTargetLanguage:
             guard let action = (action as? TranslationLanguageSelectedAction) else { return }
-            self.handleLanguageSelected(for: action, and: state)
+            self.handleLanguageSelected(for: action)
 
         case TranslationsActionType.didTapEnableAutoTranslate:
             self.profile.prefs.setBool(true, forKey: PrefsKeys.Settings.translationAutoTranslate)
@@ -150,7 +148,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
         checkTranslationsAreEligible(for: action)
     }
 
-    private func handleTappingOnTranslateButton(for action: ToolbarMiddlewareAction, and state: AppState) {
+    private func handleTappingOnTranslateButton(for action: ToolbarMiddlewareAction) {
         guard let gestureType = action.gestureType,
               let type = action.buttonType,
               type == .translate
@@ -296,7 +294,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
         }
     }
 
-    private func handleTappingRetryButtonOnToast(for action: TranslationsAction, and state: AppState) {
+    private func handleTappingRetryButtonOnToast(for action: TranslationsAction) {
         guard let language = selectedTargetLanguages[action.windowUUID] else {
             logger.log(
                 "Missing stored target language for retry.",
@@ -316,7 +314,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
         )
     }
 
-    private func handleLanguageSelected(for action: TranslationLanguageSelectedAction, and state: AppState) {
+    private func handleLanguageSelected(for action: TranslationLanguageSelectedAction) {
         let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
 
         let originatingTab = selectedTab(for: action.windowUUID)
