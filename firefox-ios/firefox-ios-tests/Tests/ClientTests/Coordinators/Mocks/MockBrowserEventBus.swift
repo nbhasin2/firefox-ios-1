@@ -11,7 +11,7 @@ import Redux
 /// If you need to highly customize this mock to meet your testing needs, you should subclass it and/or make your own
 /// mock implementation (e.g. storing a completion handler for asynchronous work so you can await expectations in your
 /// tests).
-class MockStore: DefaultDispatchStore {
+class MockBrowserEventBus: BrowserEventBusing {
     /// Bus observers, so a test can assert on what a view model heard. Ordered and tiered like the
     /// real store's, so a test sees the same delivery order production does.
     private struct ObserverBox {

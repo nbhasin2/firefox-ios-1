@@ -11,9 +11,9 @@ import XCTest
 
 @testable import Client
 
-final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
+final class ToolbarActionHandlerTests: XCTestCase, BusTestUtility {
     let windowUUID: WindowUUID = .XCTestDefaultUUID
-    var mockStore: MockStore!
+    var mockBus: MockBrowserEventBus!
     var toolbarManager: ToolbarManager!
     var mockGleanWrapper: MockGleanWrapper!
     var mockRecentSearchProvider: MockRecentSearchProvider!
@@ -36,7 +36,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
         toolbarManager = DefaultToolbarManager()
 
         // We must reset the global mock store prior to each test
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
@@ -48,7 +48,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
         summarizerConfigFactory = nil
         ToolbarViewModel.removeInstance(for: windowUUID)
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -62,19 +62,19 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
         let borderPosition = toolbarManager.getAddressBorderPosition(for: .top, isPrivate: false, scrollY: 0)
         let displayBorder = toolbarManager.shouldDisplayNavigationBorder(toolbarPosition: .top)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 2)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 2)
         XCTAssertEqual(actionType, ToolbarActionType.didLoadToolbars)
         XCTAssertEqual(actionCalled.toolbarPosition, action.toolbarPosition)
         XCTAssertEqual(actionCalled.addressBorderPosition, borderPosition)
         XCTAssertEqual(actionCalled.displayNavBorder, displayBorder)
         XCTAssertEqual(actionCalled.middleButton, .newTab)
 
-        let lensAction = try XCTUnwrap(mockStore.dispatchedActions.last as? ToolbarMiddlewareAction)
+        let lensAction = try XCTUnwrap(mockBus.dispatchedActions.last as? ToolbarMiddlewareAction)
         XCTAssertEqual(lensAction.actionType as? ToolbarMiddlewareActionType,
                        ToolbarMiddlewareActionType.googleLensAvailabilityDidChange)
         XCTAssertEqual(lensAction.isGoogleLensEnabled, false)
@@ -102,7 +102,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.last as? ToolbarMiddlewareAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.last as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
                        ToolbarMiddlewareActionType.googleLensAvailabilityDidChange)
         XCTAssertEqual(actionCalled.isGoogleLensEnabled, true)
@@ -123,7 +123,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.last as? ToolbarMiddlewareAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.last as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
                        ToolbarMiddlewareActionType.googleLensAvailabilityDidChange)
         XCTAssertEqual(actionCalled.isGoogleLensEnabled, false)
@@ -146,7 +146,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
                        ToolbarMiddlewareActionType.googleLensAvailabilityDidChange)
         XCTAssertEqual(actionCalled.isGoogleLensEnabled, true)
@@ -169,7 +169,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
                        ToolbarMiddlewareActionType.googleLensAvailabilityDidChange)
         XCTAssertEqual(actionCalled.isGoogleLensEnabled, true)
@@ -190,7 +190,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
                        ToolbarMiddlewareActionType.googleLensAvailabilityDidChange)
         XCTAssertEqual(actionCalled.isGoogleLensEnabled, false)
@@ -213,7 +213,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
                        ToolbarMiddlewareActionType.googleLensAvailabilityDidChange)
         XCTAssertEqual(actionCalled.isGoogleLensEnabled, false)
@@ -233,7 +233,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
                        ToolbarMiddlewareActionType.googleLensAvailabilityDidChange)
         XCTAssertEqual(actionCalled.isGoogleLensEnabled, false)
@@ -254,7 +254,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
                        ToolbarMiddlewareActionType.googleLensAvailabilityDidChange)
         XCTAssertEqual(actionCalled.isGoogleLensEnabled, true)
@@ -275,7 +275,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
                        ToolbarMiddlewareActionType.googleLensAvailabilityDidChange)
         XCTAssertEqual(actionCalled.isGoogleLensEnabled, false)
@@ -299,7 +299,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.last as? ToolbarMiddlewareAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.last as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
                        ToolbarMiddlewareActionType.googleLensAvailabilityDidChange)
         XCTAssertEqual(actionCalled.isGoogleLensEnabled, false)
@@ -323,14 +323,14 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.last as? ToolbarMiddlewareAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.last as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.isGoogleLensEnabled, false)
     }
 
     func testUrlDidChange_whenEnteringPrivateModeWithLensShowing_dispatchesGoogleLensDisabled() throws {
         seedGoogleLensAccessory(isShowing: true)
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
 
         let featureFlagsProvider = MockNimbusFeatureFlags()
         featureFlagsProvider.enabledFlags = [.googleLens]
@@ -346,8 +346,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarMiddlewareAction)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
                        ToolbarMiddlewareActionType.googleLensAvailabilityDidChange)
         XCTAssertEqual(actionCalled.isGoogleLensEnabled, false)
@@ -355,8 +355,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
     func testUrlDidChange_whenLeavingPrivateModeWithLensHidden_dispatchesGoogleLensEnabled() throws {
         seedGoogleLensAccessory(isShowing: false)
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
 
         let featureFlagsProvider = MockNimbusFeatureFlags()
         featureFlagsProvider.enabledFlags = [.googleLens]
@@ -372,8 +372,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarMiddlewareAction)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
                        ToolbarMiddlewareActionType.googleLensAvailabilityDidChange)
         XCTAssertEqual(actionCalled.isGoogleLensEnabled, true)
@@ -381,8 +381,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
     func testUrlDidChange_whenLensVisibilityUnchanged_doesNotDispatch() throws {
         seedGoogleLensAccessory(isShowing: true)
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
 
         let featureFlagsProvider = MockNimbusFeatureFlags()
         featureFlagsProvider.enabledFlags = [.googleLens]
@@ -398,7 +398,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        XCTAssertTrue(mockStore.dispatchedActions.isEmpty)
+        XCTAssertTrue(mockBus.dispatchedActions.isEmpty)
     }
 
     func testBrowserDidLoad_withHomeCustomMiddleButton_dispatchesDidLoadToolbars() throws {
@@ -412,12 +412,12 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
         let borderPosition = toolbarManager.getAddressBorderPosition(for: .top, isPrivate: false, scrollY: 0)
         let displayBorder = toolbarManager.shouldDisplayNavigationBorder(toolbarPosition: .top)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 2)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 2)
         XCTAssertEqual(actionType, ToolbarActionType.didLoadToolbars)
         XCTAssertEqual(actionCalled.toolbarPosition, action.toolbarPosition)
         XCTAssertEqual(actionCalled.addressBorderPosition, borderPosition)
@@ -435,13 +435,13 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
         let borderPosition = toolbarManager.getAddressBorderPosition(for: .top,
                                                                      isPrivate: false,
                                                                      scrollY: scrollOffset.y)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, ToolbarActionType.borderPositionChanged)
         XCTAssertEqual(actionCalled.toolbarPosition, action.toolbarPosition)
         XCTAssertEqual(actionCalled.addressBorderPosition, borderPosition)
@@ -458,14 +458,14 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
         let borderPosition = toolbarManager.getAddressBorderPosition(for: .bottom,
                                                                      isPrivate: false,
                                                                      scrollY: scrollOffset.y)
         let displayBorder = toolbarManager.shouldDisplayNavigationBorder(toolbarPosition: .bottom)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, ToolbarActionType.toolbarPositionChanged)
         XCTAssertEqual(actionCalled.toolbarPosition, action.toolbarPosition)
         XCTAssertEqual(actionCalled.addressBorderPosition, borderPosition)
@@ -481,7 +481,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
                                              actionType: ToolbarMiddlewareActionType.loadSummaryState)
         subject.handle(action)
 
-        XCTAssertNil(mockStore.dispatchedActions.first as? ToolbarAction)
+        XCTAssertNil(mockBus.dispatchedActions.first as? ToolbarAction)
     }
 
     func testLoadSummary_dispatchesToolbarAction() throws {
@@ -496,13 +496,13 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
         let action = ToolbarMiddlewareAction(readerModeState: .active,
                                              windowUUID: .XCTestDefaultUUID,
                                              actionType: ToolbarMiddlewareActionType.loadSummaryState)
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
         subject.handle(action)
         wait(for: [expectation])
 
-        let result = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
+        let result = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarAction)
         XCTAssertTrue(result.canSummarize)
     }
 
@@ -514,18 +514,18 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
             actionType: MicrosurveyPromptMiddlewareActionType.initialize)
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, ToolbarActionType.borderPositionChanged)
         XCTAssertEqual(actionCalled.displayNavBorder, false)
     }
 
     func testMicrosurveyPromptInitialize_withBottomToolbar_dispatchesToolbarPositionChanged() throws {
         seedBottomToolbarPosition()
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
 
         let subject = createSubject(manager: toolbarManager)
         let action = MicrosurveyPromptMiddlewareAction(
@@ -533,10 +533,10 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
             actionType: MicrosurveyPromptMiddlewareActionType.initialize)
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, ToolbarActionType.borderPositionChanged)
         XCTAssertEqual(actionCalled.addressBorderPosition, AddressToolbarBorderPosition.none)
         XCTAssertEqual(actionCalled.displayNavBorder, false)
@@ -550,18 +550,18 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
             actionType: MicrosurveyPromptActionType.closePrompt)
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, ToolbarActionType.borderPositionChanged)
         XCTAssertEqual(actionCalled.displayNavBorder, true)
     }
 
     func testMicrosurveyPromptClosePrompt_withBottomToolbar_dispatchesToolbarPositionChanged() throws {
         seedBottomToolbarPosition()
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
 
         let subject = createSubject(manager: toolbarManager)
         let action = MicrosurveyPromptAction(
@@ -569,10 +569,10 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
             actionType: MicrosurveyPromptActionType.closePrompt)
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, ToolbarActionType.borderPositionChanged)
         XCTAssertEqual(actionCalled.addressBorderPosition, AddressToolbarBorderPosition.top)
         XCTAssertEqual(actionCalled.displayNavBorder, false)
@@ -588,10 +588,10 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? GeneralBrowserAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? GeneralBrowserAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? GeneralBrowserActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, GeneralBrowserActionType.addToReadingListLongPressAction)
     }
 
@@ -671,7 +671,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         try cancelEditMode(dispatchedActionsCount: 3)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.last as? GeneralBrowserAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.last as? GeneralBrowserAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? GeneralBrowserActionType)
 
         XCTAssertEqual(actionType, GeneralBrowserActionType.showTabTray)
@@ -720,7 +720,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         try cancelEditMode(dispatchedActionsCount: 3)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.last as? GeneralBrowserAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.last as? GeneralBrowserAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? GeneralBrowserActionType)
 
         XCTAssertEqual(actionType, GeneralBrowserActionType.showMenu)
@@ -881,10 +881,10 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, ToolbarActionType.didStartEditingUrl)
 
         let savedMetric = try XCTUnwrap(
@@ -980,10 +980,10 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? GeneralBrowserAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? GeneralBrowserAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? GeneralBrowserActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, GeneralBrowserActionType.showReloadLongPressAction)
     }
 
@@ -1036,13 +1036,13 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
         let borderPosition = toolbarManager.getAddressBorderPosition(for: .top,
                                                                      isPrivate: false,
                                                                      scrollY: scrollOffset.y)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, ToolbarActionType.borderPositionChanged)
         XCTAssertEqual(actionCalled.addressBorderPosition, borderPosition)
     }
@@ -1054,10 +1054,10 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
             actionType: ToolbarMiddlewareActionType.didClearSearch)
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, ToolbarActionType.clearSearch)
 
         let savedMetric = try XCTUnwrap(
@@ -1080,7 +1080,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
             actionType: ToolbarMiddlewareActionType.didStartDragInteraction)
         subject.handle(action)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
 
         let savedMetric = try XCTUnwrap(
             mockGleanWrapper.savedEvents.first as? EventMetricType<NoExtras>
@@ -1109,8 +1109,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
     func testDidSwipeToOpenTabTray_withBottomToolbar_recordsIsAtBottomTrue() throws {
         seedBottomToolbarPosition()
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
 
         let subject = createSubject(manager: toolbarManager)
         let action = ToolbarMiddlewareAction(
@@ -1137,10 +1137,10 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? SearchEngineSelectionAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? SearchEngineSelectionAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? SearchEngineSelectionMiddlewareActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, SearchEngineSelectionMiddlewareActionType.didClearAlternativeSearchEngine)
     }
 
@@ -1182,8 +1182,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
     func test_didSubmitSearchTerm_forPrivateMode_withProperPayload_addsRecentSearchToHistoryStorage() {
         seedPrivateModeToolbarState()
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
 
         let subject = createSubject(manager: toolbarManager)
         let action = ToolbarAction(
@@ -1199,8 +1199,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
     func test_didSubmitSearchTerm_forPrivateMode_withoutURL_doesNotAddRecentSearchToHistoryStorage() {
         seedPrivateModeToolbarState()
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
 
         let subject = createSubject(manager: toolbarManager)
         let action = ToolbarAction(
@@ -1215,8 +1215,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
 
     func test_didSubmitSearchTerm_forPrivateMode_withoutSearchTerm_doesNotAddRecentSearchToHistoryStorage() {
         seedPrivateModeToolbarState()
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
 
         let subject = createSubject(manager: toolbarManager)
         let action = ToolbarAction(
@@ -1276,7 +1276,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.didTapButton)
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation?.fulfill()
         }
 
@@ -1286,10 +1286,10 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
             wait(for: [expectation], timeout: 1.0)
         }
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? GeneralBrowserAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? GeneralBrowserAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? GeneralBrowserActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, expectedActionType)
     }
 
@@ -1304,7 +1304,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.didTapButton)
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation?.fulfill()
         }
 
@@ -1314,10 +1314,10 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
             wait(for: [expectation], timeout: 1.0)
         }
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? GeneralBrowserAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? GeneralBrowserAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? GeneralBrowserActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, expectedActionType)
         assertAction(actionCalled)
     }
@@ -1332,7 +1332,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.didTapButton)
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation?.fulfill()
         }
 
@@ -1342,21 +1342,21 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
             wait(for: [expectation], timeout: 1.0)
         }
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? NavigationBrowserAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? NavigationBrowserAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? NavigationBrowserActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, NavigationBrowserActionType.tapOnReaderMode)
         XCTAssertEqual(actionCalled.navigationDestination.destination, .readerMode)
     }
 
     private func cancelEditMode(dispatchedActionsCount: Int = 2) throws {
-        let firstActionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
+        let firstActionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarAction)
         let firstActionType = try XCTUnwrap(firstActionCalled.actionType as? ToolbarActionType)
-        let secondActionCalled = try XCTUnwrap(mockStore.dispatchedActions[1] as? GeneralBrowserAction)
+        let secondActionCalled = try XCTUnwrap(mockBus.dispatchedActions[1] as? GeneralBrowserAction)
         let secondActionType = try XCTUnwrap(secondActionCalled.actionType as? GeneralBrowserActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, dispatchedActionsCount)
+        XCTAssertEqual(mockBus.dispatchedActions.count, dispatchedActionsCount)
         XCTAssertEqual(firstActionType, ToolbarActionType.cancelEdit)
         XCTAssertEqual(secondActionType, GeneralBrowserActionType.leaveOverlay)
     }
@@ -1384,7 +1384,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
         )
     }
 
-    // MARK: StoreTestUtility
+    // MARK: BusTestUtility
     /// The toolbar state the middleware reads lives on ToolbarViewModel now, not in the store.
     private func registerToolbarState(_ toolbarState: ToolbarState) {
         ToolbarViewModel.register(
@@ -1411,14 +1411,14 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
         )
     }
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
     // In order to avoid flaky tests, we should reset the store
     // similar to production
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

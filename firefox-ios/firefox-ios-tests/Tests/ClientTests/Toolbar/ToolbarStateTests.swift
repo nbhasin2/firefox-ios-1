@@ -8,10 +8,10 @@ import Common
 
 @testable import Client
 
-final class ToolbarStateTests: XCTestCase, StoreTestUtility {
-    let storeUtilityHelper = StoreTestUtilityHelper()
+final class ToolbarStateTests: XCTestCase, BusTestUtility {
+    let storeUtilityHelper = BusTestUtilityHelper()
     let windowUUID: WindowUUID = .XCTestDefaultUUID
-    var mockStore: MockStore!
+    var mockBus: MockBrowserEventBus!
     var mockProfile: MockProfile!
 
     override func setUp() async throws {
@@ -20,12 +20,12 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
         DependencyHelperMock().bootstrapDependencies()
 
         // We must reset the global mock store prior to each test
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         mockProfile = nil
         try await super.tearDown()
     }
@@ -582,16 +582,16 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
         )
     }
 
-    // MARK: StoreTestUtility
+    // MARK: BusTestUtility
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
     // In order to avoid flaky tests, we should reset the store
     // similar to production
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

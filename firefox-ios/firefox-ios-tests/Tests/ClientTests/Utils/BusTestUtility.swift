@@ -8,32 +8,32 @@ import Redux
 import XCTest
 
 @MainActor
-protocol StoreTestUtility {
-    func setupStore()
-    func resetStore()
+protocol BusTestUtility {
+    func setupBus()
+    func resetBus()
 }
 
-/// Utility class used when replacing the global store for testing purposes
-class StoreTestUtilityHelper {
+/// Utility class used when replacing the global bus for testing purposes
+class BusTestUtilityHelper {
     @MainActor
-    static func setupStore() {
+    static func setupBus() {
 #if TESTING
-        store = Store()
+        browserEventBus = BrowserEventBus()
 #endif
     }
 
     @MainActor
-    static func setupStore(with mockStore: any DefaultDispatchStore) {
+    static func setupBus(with mockBus: any BrowserEventBusing) {
 #if TESTING
-        store = mockStore
+        browserEventBus = mockBus
 #endif
     }
 
-    /// In order to avoid flaky tests, we should reset the store similar to production
+    /// In order to avoid flaky tests, we should reset the bus similar to production
     @MainActor
-    static func resetStore() {
+    static func resetBus() {
 #if TESTING
-        store = Store()
+        browserEventBus = BrowserEventBus()
         // Static per-window registries outlive a single test, so a state a previous test seeded
         // would otherwise be read by the next one.
         ToolbarViewModel.removeAllInstances()

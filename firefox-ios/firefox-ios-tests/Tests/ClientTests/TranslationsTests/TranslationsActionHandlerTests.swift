@@ -12,8 +12,8 @@ import XCTest
 @testable import Client
 
 @MainActor
-final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtility {
-    private var mockStore: MockStore!
+final class TranslationsActionHandlerIntegrationTests: XCTestCase, BusTestUtility {
+    private var mockBus: MockBrowserEventBus!
     private var mockProfile: MockProfile!
     private var mockLogger: MockLogger!
     private var mockWindowManager: MockWindowManager!
@@ -36,7 +36,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
             injectedWindowManager: mockWindowManager,
             injectedTabManager: mockTabManager
         )
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
@@ -47,7 +47,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         mockTranslationsTelemetry = nil
         mockNotificationCenter = nil
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -63,7 +63,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         subject.handle(action)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
         XCTAssertNil(mockTranslationsTelemetry.lastTranslationFlowId)
     }
 
@@ -77,7 +77,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         subject.handle(action)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
         XCTAssertNil(mockTranslationsTelemetry.lastTranslationFlowId)
     }
 
@@ -92,7 +92,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         subject.handle(action)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
         XCTAssertNil(mockTranslationsTelemetry.lastTranslationFlowId)
     }
 
@@ -111,7 +111,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         let expectation = XCTestExpectation(description: "expect receivedTranslationLanguage action to be fired")
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -119,12 +119,12 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         wait(for: [expectation], timeout: 1.0)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? TranslationsAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? TranslationsAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? TranslationsActionType)
 
         XCTAssertEqual(actionCalled.translationConfiguration?.state, .inactive)
         XCTAssertEqual(actionType, TranslationsActionType.receivedTranslationLanguage)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertNil(mockTranslationsTelemetry.lastTranslationFlowId)
         XCTAssertEqual(mockTranslationsTelemetry.pageLanguageIdentificationFailedCalledCount, 0)
     }
@@ -143,18 +143,18 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let expectation = XCTestExpectation(description: "expect receivedTranslationLanguage action to be fired")
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? TranslationsAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? TranslationsAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? TranslationsActionType)
 
         XCTAssertEqual(actionCalled.translationConfiguration?.state, .inactive)
         XCTAssertEqual(actionType, TranslationsActionType.receivedTranslationLanguage)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
     }
 
     func test_urlDidChangeAction_withError_doesNotDispatchActionAndLogsError() throws {
@@ -174,7 +174,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         let expectation = XCTestExpectation(description: "expect receivedTranslationLanguage action to be fired")
         expectation.isInverted = true
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -182,7 +182,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
         XCTAssertEqual(mockLogger.savedLevel, .warning)
         XCTAssertEqual(
             mockLogger.savedMessage,
@@ -209,7 +209,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         let expectation = XCTestExpectation(description: "expect receivedTranslationLanguage action to be fired")
         expectation.isInverted = true
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -217,7 +217,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
     }
 
     func test_urlDidChangeAction_withNotEligiblePage_dispatchesClearAction() throws {
@@ -234,18 +234,18 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let expectation = XCTestExpectation(description: "expect receivedTranslationLanguage clear action to be fired")
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? TranslationsAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? TranslationsAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? TranslationsActionType)
 
         XCTAssertNil(actionCalled.translationConfiguration)
         XCTAssertEqual(actionType, TranslationsActionType.receivedTranslationLanguage)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
     }
 
     /// urlDidChange with `.active` skips eligibility re-check.
@@ -268,12 +268,12 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         let expectation = XCTestExpectation(description: "no dispatch should occur for tab-switch round-trip")
         expectation.isInverted = true
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
     }
 
     /// urlDidChange with `.loading` skips eligibility re-check.
@@ -295,12 +295,12 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         let expectation = XCTestExpectation(description: "no dispatch should occur for in-flight round-trip")
         expectation.isInverted = true
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
     }
 
     /// urlDidChange with `.inactive` falls through and runs eligibility (restore-flow contract).
@@ -321,13 +321,13 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let expectation = XCTestExpectation(description: "receivedTranslationLanguage dispatched")
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
-        let dispatched = try XCTUnwrap(mockStore.dispatchedActions.first as? TranslationsAction)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
+        let dispatched = try XCTUnwrap(mockBus.dispatchedActions.first as? TranslationsAction)
         XCTAssertEqual(dispatched.actionType as? TranslationsActionType, .receivedTranslationLanguage)
     }
 
@@ -350,7 +350,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let expectation = XCTestExpectation(description: "receivedTranslationLanguage dispatched")
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
@@ -379,7 +379,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let expectation = XCTestExpectation(description: "receivedTranslationLanguage clear dispatched")
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
@@ -407,13 +407,13 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let expectation = XCTestExpectation(description: "receivedTranslationLanguage clear dispatched for PDF")
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? TranslationsAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? TranslationsAction)
         XCTAssertNil(actionCalled.translationConfiguration)
         XCTAssertEqual(actionCalled.actionType as? TranslationsActionType, .receivedTranslationLanguage)
         XCTAssertNil(tab.translationConfiguration)
@@ -439,13 +439,13 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let expectation = XCTestExpectation(description: "receivedTranslationLanguage clear dispatched for image")
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? TranslationsAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? TranslationsAction)
         XCTAssertNil(actionCalled.translationConfiguration)
         XCTAssertEqual(actionCalled.actionType as? TranslationsActionType, .receivedTranslationLanguage)
         XCTAssertNil(tab.translationConfiguration)
@@ -472,8 +472,8 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let expectation = XCTestExpectation(description: "receivedTranslationLanguage dispatched")
-        mockStore.dispatchCalled = { [weak mockStore] in
-            if (mockStore?.dispatchedActions.last?.actionType as? TranslationsActionType) == .receivedTranslationLanguage {
+        mockBus.dispatchCalled = { [weak mockBus] in
+            if (mockBus?.dispatchedActions.last?.actionType as? TranslationsActionType) == .receivedTranslationLanguage {
                 expectation.fulfill()
             }
         }
@@ -503,8 +503,8 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let completedExpectation = XCTestExpectation(description: "translationCompleted dispatched")
-        mockStore.dispatchCalled = { [weak mockStore] in
-            if (mockStore?.dispatchedActions.last?.actionType as? TranslationsActionType) == .translationCompleted {
+        mockBus.dispatchCalled = { [weak mockBus] in
+            if (mockBus?.dispatchedActions.last?.actionType as? TranslationsActionType) == .translationCompleted {
                 completedExpectation.fulfill()
             }
         }
@@ -534,8 +534,8 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let completedExpectation = XCTestExpectation(description: "translationCompleted dispatched")
-        mockStore.dispatchCalled = { [weak mockStore] in
-            if (mockStore?.dispatchedActions.last?.actionType as? TranslationsActionType) == .translationCompleted {
+        mockBus.dispatchCalled = { [weak mockBus] in
+            if (mockBus?.dispatchedActions.last?.actionType as? TranslationsActionType) == .translationCompleted {
                 completedExpectation.fulfill()
             }
         }
@@ -569,8 +569,8 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let errorExpectation = XCTestExpectation(description: "didReceiveErrorTranslating dispatched")
-        mockStore.dispatchCalled = { [weak mockStore] in
-            if (mockStore?.dispatchedActions.last?.actionType as? TranslationsActionType) == .didReceiveErrorTranslating {
+        mockBus.dispatchCalled = { [weak mockBus] in
+            if (mockBus?.dispatchedActions.last?.actionType as? TranslationsActionType) == .didReceiveErrorTranslating {
                 errorExpectation.fulfill()
             }
         }
@@ -594,7 +594,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         subject.handle(action)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
         XCTAssertEqual(mockTranslationsTelemetry.translateButtonTappedCalledCount, 0)
     }
 
@@ -611,14 +611,14 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         let expectation = XCTestExpectation(description: "showTranslationLanguagePicker action dispatched for inactive tap")
         expectation.expectedFulfillmentCount = 1
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         seedTranslationConfig(for: .inactive)
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
-        let dispatchedAction = try XCTUnwrap(mockStore.dispatchedActions.first as? GeneralBrowserAction)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
+        let dispatchedAction = try XCTUnwrap(mockBus.dispatchedActions.first as? GeneralBrowserAction)
         let dispatchedActionType = try XCTUnwrap(dispatchedAction.actionType as? GeneralBrowserActionType)
         XCTAssertEqual(dispatchedActionType, GeneralBrowserActionType.showTranslationLanguagePicker)
     }
@@ -636,8 +636,8 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         let didStartExpectation = XCTestExpectation(description: "didStartTranslatingPage dispatched")
         let completedExpectation = XCTestExpectation(description: "translationCompleted dispatched")
-        mockStore.dispatchCalled = { [weak mockStore] in
-            guard let type = mockStore?.dispatchedActions.last?.actionType as? TranslationsActionType else { return }
+        mockBus.dispatchCalled = { [weak mockBus] in
+            guard let type = mockBus?.dispatchedActions.last?.actionType as? TranslationsActionType else { return }
             switch type {
             case .didStartTranslatingPage: didStartExpectation.fulfill()
             case .translationCompleted: completedExpectation.fulfill()
@@ -648,7 +648,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         wait(for: [didStartExpectation, completedExpectation], timeout: 3.0, enforceOrder: true)
 
-        let toolbarActions = mockStore.dispatchedActions.compactMap { $0 as? TranslationsAction }
+        let toolbarActions = mockBus.dispatchedActions.compactMap { $0 as? TranslationsAction }
         let didStart = try XCTUnwrap(toolbarActions.first {
             ($0.actionType as? TranslationsActionType) == .didStartTranslatingPage
         })
@@ -678,7 +678,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         XCTAssertEqual(mockTranslationsTelemetry.translateButtonTappedCalledCount, 0)
         XCTAssertEqual(mockTranslationsTelemetry.pageLanguageIdentifiedCalledCount, 0)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
     }
 
     func test_didSelectTargetLanguage_withTranslationError_dispatchToastAction() throws {
@@ -699,7 +699,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
         expectation.expectedFulfillmentCount = 3
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -707,15 +707,15 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 3)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 3)
 
-        let firstActionCalled = try XCTUnwrap(mockStore.dispatchedActions[0] as? TranslationsAction)
+        let firstActionCalled = try XCTUnwrap(mockBus.dispatchedActions[0] as? TranslationsAction)
         let firstActionType = try XCTUnwrap(firstActionCalled.actionType as? TranslationsActionType)
 
-        let secondActionCalled = try XCTUnwrap(mockStore.dispatchedActions[1] as? TranslationsAction)
+        let secondActionCalled = try XCTUnwrap(mockBus.dispatchedActions[1] as? TranslationsAction)
         let secondActionType = try XCTUnwrap(secondActionCalled.actionType as? TranslationsActionType)
 
-        let thirdActionCalled = try XCTUnwrap(mockStore.dispatchedActions[2] as? GeneralBrowserAction)
+        let thirdActionCalled = try XCTUnwrap(mockBus.dispatchedActions[2] as? GeneralBrowserAction)
         let thirdActionType = try XCTUnwrap(thirdActionCalled.actionType as? GeneralBrowserActionType)
 
         XCTAssertEqual(firstActionCalled.translationConfiguration?.state, .loading)
@@ -749,7 +749,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
         expectation.expectedFulfillmentCount = 3
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -757,15 +757,15 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 3)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 3)
 
-        let firstActionCalled = try XCTUnwrap(mockStore.dispatchedActions[0] as? TranslationsAction)
+        let firstActionCalled = try XCTUnwrap(mockBus.dispatchedActions[0] as? TranslationsAction)
         let firstActionType = try XCTUnwrap(firstActionCalled.actionType as? TranslationsActionType)
 
-        let secondActionCalled = try XCTUnwrap(mockStore.dispatchedActions[1] as? TranslationsAction)
+        let secondActionCalled = try XCTUnwrap(mockBus.dispatchedActions[1] as? TranslationsAction)
         let secondActionType = try XCTUnwrap(secondActionCalled.actionType as? TranslationsActionType)
 
-        let thirdActionCalled = try XCTUnwrap(mockStore.dispatchedActions[2] as? GeneralBrowserAction)
+        let thirdActionCalled = try XCTUnwrap(mockBus.dispatchedActions[2] as? GeneralBrowserAction)
         let thirdActionType = try XCTUnwrap(thirdActionCalled.actionType as? GeneralBrowserActionType)
 
         XCTAssertEqual(firstActionCalled.translationConfiguration?.state, .loading)
@@ -798,7 +798,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         expectation.expectedFulfillmentCount = 2
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
              expectation.fulfill()
         }
         seedTranslationConfig(for: .active)
@@ -806,12 +806,12 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 2)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 2)
 
-        let firstActionCalled = try XCTUnwrap(mockStore.dispatchedActions[0] as? TranslationsAction)
+        let firstActionCalled = try XCTUnwrap(mockBus.dispatchedActions[0] as? TranslationsAction)
         let firstActionType = try XCTUnwrap(firstActionCalled.actionType as? TranslationsActionType)
 
-        let secondActionCalled = try XCTUnwrap(mockStore.dispatchedActions[1] as? GeneralBrowserAction)
+        let secondActionCalled = try XCTUnwrap(mockBus.dispatchedActions[1] as? GeneralBrowserAction)
         let secondActionType = try XCTUnwrap(secondActionCalled.actionType as? GeneralBrowserActionType)
 
         XCTAssertEqual(firstActionCalled.translationConfiguration?.state, .inactive)
@@ -843,7 +843,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         let expectation = XCTestExpectation(description: "didStartTranslatingPage + reloadWebsite dispatched")
         expectation.expectedFulfillmentCount = 2
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         seedTranslationConfig(for: .active)
         subject.handle(action)
@@ -866,17 +866,17 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let expectation = XCTestExpectation(description: "receivedTranslationLanguage dispatched after feature enabled")
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? TranslationsAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? TranslationsAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? TranslationsActionType)
         XCTAssertEqual(actionType, TranslationsActionType.receivedTranslationLanguage)
         XCTAssertEqual(actionCalled.translationConfiguration?.state, .inactive)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
     }
 
     func test_didTranslationSettingsChange_withFeatureDisabled_doesNotDispatchAction() throws {
@@ -892,12 +892,12 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         let expectation = XCTestExpectation(description: "no action dispatched when feature disabled")
         expectation.isInverted = true
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 0.5)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
     }
 
     func test_didTranslationSettingsChange_withFeatureDisabled_andActivePage_reloadsPage() throws {
@@ -917,14 +917,14 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let expectation = XCTestExpectation(description: "reloadWebsite dispatched when disabling translations")
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 0.5)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
-        let dispatchedAction = try XCTUnwrap(mockStore.dispatchedActions.first as? GeneralBrowserAction)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
+        let dispatchedAction = try XCTUnwrap(mockBus.dispatchedActions.first as? GeneralBrowserAction)
         let dispatchedActionType = try XCTUnwrap(dispatchedAction.actionType as? GeneralBrowserActionType)
         XCTAssertEqual(dispatchedActionType, GeneralBrowserActionType.reloadWebsite)
     }
@@ -947,12 +947,12 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         let expectation = XCTestExpectation(description: "no reload dispatched for inactive translation")
         expectation.isInverted = true
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 0.5)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
     }
 
     func test_didTranslationSettingsChange_clearsStoredTargetLanguageForRetry() throws {
@@ -968,7 +968,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
             actionType: TranslationsActionType.didTranslationSettingsChange
         )
         subject.handle(toggleAction)
-        mockStore.dispatchedActions.removeAll()
+        mockBus.dispatchedActions.removeAll()
 
         let retryAction = TranslationsAction(
             windowUUID: .XCTestDefaultUUID,
@@ -977,12 +977,12 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         let expectation = XCTestExpectation(description: "no retry dispatch after settings change cleared state")
         expectation.isInverted = true
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(retryAction)
 
         wait(for: [expectation], timeout: 0.5)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
     }
 
     // MARK: - Auto-translate tests
@@ -1006,18 +1006,18 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
             description: "expect didStartTranslatingPage and translationCompleted to be fired"
         )
         expectation.expectedFulfillmentCount = 2
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 2)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 2)
 
-        let firstAction = try XCTUnwrap(mockStore.dispatchedActions[0] as? TranslationsAction)
+        let firstAction = try XCTUnwrap(mockBus.dispatchedActions[0] as? TranslationsAction)
         let firstActionType = try XCTUnwrap(firstAction.actionType as? TranslationsActionType)
 
-        let secondAction = try XCTUnwrap(mockStore.dispatchedActions[1] as? TranslationsAction)
+        let secondAction = try XCTUnwrap(mockBus.dispatchedActions[1] as? TranslationsAction)
         let secondActionType = try XCTUnwrap(secondAction.actionType as? TranslationsActionType)
 
         XCTAssertEqual(firstAction.translationConfiguration?.state, .loading)
@@ -1042,15 +1042,15 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         let expectation = XCTestExpectation(description: "expect receivedTranslationLanguage to be fired")
         expectation.expectedFulfillmentCount = 1
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
 
-        let dispatchedAction = try XCTUnwrap(mockStore.dispatchedActions.first as? TranslationsAction)
+        let dispatchedAction = try XCTUnwrap(mockBus.dispatchedActions.first as? TranslationsAction)
         let dispatchedActionType = try XCTUnwrap(dispatchedAction.actionType as? TranslationsActionType)
 
         XCTAssertEqual(dispatchedAction.translationConfiguration?.state, .inactive)
@@ -1075,11 +1075,11 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
         let restoreExpectation = XCTestExpectation(description: "restore dispatches completed")
         restoreExpectation.expectedFulfillmentCount = 2
-        mockStore.dispatchCalled = { restoreExpectation.fulfill() }
+        mockBus.dispatchCalled = { restoreExpectation.fulfill() }
         seedTranslationConfig(for: .active)
         subject.handle(restoreAction)
         wait(for: [restoreExpectation], timeout: 1.0)
-        mockStore.dispatchedActions.removeAll()
+        mockBus.dispatchedActions.removeAll()
 
         // Dispatch urlDidChange — auto-translate is skipped for this cycle.
         let urlAction = ToolbarAction(
@@ -1090,15 +1090,15 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
         let expectation = XCTestExpectation(description: "expect receivedTranslationLanguage to be fired")
         expectation.expectedFulfillmentCount = 1
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(urlAction)
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
 
-        let dispatchedAction = try XCTUnwrap(mockStore.dispatchedActions.first as? TranslationsAction)
+        let dispatchedAction = try XCTUnwrap(mockBus.dispatchedActions.first as? TranslationsAction)
         let dispatchedActionType = try XCTUnwrap(dispatchedAction.actionType as? TranslationsActionType)
 
         XCTAssertEqual(dispatchedAction.translationConfiguration?.state, .inactive)
@@ -1125,15 +1125,15 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         let expectation = XCTestExpectation(description: "expect receivedTranslationLanguage to be fired")
         expectation.expectedFulfillmentCount = 1
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
 
-        let dispatchedAction = try XCTUnwrap(mockStore.dispatchedActions.first as? TranslationsAction)
+        let dispatchedAction = try XCTUnwrap(mockBus.dispatchedActions.first as? TranslationsAction)
         let dispatchedActionType = try XCTUnwrap(dispatchedAction.actionType as? TranslationsActionType)
 
         XCTAssertEqual(dispatchedAction.translationConfiguration?.state, .inactive)
@@ -1156,14 +1156,14 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
             description: "expect didStartTranslatingPage, translationCompleted, showAutoTranslatePrompt to be fired"
         )
         expectation.expectedFulfillmentCount = 3
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 3)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 3)
 
-        let thirdAction = try XCTUnwrap(mockStore.dispatchedActions[2] as? TranslationsAction)
+        let thirdAction = try XCTUnwrap(mockBus.dispatchedActions[2] as? TranslationsAction)
         let thirdActionType = try XCTUnwrap(thirdAction.actionType as? TranslationsActionType)
 
         XCTAssertEqual(thirdActionType, TranslationsActionType.showAutoTranslatePrompt)
@@ -1185,14 +1185,14 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
             description: "expect didStartTranslatingPage and translationCompleted to be fired"
         )
         expectation.expectedFulfillmentCount = 2
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 2)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 2)
 
-        let lastActionType = try XCTUnwrap(mockStore.dispatchedActions.last?.actionType as? TranslationsActionType)
+        let lastActionType = try XCTUnwrap(mockBus.dispatchedActions.last?.actionType as? TranslationsActionType)
         XCTAssertEqual(lastActionType, TranslationsActionType.translationCompleted)
     }
 
@@ -1211,14 +1211,14 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
             description: "expect didStartTranslatingPage and translationCompleted to be fired"
         )
         expectation.expectedFulfillmentCount = 2
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 2)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 2)
 
-        let lastActionType = try XCTUnwrap(mockStore.dispatchedActions.last?.actionType as? TranslationsActionType)
+        let lastActionType = try XCTUnwrap(mockBus.dispatchedActions.last?.actionType as? TranslationsActionType)
         XCTAssertEqual(lastActionType, TranslationsActionType.translationCompleted)
     }
 
@@ -1233,7 +1233,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         subject.handle(action)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
     }
 
     func test_didTapRetryFailedTranslationAction_withoutStoredLanguage_doesNotDispatchAction() throws {
@@ -1246,12 +1246,12 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         let expectation = XCTestExpectation(description: "no action dispatched without stored language")
         expectation.isInverted = true
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 0.5)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
     }
 
     func test_didTapRetryFailedTranslationAction_withSuccess_doesDispatchAction() throws {
@@ -1270,7 +1270,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
         expectation.expectedFulfillmentCount = 2
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -1278,12 +1278,12 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 2)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 2)
 
-        let firstActionCalled = try XCTUnwrap(mockStore.dispatchedActions[0] as? TranslationsAction)
+        let firstActionCalled = try XCTUnwrap(mockBus.dispatchedActions[0] as? TranslationsAction)
         let firstActionType = try XCTUnwrap(firstActionCalled.actionType as? TranslationsActionType)
 
-        let secondActionCalled = try XCTUnwrap(mockStore.dispatchedActions[1] as? TranslationsAction)
+        let secondActionCalled = try XCTUnwrap(mockBus.dispatchedActions[1] as? TranslationsAction)
         let secondActionType = try XCTUnwrap(secondActionCalled.actionType as? TranslationsActionType)
 
         XCTAssertEqual(firstActionCalled.translationConfiguration?.state, .loading)
@@ -1316,7 +1316,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
         expectation.expectedFulfillmentCount = 3
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -1324,16 +1324,16 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         wait(for: [expectation], timeout: 1.0)
 
-        let firstActionCalled = try XCTUnwrap(mockStore.dispatchedActions[0] as? TranslationsAction)
+        let firstActionCalled = try XCTUnwrap(mockBus.dispatchedActions[0] as? TranslationsAction)
         let firstActionType = try XCTUnwrap(firstActionCalled.actionType as? TranslationsActionType)
 
-        let secondActionCalled = try XCTUnwrap(mockStore.dispatchedActions[1] as? TranslationsAction)
+        let secondActionCalled = try XCTUnwrap(mockBus.dispatchedActions[1] as? TranslationsAction)
         let secondActionType = try XCTUnwrap(secondActionCalled.actionType as? TranslationsActionType)
 
-        let thirdActionCalled = try XCTUnwrap(mockStore.dispatchedActions[2] as? GeneralBrowserAction)
+        let thirdActionCalled = try XCTUnwrap(mockBus.dispatchedActions[2] as? GeneralBrowserAction)
         let thirdActionType = try XCTUnwrap(thirdActionCalled.actionType as? GeneralBrowserActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 3)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 3)
 
         XCTAssertEqual(firstActionCalled.translationConfiguration?.state, .loading)
         XCTAssertEqual(firstActionType, TranslationsActionType.didStartTranslatingPage)
@@ -1367,7 +1367,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
         expectation.expectedFulfillmentCount = 3
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -1375,15 +1375,15 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 3)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 3)
 
-        let firstActionCalled = try XCTUnwrap(mockStore.dispatchedActions[0] as? TranslationsAction)
+        let firstActionCalled = try XCTUnwrap(mockBus.dispatchedActions[0] as? TranslationsAction)
         let firstActionType = try XCTUnwrap(firstActionCalled.actionType as? TranslationsActionType)
 
-        let secondActionCalled = try XCTUnwrap(mockStore.dispatchedActions[1] as? TranslationsAction)
+        let secondActionCalled = try XCTUnwrap(mockBus.dispatchedActions[1] as? TranslationsAction)
         let secondActionType = try XCTUnwrap(secondActionCalled.actionType as? TranslationsActionType)
 
-        let thirdActionCalled = try XCTUnwrap(mockStore.dispatchedActions[2] as? GeneralBrowserAction)
+        let thirdActionCalled = try XCTUnwrap(mockBus.dispatchedActions[2] as? GeneralBrowserAction)
         let thirdActionType = try XCTUnwrap(thirdActionCalled.actionType as? GeneralBrowserActionType)
 
         XCTAssertEqual(firstActionCalled.translationConfiguration?.state, .loading)
@@ -1453,10 +1453,10 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
         let seedExpectation = XCTestExpectation(description: "seed target language")
         seedExpectation.expectedFulfillmentCount = successDispatchCount
-        mockStore.dispatchCalled = { seedExpectation.fulfill() }
+        mockBus.dispatchCalled = { seedExpectation.fulfill() }
         subject.handle(seedAction)
         wait(for: [seedExpectation], timeout: 1.0)
-        mockStore.dispatchedActions.removeAll()
+        mockBus.dispatchedActions.removeAll()
         mockTranslationsTelemetry.reset()
     }
 
@@ -1491,7 +1491,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         }
     }
 
-    // MARK: StoreTestUtility
+    // MARK: BusTestUtility
 
     private func seedTranslationIconState(_ translationState: TranslationConfiguration.IconState?) {
         let translationConfiguration = translationState.map {
@@ -1535,18 +1535,18 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
     }
 
-    func setupStore() {
-        mockStore = MockStore()
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
         // Every test starts from a registered toolbar view model with no translation configured;
         // the ones that need a configuration re-seed it.
         seedTranslationIconState(nil)
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
     // In order to avoid flaky tests, we should reset the store
     // similar to production
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 
     // MARK: - Long-press tests
@@ -1562,14 +1562,14 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let expectation = XCTestExpectation(description: "showTranslationLanguagePicker dispatched on long press")
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         seedTranslationLanguage(translatedToLanguage: "da")
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
 
-        let dispatchedAction = try XCTUnwrap(mockStore.dispatchedActions.first as? GeneralBrowserAction)
+        let dispatchedAction = try XCTUnwrap(mockBus.dispatchedActions.first as? GeneralBrowserAction)
         let dispatchedActionType = try XCTUnwrap(dispatchedAction.actionType as? GeneralBrowserActionType)
         XCTAssertEqual(dispatchedActionType, GeneralBrowserActionType.showTranslationLanguagePicker)
         XCTAssertEqual(dispatchedAction.isPageTranslated, true)
@@ -1587,14 +1587,14 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let expectation = XCTestExpectation(description: "showTranslationLanguagePicker dispatched on long press inactive")
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         seedTranslationConfig(for: .inactive)
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
 
-        let dispatchedAction = try XCTUnwrap(mockStore.dispatchedActions.first as? GeneralBrowserAction)
+        let dispatchedAction = try XCTUnwrap(mockBus.dispatchedActions.first as? GeneralBrowserAction)
         let dispatchedActionType = try XCTUnwrap(dispatchedAction.actionType as? GeneralBrowserActionType)
         XCTAssertEqual(dispatchedActionType, GeneralBrowserActionType.showTranslationLanguagePicker)
         XCTAssertEqual(dispatchedAction.isPageTranslated, false)
@@ -1612,14 +1612,14 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let expectation = XCTestExpectation(description: "picker dispatched with source and translated languages filtered")
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         seedTranslationLanguage(translatedToLanguage: "da", sourceLanguage: "de")
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
 
-        let dispatchedAction = try XCTUnwrap(mockStore.dispatchedActions.first as? GeneralBrowserAction)
+        let dispatchedAction = try XCTUnwrap(mockBus.dispatchedActions.first as? GeneralBrowserAction)
         XCTAssertEqual(dispatchedAction.translationLanguages, ["en"])
     }
 
@@ -1638,18 +1638,18 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         // 2. translationCompleted (active icon, with detected source language)
         let expectation = XCTestExpectation(description: "didStartTranslatingPage and translationCompleted dispatched")
         expectation.expectedFulfillmentCount = 2
-        mockStore.dispatchCalled = { expectation.fulfill() }
+        mockBus.dispatchCalled = { expectation.fulfill() }
 
         subject.handle(action)
 
         wait(for: [expectation], timeout: 1.0)
 
-        let startAction = try XCTUnwrap(mockStore.dispatchedActions.first as? TranslationsAction)
+        let startAction = try XCTUnwrap(mockBus.dispatchedActions.first as? TranslationsAction)
         let startActionType = try XCTUnwrap(startAction.actionType as? TranslationsActionType)
         XCTAssertEqual(startActionType, TranslationsActionType.didStartTranslatingPage)
         XCTAssertEqual(startAction.translationConfiguration?.state, .loading)
 
-        let completedAction = try XCTUnwrap(mockStore.dispatchedActions.last as? TranslationsAction)
+        let completedAction = try XCTUnwrap(mockBus.dispatchedActions.last as? TranslationsAction)
         let completedActionType = try XCTUnwrap(completedAction.actionType as? TranslationsActionType)
         XCTAssertEqual(completedActionType, TranslationsActionType.translationCompleted)
         XCTAssertEqual(completedAction.translationConfiguration?.state, .active)
@@ -1674,25 +1674,25 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let loadingExpectation = XCTestExpectation(description: "didStartTranslatingPage dispatched")
-        mockStore.dispatchCalled = { [weak mockStore] in
-            if (mockStore?.dispatchedActions.last?.actionType as? TranslationsActionType) == .didStartTranslatingPage {
+        mockBus.dispatchCalled = { [weak mockBus] in
+            if (mockBus?.dispatchedActions.last?.actionType as? TranslationsActionType) == .didStartTranslatingPage {
                 loadingExpectation.fulfill()
             }
         }
 
         subject.handle(action)
         wait(for: [loadingExpectation], timeout: 1.0)
-        mockStore.dispatchedActions.removeAll()
+        mockBus.dispatchedActions.removeAll()
 
         mockNotificationCenter.post(name: UIApplication.didEnterBackgroundNotification)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 2)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 2)
 
-        let loadingAction = try XCTUnwrap(mockStore.dispatchedActions[0] as? TranslationsAction)
+        let loadingAction = try XCTUnwrap(mockBus.dispatchedActions[0] as? TranslationsAction)
         XCTAssertEqual(loadingAction.actionType as? TranslationsActionType, .didStartTranslatingPage)
         XCTAssertEqual(loadingAction.translationConfiguration?.state, .loading)
 
-        let reloadAction = try XCTUnwrap(mockStore.dispatchedActions[1] as? GeneralBrowserAction)
+        let reloadAction = try XCTUnwrap(mockBus.dispatchedActions[1] as? GeneralBrowserAction)
         XCTAssertEqual(reloadAction.actionType as? GeneralBrowserActionType, .reloadWebsite)
 
         XCTAssertEqual(tab.translationConfiguration?.state, .loading)
@@ -1704,7 +1704,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
 
         mockNotificationCenter.post(name: UIApplication.didEnterBackgroundNotification)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
         withExtendedLifetime(subject) {}
     }
 
@@ -1721,19 +1721,19 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         seedTargetLanguage(in: subject, successDispatchCount: 2)
 
         seedTranslationConfig(for: .active)
-        mockStore.dispatchedActions.removeAll()
+        mockBus.dispatchedActions.removeAll()
 
         subject.backgroundTimestamp = Date().addingTimeInterval(-5)
 
         mockNotificationCenter.post(name: UIApplication.willEnterForegroundNotification)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 2)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 2)
 
-        let loadingAction = try XCTUnwrap(mockStore.dispatchedActions[0] as? TranslationsAction)
+        let loadingAction = try XCTUnwrap(mockBus.dispatchedActions[0] as? TranslationsAction)
         XCTAssertEqual(loadingAction.actionType as? TranslationsActionType, .didStartTranslatingPage)
         XCTAssertEqual(loadingAction.translationConfiguration?.state, .loading)
 
-        let reloadAction = try XCTUnwrap(mockStore.dispatchedActions[1] as? GeneralBrowserAction)
+        let reloadAction = try XCTUnwrap(mockBus.dispatchedActions[1] as? GeneralBrowserAction)
         XCTAssertEqual(reloadAction.actionType as? GeneralBrowserActionType, .reloadWebsite)
 
         XCTAssertEqual(tab.translationConfiguration?.state, .loading)
@@ -1755,29 +1755,29 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let loadingExpectation = XCTestExpectation(description: "didStartTranslatingPage dispatched")
-        mockStore.dispatchCalled = { [weak mockStore] in
-            if (mockStore?.dispatchedActions.last?.actionType as? TranslationsActionType) == .didStartTranslatingPage {
+        mockBus.dispatchCalled = { [weak mockBus] in
+            if (mockBus?.dispatchedActions.last?.actionType as? TranslationsActionType) == .didStartTranslatingPage {
                 loadingExpectation.fulfill()
             }
         }
 
         subject.handle(action)
         wait(for: [loadingExpectation], timeout: 1.0)
-        mockStore.dispatchedActions.removeAll()
+        mockBus.dispatchedActions.removeAll()
 
         mockNotificationCenter.post(name: UIApplication.didEnterBackgroundNotification)
 
         let completionLeakExpectation = XCTestExpectation(description: "translationCompleted should not be dispatched")
         completionLeakExpectation.isInverted = true
-        mockStore.dispatchCalled = { [weak mockStore] in
-            if (mockStore?.dispatchedActions.last?.actionType as? TranslationsActionType) == .translationCompleted {
+        mockBus.dispatchCalled = { [weak mockBus] in
+            if (mockBus?.dispatchedActions.last?.actionType as? TranslationsActionType) == .translationCompleted {
                 completionLeakExpectation.fulfill()
             }
         }
 
         wait(for: [completionLeakExpectation], timeout: 1.0)
 
-        let completionActions = mockStore.dispatchedActions.filter {
+        let completionActions = mockBus.dispatchedActions.filter {
             ($0.actionType as? TranslationsActionType) == .translationCompleted
         }
         XCTAssertTrue(completionActions.isEmpty)
@@ -1800,29 +1800,29 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         )
 
         let loadingExpectation = XCTestExpectation(description: "didStartTranslatingPage dispatched")
-        mockStore.dispatchCalled = { [weak mockStore] in
-            if (mockStore?.dispatchedActions.last?.actionType as? TranslationsActionType) == .didStartTranslatingPage {
+        mockBus.dispatchCalled = { [weak mockBus] in
+            if (mockBus?.dispatchedActions.last?.actionType as? TranslationsActionType) == .didStartTranslatingPage {
                 loadingExpectation.fulfill()
             }
         }
 
         subject.handle(action)
         wait(for: [loadingExpectation], timeout: 1.0)
-        mockStore.dispatchedActions.removeAll()
+        mockBus.dispatchedActions.removeAll()
 
         mockNotificationCenter.post(name: UIApplication.didEnterBackgroundNotification)
 
         let errorLeakExpectation = XCTestExpectation(description: "didReceiveErrorTranslating should not be dispatched")
         errorLeakExpectation.isInverted = true
-        mockStore.dispatchCalled = { [weak mockStore] in
-            if (mockStore?.dispatchedActions.last?.actionType as? TranslationsActionType) == .didReceiveErrorTranslating {
+        mockBus.dispatchCalled = { [weak mockBus] in
+            if (mockBus?.dispatchedActions.last?.actionType as? TranslationsActionType) == .didReceiveErrorTranslating {
                 errorLeakExpectation.fulfill()
             }
         }
 
         wait(for: [errorLeakExpectation], timeout: 1.0)
 
-        let errorActions = mockStore.dispatchedActions.filter {
+        let errorActions = mockBus.dispatchedActions.filter {
             ($0.actionType as? TranslationsActionType) == .didReceiveErrorTranslating
         }
         XCTAssertTrue(errorActions.isEmpty)
@@ -1835,7 +1835,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         mockNotificationCenter.post(name: UIApplication.didEnterBackgroundNotification)
         mockNotificationCenter.post(name: UIApplication.willEnterForegroundNotification)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
         withExtendedLifetime(subject) {}
     }
 }

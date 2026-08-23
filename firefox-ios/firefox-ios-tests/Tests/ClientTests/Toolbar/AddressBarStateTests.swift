@@ -10,8 +10,8 @@ import SummarizeKit
 
 @testable import Client
 
-final class AddressBarStateTests: XCTestCase, StoreTestUtility {
-    let storeUtilityHelper = StoreTestUtilityHelper()
+final class AddressBarStateTests: XCTestCase, BusTestUtility {
+    let storeUtilityHelper = BusTestUtilityHelper()
     let windowUUID: WindowUUID = .XCTestDefaultUUID
     var mockProfile: MockProfile!
     /// Held: the store keeps action observers weakly.
@@ -28,7 +28,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 
     override func tearDown() async throws {
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         ToolbarViewModel.removeInstance(for: windowUUID)
         toolbarService = nil
         mockProfile = nil
@@ -36,7 +36,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func tests_initialState_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
 
         XCTAssertEqual(initialState.windowUUID, windowUUID)
@@ -60,7 +60,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_didLoadToolbarsAction_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -98,7 +98,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_googleLensAvailabilityDidChangeAction_withGoogleLensDisabled_removesEditingAccessoryAction() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -123,7 +123,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_googleLensAvailabilityDidChangeAction_withGoogleLensEnabled_setsEditingAccessoryAction() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
         let expectedMenuElements = [
@@ -158,7 +158,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_numberOfTabsChangedAction_withoutNavToolbar_returnsExpectedState() {
-        setupStore(with: initialToolbarState(isShowingNavigationToolbar: false))
+        setupBus(with: initialToolbarState(isShowingNavigationToolbar: false))
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -180,7 +180,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_readerModeStateChangedAction_onHomepage_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -200,7 +200,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 
     func test_readerModeStateChangedAction_onHomepage_returnsExpectedState_whenSummarizerFeatureOn() {
         setIsHostedSummarizerFeatureEnabled(enabled: true)
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -219,7 +219,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_readerModeStateChangedAction_onWebsite_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -243,7 +243,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 
     func test_readerModeStateChangedAction_onWebsite_returnsExpectedState_whenSummarizeFeatureOn() {
         setIsHostedSummarizerFeatureEnabled(enabled: true)
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -271,7 +271,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 
     func test_readerModeStateChangedAction_onWebsite_returnsExpectedState_whenSummarizeLanguaeExpansionOn() {
         setIsSummarizerLanguageExpansionEnabled(enabled: true)
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -299,7 +299,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 
     func test_readerModeStateChangedAction_onWebsite_returnsExpectedState_whenSummarizeFeatureOn_readerModeActive() {
         setIsHostedSummarizerFeatureEnabled(enabled: true)
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -327,7 +327,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 
     func test_summarizeModeStateChangedAction_onWebsite_returnsExpectedState_whenSummarizeFeatureOn() {
         setIsHostedSummarizerFeatureEnabled(enabled: true)
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
         let urlDidChangeState = loadWebsiteAction(state: initialState, reducer: reducer)
@@ -359,7 +359,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_websiteLoadingStateDidChangeAction_withLoadingTrue_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -381,7 +381,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_websiteLoadingStateDidChangeAction_withLoadingFalse_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -403,7 +403,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_websiteLoadingStateDidChangeAction_withouthNavigationToolbar_returnsExcpectedState() {
-        setupStore()
+        setupBus()
 
         let initialState = createSubject()
         let reducer = addressBarReducer()
@@ -431,7 +431,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_urlDidChangeAction_withNavigationToolbar_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -447,7 +447,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_urlDidChangeAction_withoutNavigationToolbar_returnsExpectedState() {
-        setupStore(with: initialToolbarState(isShowingNavigationToolbar: false))
+        setupBus(with: initialToolbarState(isShowingNavigationToolbar: false))
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -466,7 +466,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_backForwardButtonStateChangedAction_withNavigationToolbar_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -486,7 +486,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_backForwardButtonStateChangedAction_withoutNavigationToolbar_returnsExpectedState() {
-        setupStore(with: initialToolbarState(isShowingNavigationToolbar: false))
+        setupBus(with: initialToolbarState(isShowingNavigationToolbar: false))
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -512,7 +512,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     // MARK: - Translation Configuration
     func test_urlDidChangeAction_withTranslationConfiguration_andTranslationsEnabled_returnsTranslateButton() {
         setTranslationsFeatureEnabled(enabled: true)
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -539,7 +539,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 
     func test_urlDidChangeAction_withTranslationConfiguration_andTranslationsEnabled_returnsLoadingIcon() {
         setTranslationsFeatureEnabled(enabled: true)
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -563,7 +563,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 
     func test_urlDidChangeAction_withTranslationConfiguration_andTranslationsEnabled_returnsActiveIcon() {
         setTranslationsFeatureEnabled(enabled: true)
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -587,7 +587,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 
     func test_urlDidChangeAction_withTranslationConfiguration_andTranslationsSettingsEnabled_showsNoTranslateButton() {
         setTranslationsFeatureEnabled(enabled: true)
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -608,7 +608,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 
     func test_urlDidChangeAction_withTranslationConfiguration_reduxSettingsEnabled_showsTranslateButton() {
         setTranslationsFeatureEnabled(enabled: true)
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -633,7 +633,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 
     func test_urlDidChangeAction_withTranslationConfiguration_andFFDisabled_doesNotIncludeTranslateButton() {
         setTranslationsFeatureEnabled(enabled: false)
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -655,7 +655,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     /// urlDidChange with `.active` config overrides existing Redux state.
     func test_urlDidChangeAction_withActiveState_overridesExisting() {
         setTranslationsFeatureEnabled(enabled: true)
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -684,7 +684,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     /// urlDidChange with nil config preserves existing Redux state.
     func test_urlDidChangeAction_withNilActionConfig_preservesExistingTranslationConfig() {
         setTranslationsFeatureEnabled(enabled: true)
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -712,7 +712,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     /// urlDidChange with default config (non-nil, state=nil) clears previous tab's Redux state.
     func test_urlDidChangeAction_withDefaultActionConfig_clearsPreviousTabState() {
         setTranslationsFeatureEnabled(enabled: true)
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -746,7 +746,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_traitCollectionDidChangedAction_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -777,7 +777,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_showMenuWarningBadgeAction_withoutNavToolbar_returnsExpectedState() {
-        setupStore(with: initialToolbarState(isShowingNavigationToolbar: false))
+        setupBus(with: initialToolbarState(isShowingNavigationToolbar: false))
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -807,7 +807,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_borderPositionChangedAction_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -825,7 +825,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_toolbarPositionChangedAction_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -845,7 +845,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_didPasteSearchTermAction_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
         let searchTerm = "mozilla"
@@ -875,7 +875,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_didStartEditingUrlAction_onHomepage_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -905,7 +905,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_didStartEditingUrlAction_withWebsite_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -936,7 +936,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_lockIconChangedAction_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -958,7 +958,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_userDidScrollAction_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = ToolbarState(windowUUID: windowUUID)
         let newState = ToolbarState.reduceModern(
             initialState,
@@ -971,7 +971,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_keyboardDidHideAction_returnsExpectedState() {
-        setupStore()
+        setupBus()
         var initialState = ToolbarState(windowUUID: windowUUID)
 
         // Minimize toolbar first
@@ -992,7 +992,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_accessoryViewDidShowAction_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = ToolbarState(windowUUID: windowUUID)
         let newState = ToolbarState.reduceModern(
             initialState,
@@ -1005,7 +1005,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_cancelEditOnHomepageAction_withURL_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
         let didChangeURLAction = ToolbarAction(url: URL(string: "https://mozilla.com")!,
@@ -1029,7 +1029,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_cancelEditOnHomepageAction_withNoURL_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -1047,7 +1047,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_cancelEditAction_withWebsite_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -1079,7 +1079,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func test_didSetTextInLocationViewAction_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
         let searchTerm = "mozilla"
@@ -1109,7 +1109,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 }
 
     func test_keyboardStateDidChangeAction_returnsExpectedState() {
-        setupStore()
+        setupBus()
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
@@ -1276,13 +1276,13 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     // MARK: Helper
     /// The toolbar state lives on ToolbarViewModel now, and the middleware is an observer on the
     /// bus rather than a registered middleware.
-    func setupStore(with initialToolbarState: ToolbarState) {
-        StoreTestUtilityHelper.setupStore()
+    func setupBus(with initialToolbarState: ToolbarState) {
+        BusTestUtilityHelper.setupBus()
         ToolbarViewModel.register(
             ToolbarViewModel(windowUUID: windowUUID, bus: nil, initialState: initialToolbarState),
             for: windowUUID
         )
-        store.addActionObserver(toolbarService) { [toolbarService] in toolbarService?.handle($0) }
+        browserEventBus.addActionObserver(toolbarService) { [toolbarService] in toolbarService?.handle($0) }
     }
 
     func initialToolbarState(isShowingNavigationToolbar: Bool) -> ToolbarState {
@@ -1310,15 +1310,15 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
             isAddressBarMinimized: toolbarState.isAddressBarMinimized)
     }
 
-    // MARK: StoreTestUtility
+    // MARK: BusTestUtility
 
-    func setupStore() {
-        setupStore(with: ToolbarState(windowUUID: windowUUID))
+    func setupBus() {
+        setupBus(with: ToolbarState(windowUUID: windowUUID))
     }
 
     // In order to avoid flaky tests, we should reset the store
     // similar to production
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }
