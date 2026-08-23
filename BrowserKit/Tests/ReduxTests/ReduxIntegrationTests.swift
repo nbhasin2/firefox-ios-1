@@ -6,102 +6,119 @@ import XCTest
 
 @testable import Redux
 
-// Global state used in FakeReduxViewController.
-@MainActor
-var store: Store<FakeReduxState>!
-
+/// The round trip the bus exists for: a view dispatches a command, a service hears it, does the
+/// work and announces the result, and whoever is watching hears the announcement.
+///
+/// This replaced a state-tree test — a view controller subscribed to `FakeReduxState` and asserted
+/// on the value the reducer produced. There is no state in the store to subscribe to now, so what
+/// is verified is the delivery: that the follow-up action arrives, in order, after the command.
 @MainActor
 final class ReduxIntegrationTests: XCTestCase {
     let initialCountValue = 8
 
-    var fakeReduxViewController: FakeReduxViewController!
-    var mockState: FakeReduxState!
-    var mockActionHandler: FakeReduxActionHandler!
+    private var store: Store!
+    private var handler: FakeReduxActionHandler!
+    private var observer: MockActionObserver!
 
     override func setUp() async throws {
         try await super.setUp()
 
-        mockState = FakeReduxState()
-        mockActionHandler = FakeReduxActionHandler()
-        mockActionHandler.generateInitialCountValue = {
-            return self.initialCountValue
-        }
+        store = Store()
+        observer = MockActionObserver()
+        handler = FakeReduxActionHandler()
+        handler.generateInitialCountValue = { [initialCountValue] in initialCountValue }
 
-        store = Store(state: mockState, reducer: FakeReduxState.reducer)
-        mockActionHandler.register(on: store)
-
-        // Initialize the VC after store and action handler are set up
-        fakeReduxViewController = createAndLoadViewController()
+        // The observer stands in for a view model: `.state` tier, so it is told before the service.
+        observer.observe(store, tier: .state)
+        handler.register(on: store)
     }
 
-    // MARK: Test Legacy Actions
+    override func tearDown() async throws {
+        store = nil
+        handler = nil
+        observer = nil
+        try await super.tearDown()
+    }
 
-    // This test will fail if actions are not completely processed before the next action is fired (i.e. action queuing).
+    // MARK: - Legacy actions
+
     func testDispatchStore_IncreaseCounter() {
-        fakeReduxViewController.increaseCounter()
+        store.dispatch(action(.increaseCounter))
 
-        XCTAssertEqual(fakeReduxViewController.receivedStateCounterValue, initialCountValue + 1)
+        XCTAssertEqual(handler.counter, 1)
+        XCTAssertEqual(observer.receivedActions.compactMap { $0 as? FakeReduxActionType },
+                       [.increaseCounter, .counterIncreased])
     }
 
-    // This test will fail if actions are not completely processed before the next action is fired (i.e. action queuing).
     func testDispatchStore_DecreaseCounter() {
-        fakeReduxViewController.decreaseCounter()
+        store.dispatch(action(.decreaseCounter))
 
-        XCTAssertEqual(fakeReduxViewController.receivedStateCounterValue, initialCountValue - 1)
+        XCTAssertEqual(handler.counter, -1)
+        XCTAssertEqual(observer.receivedActions.compactMap { $0 as? FakeReduxActionType },
+                       [.decreaseCounter, .counterDecreased])
+    }
+
+    func testDispatchStore_RequestInitialValue() {
+        store.dispatch(action(.requestInitialValue))
+
+        XCTAssertEqual(handler.counter, initialCountValue)
+        XCTAssertEqual(observer.receivedActions.compactMap { $0 as? FakeReduxActionType },
+                       [.requestInitialValue, .initialValueLoaded])
     }
 
     func testDispatchStore_SetPrivateMode() {
-        let expectedResult = true
-        fakeReduxViewController.setPrivateMode(to: expectedResult)
+        store.dispatch(FakeReduxAction(privateMode: true,
+                                       windowUUID: windowUUID,
+                                       actionType: FakeReduxActionType.setPrivateModeTo))
 
-        XCTAssertEqual(fakeReduxViewController.isInPrivateMode, expectedResult)
+        XCTAssertTrue(handler.isInPrivateMode)
     }
 
-    func testDispatchStore_TogglePrivateMode() {
-        let expectedResult = false
-        fakeReduxViewController.setPrivateMode(to: true)
-        fakeReduxViewController.setPrivateMode(to: expectedResult)
+    /// The queue: the follow-up the service dispatches mid-delivery lands after the action that
+    /// caused it, not interleaved with it.
+    func testDispatchStore_MultipleCommands_areDeliveredInOrder() {
+        store.dispatch(action(.increaseCounter))
+        store.dispatch(action(.increaseCounter))
 
-        XCTAssertEqual(fakeReduxViewController.isInPrivateMode, expectedResult)
+        XCTAssertEqual(handler.counter, 2)
+        XCTAssertEqual(observer.receivedActions.compactMap { $0 as? FakeReduxActionType },
+                       [.increaseCounter, .counterIncreased, .increaseCounter, .counterIncreased])
     }
 
-    // MARK: Test Modern Actions
+    // MARK: - Modern actions
 
-    // This test will fail if actions are not completely processed before the next action is fired (i.e. action queuing).
     func testDispatchStore_IncreaseCounter_modernAction() {
-        fakeReduxViewController.increaseCounter_ModernAction()
+        store.dispatch(FakeReduxModernAction.increaseCounter, forWindowUUID: windowUUID)
 
-        XCTAssertEqual(fakeReduxViewController.receivedStateCounterValue, initialCountValue + 1)
+        XCTAssertEqual(handler.counter, 1)
+        XCTAssertEqual(observer.receivedModernActions.compactMap { $0.0 as? FakeReduxModernAction },
+                       [.increaseCounter, .counterIncreased(counterValue: 1)])
     }
 
-    // This test will fail if actions are not completely processed before the next action is fired (i.e. action queuing).
     func testDispatchStore_DecreaseCounter_modernAction() {
-        fakeReduxViewController.decreaseCounter_ModernAction()
+        store.dispatch(FakeReduxModernAction.decreaseCounter, forWindowUUID: windowUUID)
 
-        XCTAssertEqual(fakeReduxViewController.receivedStateCounterValue, initialCountValue - 1)
+        XCTAssertEqual(handler.counter, -1)
+        XCTAssertEqual(observer.receivedModernActions.compactMap { $0.0 as? FakeReduxModernAction },
+                       [.decreaseCounter, .counterDecreased(counterValue: -1)])
     }
 
     func testDispatchStore_SetPrivateMode_modernAction() {
-        let expectedResult = true
-        fakeReduxViewController.setPrivateMode_ModernAction(to: expectedResult)
+        store.dispatch(FakeReduxModernAction.setPrivateModeTo(isPrivate: true), forWindowUUID: windowUUID)
 
-        XCTAssertEqual(fakeReduxViewController.isInPrivateMode, expectedResult)
+        XCTAssertTrue(handler.isInPrivateMode)
     }
 
-    func testDispatchStore_TogglePrivateMode_modernAction() {
-        let expectedResult = false
-        fakeReduxViewController.setPrivateMode_ModernAction(to: true)
-        fakeReduxViewController.setPrivateMode_ModernAction(to: expectedResult)
+    func testDispatchStore_modernAction_carriesItsWindow() throws {
+        store.dispatch(FakeReduxModernAction.increaseCounter, forWindowUUID: windowUUID)
 
-        XCTAssertEqual(fakeReduxViewController.isInPrivateMode, expectedResult)
+        let received = try XCTUnwrap(observer.receivedModernActions.first)
+        XCTAssertEqual(received.1, windowUUID)
     }
 
-    // MARK: - Helper functions
+    // MARK: - Helpers
 
-    private func createAndLoadViewController() -> FakeReduxViewController {
-        let fakeViewController = FakeReduxViewController()
-        fakeViewController.view.setNeedsLayout()
-
-        return fakeViewController
+    private func action(_ type: FakeReduxActionType) -> FakeReduxAction {
+        return FakeReduxAction(windowUUID: windowUUID, actionType: type)
     }
 }

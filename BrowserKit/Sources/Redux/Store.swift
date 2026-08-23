@@ -5,23 +5,20 @@
 import Foundation
 import Common
 
-/// Stores your entire app state in the form of a single data structure.
-/// This state can only be modified by dispatching Actions to the store.
-/// Whenever the state of the store changes, the store will notify all store subscriber.
+/// A window-keyed channel for the browser-level events no single screen owns — the URL changed, a
+/// tab was selected, the tab tray was dismissed.
+///
+/// It held the whole app's state once, with reducers deriving screens from it and subscribers
+/// re-rendering on the diff. Every screen owns its own state now (FXIOS-16660), so what is left is
+/// the part that was never about state: an action is dispatched, and the observers registered for
+/// it are told, in a defined order, one action at a time.
 @MainActor
-public final class Store<State: StateType & Sendable>: DefaultDispatchStore, ActionObserving {
-    typealias SubscriptionType = SubscriptionWrapper<State>
-
+public final class Store: DispatchStore, ActionObserving {
     private let logger: Logger
-
-    private var reducer: Reducer<State>
-    private var subscriptions: Set<SubscriptionType> = []
 
     private var actionQueue: [(action: Either<Action, ModernAction>, windowUUID: WindowUUID)] = []
     private var isProcessingActions = false
 
-    /// The subscribe half of the browser event bus (see `ActionObserving`). Kept separate from
-    /// `subscriptions`, which is state-change notification.
     private struct ActionObserverBox {
         let id: ObjectIdentifier
         let tier: ActionObserverTier
@@ -42,53 +39,11 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore, Act
     }
     private var modernActionObservers: [ModernActionObserverBox] = []
 
-    public var state: State {
-        didSet {
-            // Remove dead subscribers first to avoid modifying set during iteration
-            let deadSubscriptions = subscriptions.filter { $0.subscriber == nil }
-            subscriptions.subtract(deadSubscriptions)
-
-            // Now safely iterate through live subscriptions
-            subscriptions.forEach {
-                $0.newValues(oldState: oldValue, newState: state)
-            }
-        }
-    }
-
-    public init(state: State,
-                reducer: Reducer<State>,
-                logger: Logger = DefaultLogger.shared) {
-        self.state = state
-        self.reducer = reducer
+    public init(logger: Logger = DefaultLogger.shared) {
         self.logger = logger
     }
 
-    /// General subscription to app main state
-    public func subscribe<S: StoreSubscriber>(_ subscriber: S) where S.SubscriberStateType == State {
-        subscribe(subscriber, transform: nil)
-    }
-
-    /// Adds support to subscribe to subState parts of the store's state
-    public func subscribe<SubState, S: StoreSubscriber>(
-        _ subscriber: S,
-        transform: ((Subscription<State>) -> Subscription<SubState>)?
-    ) where S.SubscriberStateType == SubState {
-        let originalSubscription = Subscription<State>()
-        let transformedSubscription = transform?(originalSubscription)
-        subscribe(subscriber, mainSubscription: originalSubscription, transformedSubscription: transformedSubscription)
-    }
-
-    public func unsubscribe(_ subscriber: any StoreSubscriber) {
-        if let index = subscriptions.firstIndex(where: { return $0.subscriber === subscriber }) {
-            subscriptions.remove(at: index)
-        }
-    }
-
-    public func unsubscribe<S: StoreSubscriber>(_ subscriber: S) where S.SubscriberStateType == State {
-        if let index = subscriptions.firstIndex(where: { return $0.subscriber === subscriber }) {
-            subscriptions.remove(at: index)
-        }
-    }
+    // MARK: - Dispatching
 
     /// Legacy method to dispatch actions to the global store. Eventually will be deprecated and replaced by
     /// `dispatch(_action:forWindowUUID)`, which takes a `ModernAction`.
@@ -96,8 +51,8 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore, Act
         MainActor.assertIsolated("Expected to be called only on main actor.")
         logger.log("Dispatched action: \(action.debugDescription)", level: .info, category: .redux)
 
-        // We queue and process actions to ensure each single action completely passes through the reducer and observers
-        // before the next action fires.
+        // We queue and process actions to ensure each single action is completely delivered to the
+        // observers before the next action fires.
         actionQueue.append((.legacy(action), action.windowUUID))
         processQueuedActions()
     }
@@ -107,8 +62,6 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore, Act
         MainActor.assertIsolated("Expected to be called only on main actor.")
         logger.log("Dispatched action: \(action.description)", level: .info, category: .redux)
 
-        // We queue and process actions to ensure each single action completely passes through the reducer and observers
-        // before the next action fires.
         actionQueue.append((.modern(action), windowUUID))
         processQueuedActions()
     }
@@ -118,30 +71,9 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore, Act
         isProcessingActions = true
         while !actionQueue.isEmpty {
             let tuple = actionQueue.removeFirst()
-            executeAction(tuple.action, forWindowUUID: tuple.windowUUID)
+            notifyActionObservers(of: tuple.action, forWindowUUID: tuple.windowUUID)
         }
         isProcessingActions = false
-    }
-
-    private func executeAction(_ action: Either<Action, ModernAction>, forWindowUUID windowUUID: WindowUUID) {
-        // Each active screen state is given an opportunity to be reduced using the dispatched action
-        // (Note: this is true even if the action's UUID differs from the screen's window's UUID).
-        // Typically, reducers should compare the action's UUID to the incoming state UUID and skip
-        // processing for actions originating in other windows.
-        // Note that only reducers for active screens are processed.
-        let newState: State
-        switch action {
-        case .legacy(let legacyAction):
-            newState = reducer.legacyReducer(state, legacyAction)
-        case .modern(let modernAction):
-             newState = reducer.modernReducer(state, modernAction, windowUUID)
-        }
-
-        state = newState
-
-        // After the state assignment, so an observer that reads `store.state` sees the same
-        // post-action state a middleware was handed.
-        notifyActionObservers(of: action, forWindowUUID: windowUUID)
     }
 
     // MARK: - ActionObserving
@@ -205,19 +137,5 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore, Act
                 box.handler(modernAction, windowUUID)
             }
         }
-    }
-
-    private func subscribe<SubState, S: StoreSubscriber>(
-        _ subscriber: S,
-        mainSubscription: Subscription<State>,
-        transformedSubscription: Subscription<SubState>?
-    ) {
-        let subscriptionWrapper = SubscriptionWrapper(
-            originalSubscription: mainSubscription,
-            transformedSubscription: transformedSubscription,
-            subscriber: subscriber
-        )
-        subscriptions.update(with: subscriptionWrapper)
-        mainSubscription.newValues(oldState: nil, newState: state)
     }
 }

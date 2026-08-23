@@ -7,16 +7,21 @@ import XCTest
 
 @MainActor
 final class StoreTests: XCTestCase {
-    var mockState = MockState()
+    var observer = MockActionObserver()
 
     override func setUp() async throws {
         try await super.setUp()
-        mockState = MockState()
+        observer = MockActionObserver()
+    }
+
+    private func createStore() -> Store {
+        let store = Store()
+        observer.observe(store)
+        return store
     }
 
     func testDispatchBasicAction_mainThread() {
-        let store = Store(state: mockState,
-                          reducer: MockState.reducer)
+        let store = createStore()
 
         let action = FakeReduxAction(
             windowUUID: UUID(),
@@ -24,12 +29,11 @@ final class StoreTests: XCTestCase {
 
         store.dispatch(action)
 
-        XCTAssertEqual(MockState.actionsReduced[0] as? FakeReduxActionType, FakeReduxActionType.counterIncreased)
+        XCTAssertEqual(observer.receivedActions[0] as? FakeReduxActionType, FakeReduxActionType.counterIncreased)
     }
 
     func testDispatchMultipleActions_mainThread() {
-        let store = Store(state: mockState,
-                          reducer: MockState.reducer)
+        let store = createStore()
 
         let action1 = FakeReduxAction(
             windowUUID: UUID(),
@@ -46,16 +50,15 @@ final class StoreTests: XCTestCase {
             actionType: FakeReduxActionType.increaseCounter)
         store.dispatch(action3)
 
-        XCTAssertEqual(MockState.actionsReduced[0] as? FakeReduxActionType, FakeReduxActionType.counterIncreased)
-        XCTAssertEqual(MockState.actionsReduced[1] as? FakeReduxActionType, FakeReduxActionType.counterDecreased)
-        XCTAssertEqual(MockState.actionsReduced[2] as? FakeReduxActionType, FakeReduxActionType.increaseCounter)
+        XCTAssertEqual(observer.receivedActions[0] as? FakeReduxActionType, FakeReduxActionType.counterIncreased)
+        XCTAssertEqual(observer.receivedActions[1] as? FakeReduxActionType, FakeReduxActionType.counterDecreased)
+        XCTAssertEqual(observer.receivedActions[2] as? FakeReduxActionType, FakeReduxActionType.increaseCounter)
     }
 
     func testDispatchBasicAction_backgroundThread() async {
         let expectation = expectation(description: "Wait for actions to run")
 
-        let store = Store(state: mockState,
-                          reducer: MockState.reducer)
+        let store = createStore()
 
         let action = FakeReduxAction(
             windowUUID: UUID(),
@@ -70,14 +73,13 @@ final class StoreTests: XCTestCase {
 
         await fulfillment(of: [expectation])
 
-        XCTAssertEqual(MockState.actionsReduced[0] as? FakeReduxActionType, FakeReduxActionType.counterIncreased)
+        XCTAssertEqual(observer.receivedActions[0] as? FakeReduxActionType, FakeReduxActionType.counterIncreased)
     }
 
     func testDispatchMultipleActions_mixThread() async {
         let expectation = expectation(description: "Wait for actions to run")
 
-        let store = Store(state: mockState,
-                          reducer: MockState.reducer)
+        let store = createStore()
 
         Task.detached(priority: .background) {
             let action1 = FakeReduxAction(
@@ -101,19 +103,15 @@ final class StoreTests: XCTestCase {
 
         await fulfillment(of: [expectation])
 
-        XCTAssertEqual(MockState.actionsReduced[0] as? FakeReduxActionType, FakeReduxActionType.counterDecreased)
-        XCTAssertEqual(MockState.actionsReduced[1] as? FakeReduxActionType, FakeReduxActionType.increaseCounter)
-        XCTAssertEqual(MockState.actionsReduced[2] as? FakeReduxActionType, FakeReduxActionType.counterIncreased)
+        XCTAssertEqual(observer.receivedActions[0] as? FakeReduxActionType, FakeReduxActionType.counterDecreased)
+        XCTAssertEqual(observer.receivedActions[1] as? FakeReduxActionType, FakeReduxActionType.increaseCounter)
+        XCTAssertEqual(observer.receivedActions[2] as? FakeReduxActionType, FakeReduxActionType.counterIncreased)
     }
 
     func testDispatchAction_withMidReduceActions() {
-        let store = Store(state: mockState,
-                          reducer: MockState.reducer)
+        let store = createStore()
 
-        MockState.runMidReducerActions = true
-        MockState.midReducerActions = {
-            MockState.runMidReducerActions = false
-
+        observer.midDeliveryActions = {
             let action2 = FakeReduxAction(
                 windowUUID: UUID(),
                 actionType: FakeReduxActionType.increaseCounter)
@@ -130,8 +128,8 @@ final class StoreTests: XCTestCase {
 
         store.dispatch(action)
 
-        XCTAssertEqual(MockState.actionsReduced[0] as? FakeReduxActionType, FakeReduxActionType.counterIncreased)
-        XCTAssertEqual(MockState.actionsReduced[1] as? FakeReduxActionType, FakeReduxActionType.increaseCounter)
-        XCTAssertEqual(MockState.actionsReduced[2] as? FakeReduxActionType, FakeReduxActionType.decreaseCounter)
+        XCTAssertEqual(observer.receivedActions[0] as? FakeReduxActionType, FakeReduxActionType.counterIncreased)
+        XCTAssertEqual(observer.receivedActions[1] as? FakeReduxActionType, FakeReduxActionType.increaseCounter)
+        XCTAssertEqual(observer.receivedActions[2] as? FakeReduxActionType, FakeReduxActionType.decreaseCounter)
     }
 }

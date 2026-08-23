@@ -7,95 +7,86 @@ import Foundation
 
 @testable import Redux
 
-/// Registered on the store's action bus in place of the middleware this used to be. It reads
-/// `store.state` where the middleware was handed the state, which is the same value: observers are
-/// notified after the reducer has run and the new state has been assigned.
+let windowUUID = UUID(uuidString: "D9D9D9D9-D9D9-D9D9-D9D9-CD68A019860B")!
+
+/// A stand-in for the services that were middlewares: it hears a command action, does the work, and
+/// announces the result as another action.
+///
+/// It owns `counter` rather than reading it out of the store, which is the shape every consumer has
+/// now that the store holds no state.
 @MainActor
-class FakeReduxActionHandler {
+final class FakeReduxActionHandler {
     var generateInitialCountValue: (() -> Int)?
 
-    func register(on store: any ActionObserving) {
-        store.addActionObserver(self, tier: .effects) { [weak self] action in
+    private(set) var counter = 0
+    private(set) var isInPrivateMode = false
+
+    private weak var bus: (any DefaultDispatchStore)?
+
+    func register(on bus: any DefaultDispatchStore) {
+        self.bus = bus
+        bus.addActionObserver(self, tier: .effects) { [weak self] action in
             self?.handle(action)
         }
-        store.addModernActionObserver(self, tier: .effects) { [weak self] action, windowUUID in
+        bus.addModernActionObserver(self, tier: .effects) { [weak self] action, windowUUID in
             self?.handle(action, forWindowUUID: windowUUID)
         }
     }
 
-    private func handle(_ action: ModernAction, forWindowUUID windowUUID: WindowUUID) {
-        // Handles one type of action
-        guard let action = action as? FakeReduxModernAction else { return }
-        let state = store.state
+    private func handle(_ action: Action) {
+        guard let actionType = action.actionType as? FakeReduxActionType else { return }
 
-        switch action {
+        switch actionType {
         case .requestInitialValue:
-            let initialValue = self.generateInitialCountValue?() ?? 0
-            store.dispatch(
-                FakeReduxModernAction.initialValueLoaded(initialValue: initialValue),
-                forWindowUUID: windowUUID
-            )
+            counter = generateInitialCountValue?() ?? 0
+            bus?.dispatch(FakeReduxAction(counterValue: counter,
+                                          windowUUID: windowUUID,
+                                          actionType: FakeReduxActionType.initialValueLoaded))
 
         case .increaseCounter:
-            let existingValue = state.counter
-            let newValue = self.increaseCounter(currentValue: existingValue)
-            store.dispatch(
-                FakeReduxModernAction.counterIncreased(counterValue: newValue),
-                forWindowUUID: windowUUID
-            )
+            counter += 1
+            bus?.dispatch(FakeReduxAction(counterValue: counter,
+                                          windowUUID: windowUUID,
+                                          actionType: FakeReduxActionType.counterIncreased))
 
         case .decreaseCounter:
-            let existingValue = state.counter
-            let newValue = self.decreaseCounter(currentValue: existingValue)
-            store.dispatch(
-                FakeReduxModernAction.counterDecreased(counterValue: newValue),
-                forWindowUUID: windowUUID
-            )
+            counter -= 1
+            bus?.dispatch(FakeReduxAction(counterValue: counter,
+                                          windowUUID: windowUUID,
+                                          actionType: FakeReduxActionType.counterDecreased))
+
+        case .setPrivateModeTo:
+            isInPrivateMode = (action as? FakeReduxAction)?.privateMode ?? isInPrivateMode
 
         default:
             break
         }
     }
 
-    private func handle(_ action: Action) {
-        // Handles one type of action
-        guard let actionType = action.actionType as? FakeReduxActionType else { return }
-        let state = store.state
+    private func handle(_ action: ModernAction, forWindowUUID windowUUID: WindowUUID) {
+        guard let action = action as? FakeReduxModernAction else { return }
 
-        switch actionType {
+        switch action {
         case .requestInitialValue:
-            let initialValue = self.generateInitialCountValue?() ?? 0
-            let action = FakeReduxAction(counterValue: initialValue,
-                                         windowUUID: windowUUID,
-                                         actionType: FakeReduxActionType.initialValueLoaded)
-            store.dispatch(action)
+            counter = generateInitialCountValue?() ?? 0
+            bus?.dispatch(FakeReduxModernAction.initialValueLoaded(initialValue: counter),
+                          forWindowUUID: windowUUID)
 
         case .increaseCounter:
-            let existingValue = state.counter
-            let newValue = self.increaseCounter(currentValue: existingValue)
-            let action = FakeReduxAction(counterValue: newValue,
-                                         windowUUID: windowUUID,
-                                         actionType: FakeReduxActionType.counterIncreased)
-            store.dispatch(action)
+            counter += 1
+            bus?.dispatch(FakeReduxModernAction.counterIncreased(counterValue: counter),
+                          forWindowUUID: windowUUID)
 
         case .decreaseCounter:
-            let existingValue = state.counter
-            let newValue = self.decreaseCounter(currentValue: existingValue)
-            let action = FakeReduxAction(counterValue: newValue,
-                                         windowUUID: windowUUID,
-                                         actionType: FakeReduxActionType.counterDecreased)
-            store.dispatch(action)
+            counter -= 1
+            bus?.dispatch(FakeReduxModernAction.counterDecreased(counterValue: counter),
+                          forWindowUUID: windowUUID)
+
+        case .setPrivateModeTo(let isPrivate):
+            isInPrivateMode = isPrivate
 
         default:
-           break
+            break
         }
-    }
-
-    private func increaseCounter(currentValue: Int) -> Int {
-        return currentValue + 1
-    }
-
-    private func decreaseCounter(currentValue: Int) -> Int {
-        return currentValue - 1
     }
 }

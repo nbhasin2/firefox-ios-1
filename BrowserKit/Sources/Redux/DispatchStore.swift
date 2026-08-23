@@ -5,23 +5,13 @@
 import Foundation
 import Common
 
-/// Protocol that allows to subscribe to the store and receive dispatched actions to modify the store state
+/// Dispatching an action onto the bus. Separate from `ActionObserving` so a sender can be handed
+/// the dispatch half without the ability to register observers.
 @MainActor
 public protocol DispatchStore {
     func dispatch(_ action: Action)
     func dispatch(_ action: ModernAction, forWindowUUID windowUUID: WindowUUID)
 }
 
-public protocol DefaultDispatchStore<State>: DispatchStore, ActionObserving where State: StateType {
-    associatedtype State
-
-    var state: State { get }
-
-    func subscribe<S: StoreSubscriber>(_ subscriber: S) where S.SubscriberStateType == State
-    func subscribe<SubState, S: StoreSubscriber>(
-        _ subscriber: S,
-        transform: ((Subscription<State>) -> Subscription<SubState>)?
-    ) where S.SubscriberStateType == SubState
-    func unsubscribe<S: StoreSubscriber>(_ subscriber: S) where S.SubscriberStateType == State
-    func unsubscribe(_ subscriber: any StoreSubscriber)
-}
+/// What the app's global bus is typed as: it both dispatches and takes observers.
+public typealias DefaultDispatchStore = DispatchStore & ActionObserving
