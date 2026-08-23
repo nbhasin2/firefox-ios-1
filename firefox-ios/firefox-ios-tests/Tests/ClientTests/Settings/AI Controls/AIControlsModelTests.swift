@@ -8,7 +8,7 @@ import Shared
 @testable import Client
 
 class AIControlsModelTests: XCTestCase, StoreTestUtility {
-    private var mockStore: MockStore<AppState>!
+    private var mockStore: MockStore!
     var mockPrefs: MockProfilePrefs!
     var mockProfile: MockProfile!
     var mockGleanWrapper: MockGleanWrapper!
@@ -370,14 +370,8 @@ class AIControlsModelTests: XCTestCase, StoreTestUtility {
         return subject
     }
 
-    func setupAppState() -> Client.AppState {
-        // Translation settings no longer live in the store; AI Controls still dispatches
-        // QuickAnswersAction, which is why the mock store stays.
-        return AppState()
-    }
-
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

@@ -13,7 +13,7 @@ import XCTest
 
 @MainActor
 final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtility {
-    private var mockStore: MockStore<AppState>!
+    private var mockStore: MockStore!
     private var mockProfile: MockProfile!
     private var mockLogger: MockLogger!
     private var mockWindowManager: MockWindowManager!
@@ -907,7 +907,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         let subject = createSubject()
 
         seedTargetLanguage(in: subject, successDispatchCount: 2)
-        mockStore.state = setupAppState(translationState: .active)
+        seedTranslationIconState(.active)
 
         let action = TranslationsAction(
             isTranslationsEnabled: false,
@@ -936,7 +936,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         let subject = createSubject()
 
         seedTargetLanguage(in: subject, successDispatchCount: 2)
-        mockStore.state = setupAppState(translationState: .inactive)
+        seedTranslationIconState(.inactive)
 
         let action = TranslationsAction(
             isTranslationsEnabled: false,
@@ -1397,7 +1397,7 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
         XCTAssertEqual(mockTranslationsTelemetry.translationFailedCalledCount, 1)
     }
 
-    /// Was an AppState built by running the reducer; the toolbar state it produced lives on
+    /// Was an app state built by running the reducer; the toolbar state it produced lives on
     /// ToolbarViewModel now, so this seeds that instead.
     private func seedTranslationConfig(
         for translationIconState: TranslationConfiguration.IconState = .inactive
@@ -1492,11 +1492,8 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
     }
 
     // MARK: StoreTestUtility
-    func setupAppState() -> AppState {
-        return setupAppState(translationState: nil)
-    }
 
-    private func setupAppState(translationState: TranslationConfiguration.IconState?) -> AppState {
+    private func seedTranslationIconState(_ translationState: TranslationConfiguration.IconState?) {
         let translationConfiguration = translationState.map {
             TranslationConfiguration(prefs: mockProfile.prefs, state: $0)
         }
@@ -1536,12 +1533,13 @@ final class TranslationsActionHandlerIntegrationTests: XCTestCase, StoreTestUtil
             ),
             for: .XCTestDefaultUUID
         )
-
-        return AppState()
     }
 
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
+        // Every test starts from a registered toolbar view model with no translation configured;
+        // the ones that need a configuration re-seed it.
+        seedTranslationIconState(nil)
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

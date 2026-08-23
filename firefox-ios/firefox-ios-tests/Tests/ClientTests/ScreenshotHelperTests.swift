@@ -11,7 +11,7 @@ final class ScreenshotHelperTests: XCTestCase, StoreTestUtility {
     var profile: MockProfile!
     let tabManager = MockTabManager()
     var mockVC: MockBrowserViewController!
-    var mockStore: MockStore<AppState>!
+    var mockStore: MockStore!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -105,12 +105,8 @@ final class ScreenshotHelperTests: XCTestCase, StoreTestUtility {
         return subject
     }
 
-    func setupAppState() -> AppState {
-        return AppState()
-    }
-
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

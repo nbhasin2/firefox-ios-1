@@ -13,7 +13,7 @@ import XCTest
 /// `TabManagerActionHandlerTests` and `DefaultSyncedTabProviderTests`.
 @MainActor
 final class JumpBackInSectionViewModelTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStore<AppState>!
+    var mockStore: MockStore!
     private var recentTabsProvider: MockRecentTabsProvider!
     private var syncedTabProvider: MockSyncedTabProvider!
 
@@ -186,12 +186,8 @@ final class JumpBackInSectionViewModelTests: XCTestCase, StoreTestUtility {
 
     // MARK: - StoreTestUtility
 
-    func setupAppState() -> AppState {
-        return AppState()
-    }
-
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

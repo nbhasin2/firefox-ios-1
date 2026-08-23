@@ -11,7 +11,7 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
     let windowUUID: WindowUUID = .XCTestDefaultUUID
     var mockNotificationCenter: MockNotificationCenter?
     var mockThemeManager: MockThemeManager?
-    var mockStore: MockStore<AppState>!
+    var mockStore: MockStore!
     var mockThrottler: MockThrottler!
     var homepageTabStateStore: HomepageTabStateStore!
     var mockGleanWrapper: MockGleanWrapper!
@@ -471,12 +471,8 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
         return homepageViewController
     }
 
-    func setupAppState() -> Client.AppState {
-        return AppState()
-    }
-
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

@@ -36,7 +36,7 @@ final class ModifiedCopyMacroTests: XCTestCase {
             lastName: "Jones"
         )
 
-        let newState = PersonReduxState.reducer.legacyReducer(state, action)
+        let newState = PersonReduxState.reduce(state, with: action)
 
         XCTAssertEqual(newState.windowUUID, testWindowUUID)
         XCTAssertEqual(newState.firstName, "Bob")
@@ -66,7 +66,7 @@ final class ModifiedCopyMacroTests: XCTestCase {
             favoriteColor: "green"
         )
 
-        let newState = PersonReduxState.reducer.legacyReducer(state, action)
+        let newState = PersonReduxState.reduce(state, with: action)
 
         XCTAssertEqual(newState.windowUUID, testWindowUUID)
         XCTAssertEqual(newState.firstName, testFirstName)
@@ -96,7 +96,7 @@ final class ModifiedCopyMacroTests: XCTestCase {
             favoriteColor: nil
         )
 
-        let newState = PersonReduxState.reducer.legacyReducer(state, action)
+        let newState = PersonReduxState.reduce(state, with: action)
 
         XCTAssertEqual(newState.windowUUID, testWindowUUID)
         XCTAssertEqual(newState.firstName, testFirstName)
@@ -110,7 +110,7 @@ final class ModifiedCopyMacroTests: XCTestCase {
 fileprivate extension ModifiedCopyMacroTests {
     // Fake Redux state reducer under test
     @Copyable
-    struct PersonReduxState: ScreenState {
+    struct PersonReduxState: ResettableState {
         var windowUUID: WindowUUID
 
         let firstName: String
@@ -122,10 +122,6 @@ fileprivate extension ModifiedCopyMacroTests {
 
         var fullName: String {
             "\(firstName) \(lastName)"
-        }
-
-        init(appState: AppState, uuid: WindowUUID) {
-            self.init(windowUUID: UUID())
         }
 
         init(windowUUID: WindowUUID) {
@@ -152,14 +148,8 @@ fileprivate extension ModifiedCopyMacroTests {
             self.favoriteColor = favoriteColor
         }
 
-        static let reducer: Reducer<Self> = (legacyReducer, modernReducer)
-
-        static let modernReducer: ReducerMethod<Self> = { state, action, actionWindowUUID in
-            // Does not handle any modern actions
-            return defaultState(from: state)
-        }
-
-        static let legacyReducer: LegacyReducerMethod<Self> = { state, action in
+        @MainActor
+        static func reduce(_ state: Self, with action: Action) -> Self {
             // Handles only PersonReduxActions
             guard let action = action as? PersonReduxAction,
                   let actionType = action.actionType as? PersonReduxActionType else {

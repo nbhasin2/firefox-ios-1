@@ -17,7 +17,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
     private var mockSummarizerLanguageProvider: MockSummarizerLanguageProvider!
     private let mockURL = URL(string: "https://example.com")!
     private var mockProfile: MockProfile!
-    private var mockStore: MockStore<AppState>!
+    private var mockStore: MockStore!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -452,12 +452,9 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
     }
 
     // MARK: StoreTestUtility
-    func setupAppState() -> AppState {
-        return AppState()
-    }
 
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

@@ -29,7 +29,7 @@ final class BrowserCoordinatorTests: XCTestCase,
     private var glean: MockGleanWrapper!
     private var scrollDelegate: MockStatusBarScrollDelegate!
     private var browserViewController: MockBrowserViewController!
-    private var mockStore: MockStore<AppState>!
+    private var mockStore: MockStore!
     private var homepageTabStateStore: HomepageTabStateStore!
     let windowUUID: WindowUUID = .XCTestDefaultUUID
 
@@ -1629,12 +1629,9 @@ final class BrowserCoordinatorTests: XCTestCase,
     }
 
     // MARK: - StoreTestUtility
-    func setupAppState() -> AppState {
-        return AppState()
-    }
 
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

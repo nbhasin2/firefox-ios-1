@@ -10,7 +10,7 @@ import XCTest
 @MainActor
 final class MicrosurveyPromptActionHandlerTests: XCTestCase {
     private var mockMicrosurveyManager: MockMicrosurveySurfaceManager!
-    var mockStore: MockStore<AppState>!
+    var mockStore: MockStore!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -101,14 +101,9 @@ final class MicrosurveyPromptActionHandlerTests: XCTestCase {
     }
 
     // MARK: StoreTestUtility
-    func setupAppState() -> AppState {
-        // The prompt middleware reads no screen state of its own; the prompt's state lives in
-        // `BrowserViewControllerState`. The survey component this used to seed was vestigial.
-        return AppState()
-    }
 
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

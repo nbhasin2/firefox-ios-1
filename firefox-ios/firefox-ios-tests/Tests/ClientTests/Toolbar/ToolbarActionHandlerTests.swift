@@ -13,7 +13,7 @@ import XCTest
 
 final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
     let windowUUID: WindowUUID = .XCTestDefaultUUID
-    var mockStore: MockStore<AppState>!
+    var mockStore: MockStore!
     var toolbarManager: ToolbarManager!
     var mockGleanWrapper: MockGleanWrapper!
     var mockRecentSearchProvider: MockRecentSearchProvider!
@@ -328,7 +328,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
     }
 
     func testUrlDidChange_whenEnteringPrivateModeWithLensShowing_dispatchesGoogleLensDisabled() throws {
-        mockStore = MockStore(state: setupAppState(isGoogleLensAccessoryShowing: true))
+        seedGoogleLensAccessory(isShowing: true)
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
 
         let featureFlagsProvider = MockNimbusFeatureFlags()
@@ -353,7 +354,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
     }
 
     func testUrlDidChange_whenLeavingPrivateModeWithLensHidden_dispatchesGoogleLensEnabled() throws {
-        mockStore = MockStore(state: setupAppState(isGoogleLensAccessoryShowing: false))
+        seedGoogleLensAccessory(isShowing: false)
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
 
         let featureFlagsProvider = MockNimbusFeatureFlags()
@@ -378,7 +380,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
     }
 
     func testUrlDidChange_whenLensVisibilityUnchanged_doesNotDispatch() throws {
-        mockStore = MockStore(state: setupAppState(isGoogleLensAccessoryShowing: true))
+        seedGoogleLensAccessory(isShowing: true)
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
 
         let featureFlagsProvider = MockNimbusFeatureFlags()
@@ -520,7 +523,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
     }
 
     func testMicrosurveyPromptInitialize_withBottomToolbar_dispatchesToolbarPositionChanged() throws {
-        mockStore = MockStore(state: setupToolbarBottomPositionAppState())
+        seedBottomToolbarPosition()
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
 
         let subject = createSubject(manager: toolbarManager)
@@ -555,7 +559,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
     }
 
     func testMicrosurveyPromptClosePrompt_withBottomToolbar_dispatchesToolbarPositionChanged() throws {
-        mockStore = MockStore(state: setupToolbarBottomPositionAppState())
+        seedBottomToolbarPosition()
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
 
         let subject = createSubject(manager: toolbarManager)
@@ -1103,7 +1108,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
     }
 
     func testDidSwipeToOpenTabTray_withBottomToolbar_recordsIsAtBottomTrue() throws {
-        mockStore = MockStore(state: setupToolbarBottomPositionAppState())
+        seedBottomToolbarPosition()
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
 
         let subject = createSubject(manager: toolbarManager)
@@ -1175,7 +1181,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
     }
 
     func test_didSubmitSearchTerm_forPrivateMode_withProperPayload_addsRecentSearchToHistoryStorage() {
-        mockStore = MockStore(state: setupPrivateModeAppState())
+        seedPrivateModeToolbarState()
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
 
         let subject = createSubject(manager: toolbarManager)
@@ -1191,7 +1198,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
     }
 
     func test_didSubmitSearchTerm_forPrivateMode_withoutURL_doesNotAddRecentSearchToHistoryStorage() {
-        mockStore = MockStore(state: setupPrivateModeAppState())
+        seedPrivateModeToolbarState()
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
 
         let subject = createSubject(manager: toolbarManager)
@@ -1206,7 +1214,8 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
     }
 
     func test_didSubmitSearchTerm_forPrivateMode_withoutSearchTerm_doesNotAddRecentSearchToHistoryStorage() {
-        mockStore = MockStore(state: setupPrivateModeAppState())
+        seedPrivateModeToolbarState()
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
 
         let subject = createSubject(manager: toolbarManager)
@@ -1358,25 +1367,21 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
         }
     }
 
-    func setupPrivateModeAppState() -> AppState {
+    func seedPrivateModeToolbarState() {
         var toolbarState = ToolbarState(windowUUID: windowUUID)
         toolbarState.isPrivateMode = true
         registerToolbarState(toolbarState)
-
-        return AppState()
     }
 
     /// The toolbar state lives on ToolbarViewModel now, so the bottom-position fixture seeds the
     /// view model rather than the store.
-    func setupToolbarBottomPositionAppState() -> AppState {
+    func seedBottomToolbarPosition() {
         var toolbarState = ToolbarState(windowUUID: windowUUID)
         toolbarState.toolbarPosition = .bottom
         ToolbarViewModel.register(
             ToolbarViewModel(windowUUID: windowUUID, bus: nil, initialState: toolbarState),
             for: windowUUID
         )
-
-        return AppState()
     }
 
     // MARK: StoreTestUtility
@@ -1388,19 +1393,12 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
         )
     }
 
-    func setupAppState() -> AppState {
-        registerToolbarState(ToolbarState(windowUUID: windowUUID))
-        return AppState()
-    }
-
-    private func setupAppState(isGoogleLensAccessoryShowing: Bool) -> AppState {
+    private func seedGoogleLensAccessory(isShowing: Bool) {
         var addressBarState = AddressBarState(windowUUID: windowUUID)
-        addressBarState.editingAccessoryAction = isGoogleLensAccessoryShowing ? makeGoogleLensAccessoryAction() : nil
+        addressBarState.editingAccessoryAction = isShowing ? makeGoogleLensAccessoryAction() : nil
         var toolbarState = ToolbarState(windowUUID: windowUUID)
         toolbarState.addressToolbar = addressBarState
         registerToolbarState(toolbarState)
-
-        return AppState()
     }
 
     private func makeGoogleLensAccessoryAction() -> ToolbarActionConfiguration {
@@ -1414,7 +1412,7 @@ final class ToolbarActionHandlerTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

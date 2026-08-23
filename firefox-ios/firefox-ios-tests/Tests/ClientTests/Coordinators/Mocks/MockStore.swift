@@ -8,10 +8,10 @@ import Redux
 
 /// A mock Store used to test the services and view models that observe the action bus.
 ///
-/// If you need to highly customize this mock to meet your testing needs, you should subclass it and/or make your own mock
-/// store implementation (e.g. storing a completion handler for asynchronous middleware actions so you can await expectations
-///  in your tests).
-class MockStore<State: StateType>: DefaultDispatchStore {
+/// If you need to highly customize this mock to meet your testing needs, you should subclass it and/or make your own
+/// mock implementation (e.g. storing a completion handler for asynchronous work so you can await expectations in your
+/// tests).
+class MockStore: DefaultDispatchStore {
     /// Bus observers, so a test can assert on what a view model heard. Ordered and tiered like the
     /// real store's, so a test sees the same delivery order production does.
     private struct ObserverBox {
@@ -59,46 +59,14 @@ class MockStore<State: StateType>: DefaultDispatchStore {
 
     private let lock = NSLock()
 
-    var state: State
-
-    /// Records all actions dispatched to the mock store. Check this property to ensure that your middleware correctly
+    /// Records all actions dispatched to the mock store. Check this property to ensure that the code under test
     /// dispatches the right action(s), and the right count of actions, in response to a given action.
     var dispatchedActions: [Redux.Action] = []
     var dispatchedModernActions: [Redux.ModernAction] = []
 
-    /// Called every time an action is dispatched to the mock store. Used to confirm that a dispatched action completed. This
-    /// is useful when the middleware is making an asynchronous call and we want to wait for an expectation to be fulfilled.
+    /// Called every time an action is dispatched to the mock store. Used to confirm that a dispatched action completed.
+    /// This is useful when the code under test makes an asynchronous call and we want to await an expectation.
     var dispatchCalled: (() -> Void)?
-
-    /// Called when subscriber calls subscribe to the mock store.
-    var subscribeCallCount = 0
-
-    init(state: State) {
-        self.state = state
-    }
-
-    func subscribe<S>(_ subscriber: S) where S: Redux.StoreSubscriber, State == S.SubscriberStateType {
-        subscribeCallCount += 1
-    }
-
-    func subscribe<SubState, S>(
-        _ subscriber: S,
-        transform: (
-            (
-                Redux.Subscription<State>
-            ) -> Redux.Subscription<SubState>
-        )?
-    ) where SubState == S.SubscriberStateType, S: Redux.StoreSubscriber {
-        subscribeCallCount += 1
-    }
-
-    func unsubscribe<S>(_ subscriber: S) where S: Redux.StoreSubscriber, State == S.SubscriberStateType {
-        // TODO: if you need it
-    }
-
-    func unsubscribe(_ subscriber: any Redux.StoreSubscriber) {
-        // TODO: if you need it
-    }
 
     /// We implemented the lock to ensure that this is thread safe
     /// since actions can be dispatch in concurrent tasks

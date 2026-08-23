@@ -11,7 +11,7 @@ import XCTest
 /// Replaces `TabPeekStateTests` and the tab-peek half of `TabManagerActionHandlerTests`.
 @MainActor
 final class TabPeekViewModelTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStore<AppState>!
+    var mockStore: MockStore!
     private var profile: MockProfile!
     private var tabManager: MockTabManager!
     private var windowManager: MockWindowManager!
@@ -167,12 +167,8 @@ final class TabPeekViewModelTests: XCTestCase, StoreTestUtility {
 
     // MARK: - StoreTestUtility
 
-    func setupAppState() -> AppState {
-        return AppState()
-    }
-
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

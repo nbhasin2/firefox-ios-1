@@ -11,10 +11,9 @@ import XCTest
 final class TabManagerActionHandlerTests: XCTestCase, StoreTestUtility {
     private var mockProfile: MockProfile!
     private var mockWindowManager: MockWindowManager!
-    private var mockStore: MockStore<AppState>!
+    private var mockStore: MockStore!
     private var mockTabManager: MockTabManager!
     private var summarizerConfigFactory: MockSummarizerConfigFactory!
-    private var appState: AppState!
     private let homepageURLString = "internal://local/about/home"
 
     @MainActor
@@ -32,7 +31,6 @@ final class TabManagerActionHandlerTests: XCTestCase, StoreTestUtility {
         )
         DependencyHelperMock().bootstrapDependencies(injectedWindowManager: mockWindowManager)
         setupStore()
-        appState = setupAppState()
     }
 
     override func tearDown() async throws {
@@ -188,14 +186,9 @@ final class TabManagerActionHandlerTests: XCTestCase, StoreTestUtility {
     }
 
     // MARK: StoreTestUtility
-    func setupAppState() -> Client.AppState {
-        let appState = AppState()
-        self.appState = appState
-        return appState
-    }
 
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

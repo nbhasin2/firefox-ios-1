@@ -10,8 +10,7 @@ import XCTest
 
 final class DefaultSyncedTabProviderTests: XCTestCase, StoreTestUtility {
     var mockProfile: MockProfile!
-    var mockStore: MockStore<AppState>!
-    var appState: AppState!
+    var mockStore: MockStore!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -89,13 +88,9 @@ final class DefaultSyncedTabProviderTests: XCTestCase, StoreTestUtility {
     }
 
     // MARK: StoreTestUtility
-    func setupAppState() -> Client.AppState {
-        appState = AppState()
-        return appState
-    }
 
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

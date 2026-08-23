@@ -64,7 +64,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 addressBorderPosition: .top,
@@ -102,7 +102,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let stateWithGoogleLens = reducer.legacyReducer(
+        let stateWithGoogleLens = reducer(
             initialState,
             ToolbarMiddlewareAction(
                 isGoogleLensEnabled: true,
@@ -110,7 +110,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
                 actionType: ToolbarMiddlewareActionType.googleLensAvailabilityDidChange
             )
         )
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             stateWithGoogleLens,
             ToolbarMiddlewareAction(
                 isGoogleLensEnabled: false,
@@ -141,7 +141,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
             )
         ]
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarMiddlewareAction(
                 isGoogleLensEnabled: true,
@@ -162,7 +162,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 numberOfTabs: 2,
@@ -184,7 +184,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 readerModeState: .available,
@@ -204,7 +204,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 readerModeState: .available,
@@ -224,7 +224,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let reducer = addressBarReducer()
 
         let urlDidChangeState = loadWebsiteAction(state: initialState, reducer: reducer)
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             urlDidChangeState,
             ToolbarAction(
                 readerModeState: .available,
@@ -251,7 +251,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
             state: initialState,
             reducer: reducer
         )
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             urlDidChangeState,
             ToolbarAction(
                 canSummarize: true,
@@ -279,7 +279,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
             state: initialState,
             reducer: reducer
         )
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             urlDidChangeState,
             ToolbarAction(
                 canSummarize: true,
@@ -307,7 +307,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
             state: initialState,
             reducer: reducer
         )
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             urlDidChangeState,
             ToolbarAction(
                 canSummarize: true,
@@ -333,7 +333,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let urlDidChangeState = loadWebsiteAction(state: initialState, reducer: reducer)
         // we need this state change in order to populate the AddressBarState
         // with the reader mode state from the Toolbar action
-        let readerModeStateChange = reducer.legacyReducer(
+        let readerModeStateChange = reducer(
             urlDidChangeState,
             ToolbarAction(
                 readerModeState: .available,
@@ -341,7 +341,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
                 actionType: ToolbarActionType.readerModeStateChanged
             )
         )
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             readerModeStateChange,
             ToolbarAction(
                 canSummarize: true,
@@ -364,7 +364,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let reducer = addressBarReducer()
 
         let urlDidChangeState = loadWebsiteAction(state: initialState, reducer: reducer)
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             urlDidChangeState,
             ToolbarAction(
                 isLoading: true,
@@ -386,7 +386,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let reducer = addressBarReducer()
 
         let urlDidChangeState = loadWebsiteAction(state: initialState, reducer: reducer)
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             urlDidChangeState,
             ToolbarAction(
                 isLoading: false,
@@ -410,7 +410,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 
         let urlDidChangeState = loadWebsiteAction(state: initialState,
                                                   reducer: reducer)
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             urlDidChangeState,
             ToolbarAction(
                 isShowingNavigationToolbar: false,
@@ -471,7 +471,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let reducer = addressBarReducer()
 
         let urlDidChangeState = loadWebsiteAction(state: initialState, reducer: reducer)
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             urlDidChangeState,
             ToolbarAction(
                 canGoBack: true,
@@ -491,7 +491,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let reducer = addressBarReducer()
 
         let urlDidChangeState = loadWebsiteAction(state: initialState, reducer: reducer)
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             urlDidChangeState,
             ToolbarAction(
                 canGoBack: true,
@@ -516,7 +516,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 url: URL(string: "http://mozilla.com"),
@@ -543,7 +543,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 url: URL(string: "http://mozilla.com"),
@@ -567,7 +567,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 url: URL(string: "http://mozilla.com"),
@@ -591,7 +591,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 url: URL(string: "http://mozilla.com"),
@@ -612,7 +612,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 url: URL(string: "http://mozilla.com"),
@@ -637,7 +637,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 url: URL(string: "http://mozilla.com"),
@@ -659,7 +659,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let stateWithInactiveIcon = reducer.legacyReducer(
+        let stateWithInactiveIcon = reducer(
             initialState,
             TranslationsAction(
                 translationConfiguration: TranslationConfiguration(prefs: mockProfile.prefs, state: .inactive),
@@ -668,7 +668,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
             )
         )
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             stateWithInactiveIcon,
             ToolbarAction(
                 url: URL(string: "http://mozilla.com"),
@@ -688,7 +688,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let stateWithInactiveIcon = reducer.legacyReducer(
+        let stateWithInactiveIcon = reducer(
             initialState,
             TranslationsAction(
                 translationConfiguration: TranslationConfiguration(prefs: mockProfile.prefs, state: .inactive),
@@ -697,7 +697,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
             )
         )
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             stateWithInactiveIcon,
             ToolbarAction(
                 url: URL(string: "http://mozilla.com"),
@@ -717,7 +717,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let reducer = addressBarReducer()
 
         // Simulate the previous tab's `.active` state still in Redux at the moment of switch.
-        let stateWithActiveIcon = reducer.legacyReducer(
+        let stateWithActiveIcon = reducer(
             initialState,
             TranslationsAction(
                 translationConfiguration: TranslationConfiguration(
@@ -731,7 +731,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         )
 
         // Switching to a fresh tab dispatches urlDidChange with a default config (no state).
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             stateWithActiveIcon,
             ToolbarAction(
                 url: URL(string: "http://mozilla.com"),
@@ -751,7 +751,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let reducer = addressBarReducer()
 
         // iPhone in landscape
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 isShowingNavigationToolbar: false,
@@ -781,7 +781,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 showMenuWarningBadge: true,
@@ -811,7 +811,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 addressBorderPosition: .bottom,
@@ -829,7 +829,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 toolbarPosition: .bottom,
@@ -850,7 +850,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let reducer = addressBarReducer()
         let searchTerm = "mozilla"
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 searchTerm: searchTerm,
@@ -879,7 +879,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 searchTerm: nil,
@@ -910,7 +910,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let reducer = addressBarReducer()
 
         let urlDidChangeState = loadWebsiteAction(state: initialState, reducer: reducer)
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             urlDidChangeState,
             ToolbarAction(
                 searchTerm: nil,
@@ -940,7 +940,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 lockIconButtonA11yId: "test_lock_icon_a11y_id",
@@ -1013,9 +1013,9 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
                                                actionType: ToolbarActionType.urlDidChange
         )
 
-        let stateWithURL = reducer.legacyReducer(initialState, didChangeURLAction)
+        let stateWithURL = reducer(initialState, didChangeURLAction)
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             stateWithURL,
             ToolbarAction(
                 windowUUID: windowUUID,
@@ -1033,7 +1033,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 windowUUID: windowUUID,
@@ -1052,7 +1052,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let reducer = addressBarReducer()
 
         let urlDidChangeState = loadWebsiteAction(state: initialState, reducer: reducer)
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             urlDidChangeState,
             ToolbarAction(
                 searchTerm: nil,
@@ -1084,7 +1084,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let reducer = addressBarReducer()
         let searchTerm = "mozilla"
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 searchTerm: searchTerm,
@@ -1115,7 +1115,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 
         XCTAssertFalse(initialState.shouldShowKeyboard)
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 shouldShowKeyboard: false,
@@ -1132,7 +1132,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 windowUUID: windowUUID,
@@ -1152,7 +1152,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 windowUUID: windowUUID,
@@ -1174,7 +1174,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 windowUUID: windowUUID,
@@ -1195,7 +1195,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let reducer = addressBarReducer()
         let searchTerm = "Search Term"
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 searchTerm: searchTerm,
@@ -1213,7 +1213,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         let initialState = createSubject()
         let reducer = addressBarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = reducer(
             initialState,
             ToolbarAction(
                 windowUUID: windowUUID,
@@ -1231,15 +1231,15 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         return AddressBarState(windowUUID: windowUUID)
     }
 
-    private func addressBarReducer() -> Reducer<AddressBarState> {
-        return AddressBarState.reducer
+    private func addressBarReducer() -> @MainActor (AddressBarState, Action) -> AddressBarState {
+        return AddressBarState.reduce
     }
 
     private func loadWebsiteAction(state: AddressBarState,
                                    isShowingNavigationToolbar: Bool = true,
-                                   reducer: Reducer<AddressBarState>
+                                   reducer: @MainActor (AddressBarState, Action) -> AddressBarState
     ) -> AddressBarState {
-        return reducer.legacyReducer(
+        return reducer(
             state,
             ToolbarAction(
                 url: URL(string: "http://mozilla.com"),
@@ -1277,7 +1277,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     /// The toolbar state lives on ToolbarViewModel now, and the middleware is an observer on the
     /// bus rather than a registered middleware.
     func setupStore(with initialToolbarState: ToolbarState) {
-        StoreTestUtilityHelper.setupStore(with: AppState())
+        StoreTestUtilityHelper.setupStore()
         ToolbarViewModel.register(
             ToolbarViewModel(windowUUID: windowUUID, bus: nil, initialState: initialToolbarState),
             for: windowUUID
@@ -1311,9 +1311,6 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     // MARK: StoreTestUtility
-    func setupAppState() -> AppState {
-        return AppState()
-    }
 
     func setupStore() {
         setupStore(with: ToolbarState(windowUUID: windowUUID))

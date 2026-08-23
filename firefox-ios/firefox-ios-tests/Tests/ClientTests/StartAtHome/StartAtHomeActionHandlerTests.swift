@@ -13,8 +13,7 @@ final class StartAtHomeActionHandlerTests: XCTestCase, StoreTestUtility {
     private var mockProfile: MockProfile!
     private var mockTabManager: MockTabManager!
     private var mockWindowManager: MockWindowManager!
-    private var mockStore: MockStore<AppState>!
-    private var appState: AppState!
+    private var mockStore: MockStore!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -33,7 +32,6 @@ final class StartAtHomeActionHandlerTests: XCTestCase, StoreTestUtility {
             injectedWindowManager: mockWindowManager,
         )
         setupStore()
-        appState = setupAppState()
     }
 
     override func tearDown() async throws {
@@ -139,14 +137,9 @@ final class StartAtHomeActionHandlerTests: XCTestCase, StoreTestUtility {
     }
 
     // MARK: StoreTestUtility
-    func setupAppState() -> Client.AppState {
-        let appState = AppState()
-        self.appState = appState
-        return appState
-    }
 
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

@@ -11,7 +11,7 @@ import XCTest
 /// Replaces `TabsPanelStateTests` and the panel half of `TabManagerActionHandlerTests`.
 @MainActor
 final class TabsPanelViewModelTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStore<AppState>!
+    var mockStore: MockStore!
     private var profile: MockProfile!
     private var tabManager: MockTabManager!
     private var windowManager: MockWindowManager!
@@ -168,12 +168,8 @@ final class TabsPanelViewModelTests: XCTestCase, StoreTestUtility {
 
     // MARK: - StoreTestUtility
 
-    func setupAppState() -> AppState {
-        return AppState()
-    }
-
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

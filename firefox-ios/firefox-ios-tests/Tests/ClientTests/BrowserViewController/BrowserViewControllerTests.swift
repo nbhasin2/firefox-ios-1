@@ -17,9 +17,8 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     var tabManager: MockTabManager!
     var screenshotHelper: MockScreenshotHelper!
     var browserCoordinator: MockBrowserCoordinator!
-    var mockStore: MockStore<AppState>!
+    var mockStore: MockStore!
     var appStartupTelemetry: MockAppStartupTelemetry!
-    var appState: AppState!
     var recordVisitManager: MockRecordVisitObservationManager!
 
     override func setUp() async throws {
@@ -750,8 +749,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
         let toolbarWindow = WindowUUID.XCTestDefaultUUID
         let mismatchedWindow = WindowUUID.DefaultUITestingUUID
 
-        let state = AppState()
-        mockStore = MockStore(state: state)
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
 
         createSubject().dismissToolbarCFRs(with: mismatchedWindow)
@@ -760,12 +758,11 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     func testDismissToolbarCFRs_ToolbarAddedForWindow() {
         let window = WindowUUID.XCTestDefaultUUID
 
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
         createSubject().dismissToolbarCFRs(with: window)
 
-        let state = AppState()
-        mockStore = MockStore(state: state)
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
         createSubject().dismissToolbarCFRs(with: window)
     }
@@ -878,19 +875,14 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     /// `HomepageState`, so this only has to set that.
     func setupStoreForSearchBar() {
         SearchBarVisibilityStore.shared.setSearchBarVisible(true, for: .XCTestDefaultUUID)
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 
     // MARK: - StoreTestUtility
-    func setupAppState() -> Client.AppState {
-        let appState = AppState()
-        self.appState = appState
-        return appState
-    }
 
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 

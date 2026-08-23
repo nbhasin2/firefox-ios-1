@@ -11,7 +11,7 @@ import XCTest
 /// Replaces `SearchEngineSelectionMiddlewareTests` and `SearchEngineSelectionStateTests`.
 @MainActor
 final class SearchEngineSelectionViewModelTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStore<AppState>!
+    var mockStore: MockStore!
     private var searchEnginesManager: SearchEnginesManagerProvider!
     private let searchEngines: [OpenSearchEngine] = [
         OpenSearchEngineTests.generateOpenSearchEngine(type: .wikipedia, withImage: UIImage()),
@@ -102,12 +102,8 @@ final class SearchEngineSelectionViewModelTests: XCTestCase, StoreTestUtility {
 
     // MARK: - StoreTestUtility
 
-    func setupAppState() -> AppState {
-        return AppState()
-    }
-
     func setupStore() {
-        mockStore = MockStore(state: setupAppState())
+        mockStore = MockStore()
         StoreTestUtilityHelper.setupStore(with: mockStore)
     }
 
