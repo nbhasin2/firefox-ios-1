@@ -51,10 +51,11 @@ final class RemoteTabsPanel: UIViewController,
     init(windowUUID: WindowUUID,
          themeManager: ThemeManager = AppContainer.shared.resolve(),
          notificationCenter: NotificationProtocol = NotificationCenter.default,
+         service: TabsPanelService? = nil,
          viewModel: RemoteTabsPanelViewModel? = nil
     ) {
         self.windowUUID = windowUUID
-        let viewModel = viewModel ?? RemoteTabsPanelViewModel(windowUUID: windowUUID)
+        let viewModel = viewModel ?? RemoteTabsPanelViewModel(windowUUID: windowUUID, tabsService: service)
         self.viewModel = viewModel
         self.state = viewModel.state
         self.themeManager = themeManager
@@ -210,29 +211,18 @@ final class RemoteTabsPanel: UIViewController,
     }
 
     private func handleOpenSelectedURL(_ url: URL) {
-        let action = RemoteTabsPanelAction(url: url,
-                                           windowUUID: windowUUID,
-                                           actionType: RemoteTabsPanelActionType.openSelectedURL)
-        store.dispatch(action)
+        viewModel.openSelectedURL(url)
     }
 
     private func handleCloseRemoteTab(_ deviceId: String, url: URL) {
-        let action = RemoteTabsPanelAction(url: url,
-                                           targetDeviceId: deviceId,
-                                           windowUUID: windowUUID,
-                                           actionType: RemoteTabsPanelActionType.closeSelectedRemoteURL)
-        store.dispatch(action)
+        viewModel.closeSelectedRemoteURL(url, deviceId: deviceId)
         // Once we add the tab to the command queue, the rust tab store will start removing it from
         // the list, so refresh the tabs
         refreshTabs(useCache: true)
     }
 
     private func handleTabCommandsFlush(_ deviceId: String) {
-        let action = RemoteTabsPanelAction(targetDeviceId: deviceId,
-                                           windowUUID: windowUUID,
-                                           actionType: RemoteTabsPanelActionType.flushTabCommands)
-        store.dispatch(action)
-
+        viewModel.flushTabCommands(deviceId: deviceId)
         refreshTabs(useCache: true)
     }
 

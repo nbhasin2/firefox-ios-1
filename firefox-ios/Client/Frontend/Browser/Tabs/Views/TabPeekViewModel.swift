@@ -4,7 +4,6 @@
 
 import Common
 import Foundation
-import Redux
 import Shared
 import Storage
 import UIKit
@@ -14,10 +13,10 @@ import UIKit
 /// `TabPeekState` stays a plain struct because the view controller reads its fields directly;
 /// only its Redux conformance goes.
 ///
-/// Four of the five actions were commands on the tab and bookmark layers that happened to be
-/// routed through the store — bookmark it, unbookmark it, copy its URL, load its preview. They are
-/// method calls now. The fifth, closing the tab, still dispatches: `TabManagerMiddleware` needs
-/// `TabsPanelState.isPrivateMode` to do it, and the tabs panel has not migrated.
+/// All five actions were commands on the tab and bookmark layers that happened to be routed
+/// through the store — bookmark it, unbookmark it, copy its URL, load its preview, close it. They
+/// are method calls now; closing goes through the tab tray's `TabsPanelService`, which is what
+/// makes the panel refresh.
 @MainActor
 final class TabPeekViewModel: CanRemoveQuickActionBookmark {
     private(set) var state: TabPeekState {
@@ -31,6 +30,8 @@ final class TabPeekViewModel: CanRemoveQuickActionBookmark {
     private let profile: Profile
     private let windowManager: WindowManager
     private let bookmarksSaver: BookmarksSaver
+    private let tabsService: TabsPanelService?
+    private let isPrivate: Bool
     let bookmarksHandler: BookmarksHandler
 
     init(tabUUID: TabUUID,
@@ -38,13 +39,17 @@ final class TabPeekViewModel: CanRemoveQuickActionBookmark {
          profile: Profile = AppContainer.shared.resolve(),
          windowManager: WindowManager = AppContainer.shared.resolve(),
          bookmarksSaver: BookmarksSaver? = nil,
-         bookmarksHandler: BookmarksHandler? = nil) {
+         bookmarksHandler: BookmarksHandler? = nil,
+         tabsService: TabsPanelService? = nil,
+         isPrivate: Bool = false) {
         self.tabUUID = tabUUID
         self.windowUUID = windowUUID
         self.profile = profile
         self.windowManager = windowManager
         self.bookmarksSaver = bookmarksSaver ?? DefaultBookmarksSaver(profile: profile)
         self.bookmarksHandler = bookmarksHandler ?? profile.places
+        self.tabsService = tabsService
+        self.isPrivate = isPrivate
         self.state = TabPeekState(windowUUID: windowUUID)
     }
 
@@ -93,14 +98,8 @@ final class TabPeekViewModel: CanRemoveQuickActionBookmark {
         UIPasteboard.general.url = tab?.canonicalURL
     }
 
-    /// Still a dispatch: closing needs the tabs panel's private-mode flag, which lives in
-    /// `TabsPanelState`.
     func closeTab() {
-        store.dispatch(
-            TabPeekAction(tabUUID: tabUUID,
-                          windowUUID: windowUUID,
-                          actionType: TabPeekActionType.closeTab)
-        )
+        tabsService?.closeTab(tabUUID, isPrivate: isPrivate)
     }
 
     // MARK: - Private

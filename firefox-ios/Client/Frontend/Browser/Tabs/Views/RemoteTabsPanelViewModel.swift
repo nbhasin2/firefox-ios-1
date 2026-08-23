@@ -30,6 +30,7 @@ final class RemoteTabsPanelViewModel: Notifiable {
 
     private let windowUUID: WindowUUID
     private let profile: Profile
+    private let tabsService: TabsPanelService
     let notificationCenter: NotificationProtocol
 
     var hasSyncableAccount: Bool {
@@ -39,9 +40,11 @@ final class RemoteTabsPanelViewModel: Notifiable {
     init(windowUUID: WindowUUID,
          profile: Profile = AppContainer.shared.resolve(),
          notificationCenter: NotificationProtocol = NotificationCenter.default,
+         tabsService: TabsPanelService? = nil,
          initialState: RemoteTabsPanelState? = nil) {
         self.windowUUID = windowUUID
         self.profile = profile
+        self.tabsService = tabsService ?? TabsPanelService(windowUUID: windowUUID)
         self.notificationCenter = notificationCenter
         self.state = initialState ?? RemoteTabsPanelState(windowUUID: windowUUID)
         startObservingNotifications(
@@ -88,6 +91,20 @@ final class RemoteTabsPanelViewModel: Notifiable {
         // Pull-to-refresh shouldn't trigger a new update while one is running.
         state = state.copy(refreshState: .refreshing)
         fetchTabsAndDevices(useCache: useCache)
+    }
+
+    /// The three commands `TabManagerMiddleware` used to run for this panel.
+    func openSelectedURL(_ url: URL) {
+        TelemetryWrapper.recordEvent(category: .action, method: .open, object: .syncTab)
+        tabsService.addNewTab(with: URLRequest(url: url), isPrivate: false, showOverlay: false)
+    }
+
+    func closeSelectedRemoteURL(_ url: URL, deviceId: String) {
+        profile.addTabToCommandQueue(deviceId, url: url)
+    }
+
+    func flushTabCommands(deviceId: String) {
+        profile.flushTabCommands(toDeviceId: deviceId)
     }
 
     func syncDidBegin() {

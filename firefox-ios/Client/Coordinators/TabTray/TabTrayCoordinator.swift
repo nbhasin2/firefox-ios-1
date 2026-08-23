@@ -44,10 +44,16 @@ class TabTrayCoordinator: BaseCoordinator,
     }
 
     private func initializeTabTrayViewController(panelType: TabTrayPanelType) {
-        let tabTrayViewController = TabTrayViewController(panelType: panelType, windowUUID: tabManager.windowUUID)
+        // One service per tab tray, shared by the tray and its panels, so closing a tab in a panel
+        // updates the tray's counters.
+        let service = TabsPanelService(windowUUID: tabManager.windowUUID)
+        let tabTrayViewController = TabTrayViewController(panelType: panelType,
+                                                          windowUUID: tabManager.windowUUID,
+                                                          service: service)
         router.setRootViewController(tabTrayViewController)
         self.tabTrayViewController = tabTrayViewController
-        tabTrayViewController.childPanelControllers = makeChildPanels(dragAndDropDelegate: tabTrayViewController)
+        tabTrayViewController.childPanelControllers = makeChildPanels(dragAndDropDelegate: tabTrayViewController,
+                                                                      service: service)
         tabTrayViewController.childPanelThemes = makeChildPanelThemes()
         tabTrayViewController.delegate = self
         tabTrayViewController.navigationHandler = self
@@ -57,15 +63,18 @@ class TabTrayCoordinator: BaseCoordinator,
         tabTrayViewController?.setupOpenPanel(panelType: tabTraySection)
     }
 
-    private func makeChildPanels(dragAndDropDelegate: TabDisplayViewDragAndDropInteraction) -> [UINavigationController] {
+    private func makeChildPanels(dragAndDropDelegate: TabDisplayViewDragAndDropInteraction,
+                                 service: TabsPanelService) -> [UINavigationController] {
         let windowUUID = tabManager.windowUUID
         let regularTabsPanel = TabDisplayPanelViewController(isPrivateMode: false,
                                                              windowUUID: windowUUID,
-                                                             dragAndDropDelegate: dragAndDropDelegate)
+                                                             dragAndDropDelegate: dragAndDropDelegate,
+                                                             service: service)
         let privateTabsPanel = TabDisplayPanelViewController(isPrivateMode: true,
                                                              windowUUID: windowUUID,
-                                                             dragAndDropDelegate: dragAndDropDelegate)
-        let syncTabs = RemoteTabsPanel(windowUUID: windowUUID)
+                                                             dragAndDropDelegate: dragAndDropDelegate,
+                                                             service: service)
+        let syncTabs = RemoteTabsPanel(windowUUID: windowUUID, service: service)
 
         let panels: [UIViewController]
         // Panels order is different for the experiment
