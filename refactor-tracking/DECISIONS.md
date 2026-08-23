@@ -803,3 +803,31 @@ views, `BrowserViewController`, `TopTabsViewController`, the main menu and the t
 middleware all read the same state for a window. Ten `store.state.componentState(ToolbarState...)`
 reads became `ToolbarViewModel.instance(for:).state`, and non-optional in the process — the store
 lookup could fail, the instance cannot.
+
+## D-039 — The screen-state tree is gone; `AppState` is empty
+
+`BrowserViewControllerState` was the last screen state, and `BrowserViewController` its only
+subscriber. Same treatment as the toolbar: the reducer body survives verbatim as
+`BrowserViewControllerState.reduce(_:with:)`, the controller owns the value and applies it from a
+bus observer.
+
+With that, `AppComponent`, `ComponentState`, `PresentedComponentsState` and `ComponentAction` all
+have nothing left to hold and are deleted. `AppState` is an empty struct, and
+`AppState.componentState(_:for:window:)` — the lookup every screen used to reach its own state —
+goes with them. This is the D-016 end state stated plainly: **the store keeps its dispatch and its
+action observers, and keeps no screens.**
+
+One coupling had to be broken to get here. `ToolbarMiddleware` read
+`BrowserViewControllerState.microsurveyState.showPrompt` to decide which toolbar borders to hide,
+and once BVC owned its own state there was no shared place to read it from. That is
+`MicrosurveyPromptVisibilityStore`, the same one-boolean-per-window shape as
+`SearchBarVisibilityStore`, and it goes the same way when the microsurvey prompt gets its own
+view model.
+
+### What is left of Redux, and why
+
+Six middlewares and the bus. The middlewares that remain are the ones with no screen of their own
+— they translate browser events into other browser events: `TabManagerMiddleware` (three tab
+commands), `ToolbarMiddleware`, `MicrosurveyPromptMiddleware`, `StartAtHomeMiddleware`,
+`SummarizerMiddleware`, `TranslationsMiddleware`. They are bus consumers that happen to be
+registered as middlewares; converting them is Phase 4 work, not screen-state work.

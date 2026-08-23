@@ -62,33 +62,6 @@ struct BrowserViewControllerState: ScreenState {
     var autoTranslatePromptState: AutoTranslatePromptState
     var navigationDestination: NavigationDestination?
 
-    init(appState: AppState, uuid: WindowUUID) {
-        guard let bvcState = appState.componentState(
-            BrowserViewControllerState.self,
-            for: .browserViewController,
-            window: uuid)
-        else {
-            self.init(windowUUID: uuid)
-            return
-        }
-
-        self.init(windowUUID: bvcState.windowUUID,
-                  searchScreenState: bvcState.searchScreenState,
-                  toast: bvcState.toast,
-                  showOverlay: bvcState.showOverlay,
-                  reloadWebView: bvcState.reloadWebView,
-                  shouldStartAtHome: bvcState.shouldStartAtHome,
-                  shouldShowReaderModeBarSummarizerButton: bvcState.shouldShowReaderModeBarSummarizerButton,
-                  browserViewType: bvcState.browserViewType,
-                  navigateTo: bvcState.navigateTo,
-                  displayView: bvcState.displayView,
-                  buttonTapped: bvcState.buttonTapped,
-                  frameContext: bvcState.frameContext,
-                  microsurveyState: bvcState.microsurveyState,
-                  autoTranslatePromptState: bvcState.autoTranslatePromptState,
-                  navigationDestination: bvcState.navigationDestination)
-    }
-
     init(windowUUID: WindowUUID) {
         self.init(
             windowUUID: windowUUID,
@@ -142,14 +115,13 @@ struct BrowserViewControllerState: ScreenState {
         self.navigationDestination = navigationDestination
     }
 
-    static let reducer: Reducer<Self> = (legacyReducer, modernReducer)
-
-    static let modernReducer: ReducerMethod<Self> = { state, action, actionWindowUUID in
-        // Does not handle any modern actions
-        return defaultState(from: state)
+    /// Kept verbatim from the reducer; `BrowserViewController` calls it from its bus observer.
+    @MainActor
+    static func reduce(_ state: BrowserViewControllerState, with action: Action) -> BrowserViewControllerState {
+        return legacyReducer(state, action)
     }
 
-    static let legacyReducer: LegacyReducerMethod<Self> = { state, action in
+    private static let legacyReducer: LegacyReducerMethod<Self> = { state, action in
         // Only process actions for the current window
         guard action.windowUUID == .unavailable || action.windowUUID == state.windowUUID else {
             return defaultState(from: state)

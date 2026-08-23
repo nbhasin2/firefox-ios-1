@@ -48,10 +48,7 @@ extension BrowserViewController: PhotonActionSheetProtocol {
         // 2. Microsurvey prompt is not being displayed
         // If the hint does not show,
         // ToolbarActionType.navigationButtonDoubleTapped will have to be dispatched again through user action
-        guard let state = store.state.componentState(BrowserViewControllerState.self,
-                                                     for: .browserViewController,
-                                                     window: windowUUID)
-        else { return }
+        guard let state = browserViewControllerState else { return }
 
         if let selectedTab = tabManager.selectedTab,
             selectedTab.isFxHomeTab || !selectedTab.isLoading,

@@ -2,58 +2,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
+import Common
 import Foundation
 import Redux
-import Common
 
+/// The store's state, now that every screen owns its own (FXIOS-16660).
+///
+/// It is empty and stays that way. What the store is still for is the browser event bus (D-016):
+/// a typed, window-keyed channel for the cross-cutting announcements no single screen owns — the
+/// URL changed, a tab was selected, the tab tray was dismissed. `Store` keeps its dispatch and its
+/// action-observer list; what it no longer keeps is screens.
 struct AppState: StateType, Sendable {
-    let presentedComponents: PresentedComponentsState
-
     static let reducer: Reducer<Self> = (legacyReducer, modernReducer)
 
-    static let modernReducer: ReducerMethod<Self> = { state, action, actionWindowUUID in
-        return AppState(
-            presentedComponents: PresentedComponentsState.reducer
-                                 .modernReducer(state.presentedComponents, action, actionWindowUUID)
-        )
-    }
+    static let modernReducer: ReducerMethod<Self> = { state, _, _ in state }
 
-    static let legacyReducer: LegacyReducerMethod<Self> = { state, action in
-        return AppState(
-            presentedComponents: PresentedComponentsState.reducer.legacyReducer(state.presentedComponents, action)
-        )
-    }
-
-    func componentState<S: ScreenState>(_ s: S.Type,
-                                        for component: AppComponent,
-                                        window: WindowUUID?) -> S? {
-        return presentedComponents.components
-            .compactMap {
-                switch ($0, component) {
-                case (.browserViewController(let state), .browserViewController): return state as? S
-                default: return nil
-                }
-            }.first(where: {
-                // Most screens should be filtered based on the specific identifying UUID.
-                // This is necessary to allow us to have more than 1 of the same type of
-                // screen in Redux at the same time. If no UUID is provided we return `first`.
-                guard let expectedUUID = window else { return true }
-                // Generally this should be considered a code smell, attempting to select the
-                // screen for an .unavailable window is nonsensical and may indicate a bug.
-                guard expectedUUID != .unavailable else { return true }
-
-                return $0.windowUUID == expectedUUID
-            })
-    }
+    static let legacyReducer: LegacyReducerMethod<Self> = { state, _ in state }
 
     static func defaultState(from state: AppState) -> AppState {
-        return AppState(presentedComponents: state.presentedComponents)
-    }
-}
-
-extension AppState {
-    init() {
-        presentedComponents = PresentedComponentsState()
+        return state
     }
 }
 

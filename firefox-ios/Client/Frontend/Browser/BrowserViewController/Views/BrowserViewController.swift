@@ -32,7 +32,6 @@ class BrowserViewController: UIViewController,
                              Notifiable,
                              LibraryPanelDelegate,
                              RecentlyClosedPanelDelegate,
-                             StoreSubscriber,
                              BrowserFrameInfoProvider,
                              NavigationToolbarContainerDelegate,
                              AddressToolbarContainerDelegate,
@@ -66,8 +65,6 @@ class BrowserViewController: UIViewController,
         /// The user abandoned their search by dismissing the URL bar.
         case abandoned
     }
-
-    typealias SubscriberStateType = BrowserViewControllerState
 
     private let KVOs: [KVOConstants] = [
         .estimatedProgress,
@@ -397,6 +394,8 @@ class BrowserViewController: UIViewController,
     let crashTracker: CrashTracker
     let ratingPromptManager: RatingPromptManager
     private(set) var browserViewControllerState: BrowserViewControllerState?
+    /// The store holds observers weakly and sweeps dead ones, so there is nothing to unregister.
+    private var actionBus: (any ActionObserving)? { return store }
     var appAuthenticator: AppAuthenticationProtocol
     let searchEnginesManager: SearchEnginesManager
     private let summarizerNimbusUtils: SummarizerNimbusUtils
@@ -940,35 +939,31 @@ class BrowserViewController: UIViewController,
     // MARK: - Redux
 
     func subscribeToRedux() {
-        let action = ComponentAction(windowUUID: windowUUID,
-                                     actionType: ComponentActionType.addComponent,
-                                     component: .browserViewController)
-        store.dispatch(action)
+        browserViewControllerState = BrowserViewControllerState(windowUUID: windowUUID)
+        actionBus?.addActionObserver(self) { [weak self] action in
+            guard let self, let current = self.browserViewControllerState else { return }
+            let newState = BrowserViewControllerState.reduce(current, with: action)
+            guard newState != current else { return }
+            self.applyState(newState)
+        }
 
         let browserAction = GeneralBrowserMiddlewareAction(
             toolbarPosition: searchBarPosition,
             windowUUID: windowUUID,
             actionType: GeneralBrowserMiddlewareActionType.browserDidLoad)
         store.dispatch(browserAction)
-
-        let uuid = self.windowUUID
-        store.subscribe(self, transform: {
-            $0.select({ appState in
-                return BrowserViewControllerState(appState: appState, uuid: uuid)
-            })
-        })
     }
 
     func unsubscribeFromRedux() {
-        let action = ComponentAction(windowUUID: windowUUID,
-                                     actionType: ComponentActionType.removeComponent,
-                                     component: .browserViewController)
-        store.dispatch(action)
-        // Note: actual `store.unsubscribe()` is not strictly needed; Redux uses weak subscribers
+        actionBus?.removeActionObserver(self)
     }
 
-    func newState(state: BrowserViewControllerState) {
+    private func applyState(_ state: BrowserViewControllerState) {
         browserViewControllerState = state
+        // ToolbarMiddleware reads this to decide which toolbar borders to hide; see
+        // MicrosurveyPromptVisibilityStore.
+        MicrosurveyPromptVisibilityStore.shared.setPromptVisible(state.microsurveyState.showPrompt,
+                                                                 for: windowUUID)
 
         if state.reloadWebView {
             updateContentInHomePanel(state.browserViewType)

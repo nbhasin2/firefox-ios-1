@@ -436,12 +436,7 @@ final class ToolbarMiddleware {
     }
 
     private func isMicrosurveyShown(action: GeneralBrowserMiddlewareAction, state: AppState) -> Bool {
-        let bvcState = state.componentState(
-            BrowserViewControllerState.self,
-            for: .browserViewController,
-            window: action.windowUUID
-        )
-        return bvcState?.microsurveyState.showPrompt ?? false
+        return MicrosurveyPromptVisibilityStore.shared.isPromptVisible(for: action.windowUUID)
     }
 
     // Update border to hide for bottom toolbars when microsurvey is shown,
