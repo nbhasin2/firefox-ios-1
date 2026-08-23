@@ -53,7 +53,7 @@ final class MerinoSectionViewModelTests: XCTestCase {
         let subject = createSubject()
 
         subject.refreshStories()
-        for _ in 0..<20 where merinoManager.getMerinoItemsCalled == 0 { await Task.yield() }
+        await waitUntil { merinoManager.getMerinoItemsCalled > 0 }
         await Task.yield()
 
         XCTAssertFalse(subject.hasMerinoResponseContent)
@@ -87,9 +87,7 @@ final class MerinoSectionViewModelTests: XCTestCase {
     // MARK: - Private Helpers
 
     private func waitForStories(_ subject: MerinoSectionViewModel) async {
-        for _ in 0..<20 where !subject.hasMerinoResponseContent {
-            await Task.yield()
-        }
+        await waitUntil { subject.hasMerinoResponseContent }
     }
 
     private func createSubject() -> MerinoSectionViewModel {

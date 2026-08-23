@@ -530,9 +530,7 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
 
     private func populateSections(_ viewModel: HomepageViewModel) async {
         viewModel.merino.refreshStories()
-        for _ in 0..<20 where !viewModel.merino.hasMerinoResponseContent {
-            await Task.yield()
-        }
+        await waitUntil { viewModel.merino.hasMerinoResponseContent }
     }
 }
 

@@ -113,9 +113,7 @@ final class TopSitesSectionViewModelTests: XCTestCase {
     // MARK: - Private Helpers
 
     private func waitForSites(_ subject: TopSitesSectionViewModel) async {
-        for _ in 0..<40 where subject.state.topSitesData.isEmpty {
-            await Task.yield()
-        }
+        await waitUntil { !subject.state.topSitesData.isEmpty }
     }
 
     private func createService(siteCount: Int = 30) -> TopSitesService {

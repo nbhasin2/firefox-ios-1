@@ -183,9 +183,7 @@ final class TranslationSettingsViewModelTests: XCTestCase {
 
     /// `viewDidLoad` kicks off a detached load; yield until it lands.
     private func waitForLoad(_ subject: TranslationSettingsViewModel) async {
-        for _ in 0..<10 where subject.state.supportedLanguages.isEmpty {
-            await Task.yield()
-        }
+        await waitUntil { !subject.state.supportedLanguages.isEmpty }
     }
 
     private func createSubject() -> TranslationSettingsViewModel {

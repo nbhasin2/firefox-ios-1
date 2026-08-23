@@ -95,9 +95,7 @@ final class TopSitesServiceTests: XCTestCase {
 
         subject.refresh(for: .XCTestDefaultUUID, coalesce: false)
         subject.refresh(for: .XCTestDefaultUUID, coalesce: false)
-        for _ in 0..<40 where topSitesManager.recalculateTopSitesCalledCount < 2 {
-            await Task.yield()
-        }
+        await waitUntil { topSitesManager.recalculateTopSitesCalledCount >= 2 }
 
         XCTAssertEqual(topSitesManager.recalculateTopSitesCalledCount, 2)
     }
@@ -135,9 +133,7 @@ final class TopSitesServiceTests: XCTestCase {
     // MARK: - Private Helpers
 
     private func waitForSites(_ subject: TopSitesService) async {
-        for _ in 0..<40 where subject.topSites.isEmpty {
-            await Task.yield()
-        }
+        await waitUntil { !subject.topSites.isEmpty }
     }
 
     private func createSubject() -> TopSitesService {

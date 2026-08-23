@@ -88,9 +88,7 @@ final class BookmarksSectionViewModelTests: XCTestCase {
     }
 
     private func waitForBookmarks(_ subject: BookmarksSectionViewModel) async {
-        for _ in 0..<20 where subject.bookmarks.isEmpty {
-            await Task.yield()
-        }
+        await waitUntil { !subject.bookmarks.isEmpty }
     }
 
     private func createSubject() -> BookmarksSectionViewModel {

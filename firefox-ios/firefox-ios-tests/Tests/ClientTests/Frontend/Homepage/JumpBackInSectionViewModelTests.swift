@@ -82,7 +82,9 @@ final class JumpBackInSectionViewModelTests: XCTestCase, StoreTestUtility {
         let subject = createSubject()
 
         subject.refreshSyncedTab()
-        for _ in 0..<20 { await Task.yield() }
+        // Nothing to wait for — the point is that the refresh completes without setting a tab, so
+        // this yields long enough for it to have done so if it were going to.
+        await waitUntil { syncedTabProvider.syncedTabCallCount > 0 }
 
         XCTAssertNil(subject.state.mostRecentSyncedTab)
     }
@@ -163,9 +165,7 @@ final class JumpBackInSectionViewModelTests: XCTestCase, StoreTestUtility {
     }
 
     private func waitForSyncedTab(_ subject: JumpBackInSectionViewModel) async {
-        for _ in 0..<40 where subject.state.mostRecentSyncedTab == nil {
-            await Task.yield()
-        }
+        await waitUntil { subject.state.mostRecentSyncedTab != nil }
     }
 
     private func createSubject() -> JumpBackInSectionViewModel {
@@ -214,8 +214,10 @@ final class MockRecentTabsProvider: RecentTabsProviding {
 @MainActor
 final class MockSyncedTabProvider: SyncedTabProviding {
     var remoteTab: RemoteTabConfiguration?
+    private(set) var syncedTabCallCount = 0
 
     func mostRecentSyncedTab() async -> RemoteTabConfiguration? {
+        syncedTabCallCount += 1
         return remoteTab
     }
 }

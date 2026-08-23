@@ -86,9 +86,7 @@ final class ShortcutsLibraryViewModelTests: XCTestCase {
     // MARK: - Private Helpers
 
     private func waitForShortcuts(_ subject: ShortcutsLibraryViewModel) async {
-        for _ in 0..<40 where subject.shortcuts.isEmpty {
-            await Task.yield()
-        }
+        await waitUntil { !subject.shortcuts.isEmpty }
     }
 
     private func createService() -> TopSitesService {

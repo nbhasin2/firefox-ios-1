@@ -16,6 +16,9 @@ final class TabPeekViewModelTests: XCTestCase, StoreTestUtility {
     private var tabManager: MockTabManager!
     private var windowManager: MockWindowManager!
     private var bookmarksHandler: MockBookmarksHandler!
+    /// The load assigns state exactly once whether or not there is a tab, so a state change — not
+    /// any particular field — is what "the load finished" means here.
+    private var stateChanges = 0
 
     override func setUp() async throws {
         try await super.setUp()
@@ -23,6 +26,7 @@ final class TabPeekViewModelTests: XCTestCase, StoreTestUtility {
         tabManager = MockTabManager()
         bookmarksHandler = MockBookmarksHandler()
         bookmarksHandler.isBookmarkedResult = false
+        stateChanges = 0
         await DependencyHelperMock().bootstrapDependencies(injectedTabManager: tabManager)
         windowManager = MockWindowManager(
             wrappedManager: WindowManagerImplementation(),
@@ -85,13 +89,11 @@ final class TabPeekViewModelTests: XCTestCase, StoreTestUtility {
         let tab = makeTab()
         tabManager.tabForUUID = tab
         let subject = createSubject(tabUUID: tab.tabUUID)
-        var changes = 0
-        subject.onChange = { _ in changes += 1 }
 
         subject.viewDidLoad()
         await waitForLoad(subject)
 
-        XCTAssertEqual(changes, 1)
+        XCTAssertEqual(stateChanges, 1)
     }
 
     // MARK: - Actions
@@ -144,10 +146,7 @@ final class TabPeekViewModelTests: XCTestCase, StoreTestUtility {
     }
 
     private func waitForLoad(_ subject: TabPeekViewModel) async {
-        for _ in 0..<40 where subject.state.previewAccessibilityLabel.isEmpty
-            && !subject.state.showAddToBookmarks && !subject.state.showRemoveBookmark {
-            await Task.yield()
-        }
+        await waitUntil { self.stateChanges > 0 }
     }
 
     private func createSubject(tabUUID: TabUUID,
@@ -161,6 +160,7 @@ final class TabPeekViewModelTests: XCTestCase, StoreTestUtility {
             bookmarksHandler: bookmarksHandler,
             tabsService: tabsService
         )
+        subject.onChange = { [weak self] _ in self?.stateChanges += 1 }
         trackForMemoryLeaks(subject)
         return subject
     }
