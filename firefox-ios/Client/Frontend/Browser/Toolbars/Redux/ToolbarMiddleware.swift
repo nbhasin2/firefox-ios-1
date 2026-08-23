@@ -58,13 +58,10 @@ final class ToolbarMiddleware {
         self.logger = logger
     }
 
-    lazy var toolbarProvider: Middleware<AppState> = (legacyProvider, modernProvider)
-
-    lazy var modernProvider: MiddlewareClosure<AppState> = { [self] state, action, windowUUID in
-        // Does not test any modern actions
-    }
-
-    lazy var legacyProvider: LegacyMiddlewareClosure<AppState> = { [self] state, action in
+    /// Registered on the browser event bus in place of the middleware this used to be.
+    func handle(_ action: Action) {
+        let state = AppState()
+        _ = state
         if let action = action as? GeneralBrowserMiddlewareAction {
             self.resolveGeneralBrowserMiddlewareActions(action: action, state: state)
         } else if let action = action as? MicrosurveyPromptMiddlewareAction {

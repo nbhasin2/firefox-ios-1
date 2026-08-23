@@ -46,13 +46,8 @@ final class SummarizerMiddleware: SummarizerConfigFactory {
         self.summarizerConfigProvider = summarizerConfigProvider
     }
 
-    lazy var summarizerProvider: Middleware<AppState> = (legacyProvider, modernProvider)
-
-    lazy var modernProvider: MiddlewareClosure<AppState> = { [self] state, action, windowUUID in
-        // Does not test any modern actions
-    }
-
-    lazy var legacyProvider: LegacyMiddlewareClosure<AppState> = { [self] state, action in
+    /// Registered on the browser event bus in place of the middleware this used to be.
+    func handle(_ action: Action) {
         if let action = action as? GeneralBrowserAction {
             self.handleGeneralBrowserAction(action: action)
         } else if let action = action as? ToolbarAction {

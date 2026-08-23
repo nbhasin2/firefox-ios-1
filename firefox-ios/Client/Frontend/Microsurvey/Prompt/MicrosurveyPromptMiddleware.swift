@@ -14,13 +14,8 @@ final class MicrosurveyPromptMiddleware {
         self.microsurveyManager = microsurveyManager
     }
 
-    lazy var microsurveyProvider: Middleware<AppState> = (legacyProvider, modernProvider)
-
-    lazy var modernProvider: MiddlewareClosure<AppState> = { [self] state, action, windowUUID in
-        // Does not test any modern actions
-    }
-
-    lazy var legacyProvider: LegacyMiddlewareClosure<AppState> = { [self] state, action in
+    /// Registered on the browser event bus in place of the middleware this used to be.
+    func handle(_ action: Action) {
         let windowUUID = action.windowUUID
 
         switch action.actionType {

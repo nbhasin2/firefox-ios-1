@@ -24,10 +24,14 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore, Act
     /// The subscribe half of the browser event bus (see `ActionObserving`). Kept separate from
     /// `subscriptions`, which is state-change notification.
     private struct ActionObserverBox {
+        let id: ObjectIdentifier
         weak var observer: AnyObject?
         let handler: @MainActor (Action) -> Void
     }
-    private var actionObservers: [ObjectIdentifier: ActionObserverBox] = [:]
+    /// An array rather than a dictionary because delivery order is part of the contract: the
+    /// services that replaced middlewares ran in a fixed order, and some of them react to actions
+    /// the earlier ones dispatch.
+    private var actionObservers: [ActionObserverBox] = []
 
     public var state: State {
         didSet {
@@ -146,11 +150,20 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore, Act
     // MARK: - ActionObserving
 
     public func addActionObserver(_ observer: AnyObject, handler: @escaping @MainActor (Action) -> Void) {
-        actionObservers[ObjectIdentifier(observer)] = ActionObserverBox(observer: observer, handler: handler)
+        let id = ObjectIdentifier(observer)
+        let box = ActionObserverBox(id: id, observer: observer, handler: handler)
+        // Re-registering keeps the original position, so order does not depend on when a screen
+        // happens to re-subscribe.
+        if let index = actionObservers.firstIndex(where: { $0.id == id }) {
+            actionObservers[index] = box
+        } else {
+            actionObservers.append(box)
+        }
     }
 
     public func removeActionObserver(_ observer: AnyObject) {
-        actionObservers.removeValue(forKey: ObjectIdentifier(observer))
+        let id = ObjectIdentifier(observer)
+        actionObservers.removeAll { $0.id == id }
     }
 
     /// Only legacy actions carry their own `windowUUID`; observers filter on it themselves, as
@@ -159,8 +172,8 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore, Act
         guard case .legacy(let legacyAction) = action, !actionObservers.isEmpty else { return }
 
         // Drop deallocated observers first, so a handler cannot resurrect one mid-iteration.
-        actionObservers = actionObservers.filter { $0.value.observer != nil }
-        for box in actionObservers.values {
+        actionObservers = actionObservers.filter { $0.observer != nil }
+        for box in actionObservers {
             box.handler(legacyAction)
         }
     }

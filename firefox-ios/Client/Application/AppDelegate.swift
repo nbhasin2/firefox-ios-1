@@ -92,6 +92,12 @@ class AppDelegate: UIResponder,
         // Then setup dependency container as it's needed for everything else
         DependencyHelper().bootstrapDependencies()
 
+        // The services that used to be Redux middlewares; they listen on the browser event bus
+        // and have to be live before the first action is dispatched.
+        if !AppConstants.isRunningUnitTest {
+            BrowserActionServices.shared.register()
+        }
+
         appLaunchUtil = AppLaunchUtil(profile: profile)
         appLaunchUtil?.setUpPreLaunchDependencies()
 

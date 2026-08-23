@@ -24,17 +24,7 @@ struct AppState: StateType, Sendable {
     }
 }
 
-@MainActor
-let middlewares = [
-    MicrosurveyPromptMiddleware().microsurveyProvider,
-    TabManagerMiddleware().tabsPanelProvider,
-    ToolbarMiddleware().toolbarProvider,
-    StartAtHomeMiddleware().startAtHomeProvider,
-    SummarizerMiddleware().summarizerProvider,
-    TranslationsMiddleware().translationsProvider
-]
-
-// In order for us to mock and test the middlewares easier,
+// In order for us to mock and test the services easier,
 // we change the store to be instantiated as a variable.
 // For non testing builds, we leave the store as a constant.
 #if TESTING
@@ -42,11 +32,43 @@ let middlewares = [
 var store: any DefaultDispatchStore<AppState> = Store(
     state: AppState(),
     reducer: AppState.reducer,
-    middlewares: AppConstants.isRunningUnitTest ? [] : middlewares
+    middlewares: []
 )
 #else
 @MainActor
 let store: any DefaultDispatchStore<AppState> = Store(state: AppState(),
                                                       reducer: AppState.reducer,
-                                                      middlewares: middlewares)
+                                                      middlewares: [])
 #endif
+
+/// The six services that were middlewares. None of them has a screen or a state — each reacts to
+/// browser events and performs work or announces another event, which is what the bus is for
+/// (D-016). They are registered in the order the middleware array had them, because some react to
+/// what an earlier one dispatches.
+///
+/// Held for the app's lifetime: the store keeps observers weakly.
+@MainActor
+final class BrowserActionServices {
+    static let shared = BrowserActionServices()
+
+    private let microsurveyPrompt = MicrosurveyPromptMiddleware()
+    private let tabManager = TabManagerMiddleware()
+    private let toolbar = ToolbarMiddleware()
+    private let startAtHome = StartAtHomeMiddleware()
+    private let summarizer = SummarizerMiddleware()
+    private let translations = TranslationsMiddleware()
+
+    private var isRegistered = false
+
+    func register(on bus: any ActionObserving = store) {
+        guard !isRegistered else { return }
+        isRegistered = true
+
+        bus.addActionObserver(microsurveyPrompt) { [microsurveyPrompt] in microsurveyPrompt.handle($0) }
+        bus.addActionObserver(tabManager) { [tabManager] in tabManager.handle($0) }
+        bus.addActionObserver(toolbar) { [toolbar] in toolbar.handle($0) }
+        bus.addActionObserver(startAtHome) { [startAtHome] in startAtHome.handle($0) }
+        bus.addActionObserver(summarizer) { [summarizer] in summarizer.handle($0) }
+        bus.addActionObserver(translations) { [translations] in translations.handle($0) }
+    }
+}
