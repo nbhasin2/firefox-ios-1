@@ -229,7 +229,7 @@ final class AddressToolbarContainer: UIView,
         /// We want to check here if the keyboard accessory view state has changed
         /// To avoid spamming redux actions.
         guard hasAccessoryView != shouldShowKeyboard else { return accessoryViewOffset }
-        store.dispatch(
+        browserEventBus.dispatch(
             ToolbarAction(
                 shouldShowKeyboard: hasAccessoryView,
                 windowUUID: windowUUID,
@@ -242,7 +242,7 @@ final class AddressToolbarContainer: UIView,
             accessoryViewGradient.frame = CGRect(width: bounds.width, height: height)
             accessoryViewGradient.opacity = 1
             // Dispatch action to change address bar to minimized state
-            store.dispatch(ToolbarModernAction.accessoryViewDidShow, forWindowUUID: windowUUID)
+            browserEventBus.dispatch(ToolbarModernAction.accessoryViewDidShow, forWindowUUID: windowUUID)
         }
         return accessoryViewOffset
     }
@@ -541,13 +541,13 @@ final class AddressToolbarContainer: UIView,
             let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
             if searchTerm.isEmpty, !toolbarState.addressToolbar.isEmptySearch {
                 let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.didDeleteSearchTerm)
-                store.dispatch(action)
+                browserEventBus.dispatch(action)
             } else if !searchTerm.isEmpty, toolbarState.addressToolbar.isEmptySearch {
                 let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.didEnterSearchTerm)
-                store.dispatch(action)
+                browserEventBus.dispatch(action)
             } else if !toolbarState.addressToolbar.didStartTyping {
                 let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.didStartTyping)
-                store.dispatch(action)
+                browserEventBus.dispatch(action)
             }
         }
         self.searchTerm = searchTerm
@@ -562,7 +562,7 @@ final class AddressToolbarContainer: UIView,
 
         let action = ToolbarMiddlewareAction(windowUUID: windowUUID,
                                              actionType: ToolbarMiddlewareActionType.didClearSearch)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     func openBrowser(searchTerm: String) {
@@ -612,7 +612,7 @@ final class AddressToolbarContainer: UIView,
 
         let action = ToolbarMiddlewareAction(windowUUID: windowUUID,
                                              actionType: ToolbarMiddlewareActionType.didStartDragInteraction)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     func addressToolbarDidBeginDragInteraction() {
@@ -640,7 +640,7 @@ final class AddressToolbarContainer: UIView,
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.didPasteSearchTerm
             )
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
             delegate?.openSuggestions(searchTerm: locationText ?? "")
         } else {
@@ -648,7 +648,7 @@ final class AddressToolbarContainer: UIView,
                                        shouldAnimate: true,
                                        windowUUID: windowUUID,
                                        actionType: ToolbarActionType.didStartEditingUrl)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         }
     }
 
@@ -662,7 +662,7 @@ final class AddressToolbarContainer: UIView,
 
         if toolbarState.addressToolbar.isEditing {
             let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.cancelEdit)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         }
     }
 
@@ -710,7 +710,7 @@ final class AddressToolbarContainer: UIView,
         guard let windowUUID else { return }
         guard state?.addressToolbar.isEditing ?? false else { return }
 
-        store.dispatch(ToolbarMiddlewareAction(
+        browserEventBus.dispatch(ToolbarMiddlewareAction(
             buttonType: .cancelEdit,
             gestureType: .tap,
             windowUUID: windowUUID,

@@ -1120,13 +1120,13 @@ extension BrowserViewController: WKNavigationDelegate {
                     windowUUID: windowUUID,
                     actionType: ToolbarActionType.urlDidChange
                 )
-                store.dispatch(action)
+                browserEventBus.dispatch(action)
                 let middlewareAction = ToolbarMiddlewareAction(
                     scrollOffset: scrollController.contentOffset,
                     windowUUID: windowUUID,
                     actionType: ToolbarMiddlewareActionType.urlDidChange
                 )
-                store.dispatch(middlewareAction)
+                browserEventBus.dispatch(middlewareAction)
             }
             return
         }

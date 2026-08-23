@@ -168,7 +168,7 @@ final class RemoteTabsPanelViewModel: Notifiable {
 
     /// Leaves the screen: `TabTrayState` reduces this and the tab tray has not migrated.
     private func announceAccountChange() {
-        store.dispatch(
+        browserEventBus.dispatch(
             TabTrayAction(hasSyncableAccount: hasSyncableAccount,
                           windowUUID: windowUUID,
                           actionType: TabTrayActionType.firefoxAccountChanged)

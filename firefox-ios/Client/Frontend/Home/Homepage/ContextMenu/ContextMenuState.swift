@@ -199,7 +199,7 @@ struct ContextMenuState {
                     isPrivate: false,
                     selectNewTab: true
                 )
-                store.dispatch(
+                browserEventBus.dispatch(
                     ContextMenuAction(windowUUID: windowUUID, actionType: ContextMenuActionType.tappedOnSponsoredAction)
                 )
             }).items
@@ -367,7 +367,7 @@ struct ContextMenuState {
     // MARK: Dispatch Actions
     @MainActor
     private static func dispatchSettingsAction(windowUUID: WindowUUID, section: Route.SettingsSection) {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.settings(section)),
                 windowUUID: windowUUID,
@@ -383,7 +383,7 @@ struct ContextMenuState {
         isPrivate: Bool,
         selectNewTab: Bool = false
     ) {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(
                     .newTab,
@@ -399,7 +399,7 @@ struct ContextMenuState {
 
     @MainActor
     private static func dispatchShareSheetAction(windowUUID: WindowUUID, shareSheetConfiguration: ShareSheetConfiguration) {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.shareSheet(shareSheetConfiguration)),
                 windowUUID: windowUUID,
@@ -441,7 +441,7 @@ struct ContextMenuState {
         menuType: MenuType?,
         actionType: ActionType
     ) {
-        store.dispatch(
+        browserEventBus.dispatch(
             ContextMenuAction(
                 menuType: menuType,
                 windowUUID: windowUUID,

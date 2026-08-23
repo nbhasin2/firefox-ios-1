@@ -21,9 +21,9 @@ final class FakeReduxActionHandler {
     private(set) var counter = 0
     private(set) var isInPrivateMode = false
 
-    private weak var bus: (any DefaultDispatchStore)?
+    private weak var bus: (any BrowserEventBusing)?
 
-    func register(on bus: any DefaultDispatchStore) {
+    func register(on bus: any BrowserEventBusing) {
         self.bus = bus
         bus.addActionObserver(self, tier: .effects) { [weak self] action in
             self?.handle(action)

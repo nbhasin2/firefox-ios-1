@@ -6,7 +6,7 @@ import XCTest
 @testable import Redux
 
 @MainActor
-final class StoreTests: XCTestCase {
+final class BrowserEventBusTests: XCTestCase {
     var observer = MockActionObserver()
 
     override func setUp() async throws {
@@ -14,8 +14,8 @@ final class StoreTests: XCTestCase {
         observer = MockActionObserver()
     }
 
-    private func createStore() -> Store {
-        let store = Store()
+    private func createStore() -> BrowserEventBus {
+        let store = BrowserEventBus()
         observer.observe(store)
         return store
     }

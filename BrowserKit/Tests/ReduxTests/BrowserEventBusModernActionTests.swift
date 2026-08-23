@@ -7,7 +7,7 @@ import Common
 @testable import Redux
 
 @MainActor
-final class StoreModernActionTests: XCTestCase {
+final class BrowserEventBusModernActionTests: XCTestCase {
     var observer = MockActionObserver()
     let fakeWindowUUID = UUID()
 
@@ -16,8 +16,8 @@ final class StoreModernActionTests: XCTestCase {
         observer = MockActionObserver()
     }
 
-    private func createStore() -> Store {
-        let store = Store()
+    private func createStore() -> BrowserEventBus {
+        let store = BrowserEventBus()
         observer.observe(store)
         return store
     }

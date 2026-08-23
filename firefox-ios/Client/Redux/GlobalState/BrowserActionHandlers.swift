@@ -6,14 +6,14 @@ import Foundation
 import Redux
 
 // In order for us to mock and test the services easier,
-// we change the store to be instantiated as a variable.
-// For non testing builds, we leave the store as a constant.
+// we change the bus to be instantiated as a variable.
+// For non testing builds, we leave it as a constant.
 #if TESTING
 @MainActor
-var store: any DefaultDispatchStore = Store()
+var browserEventBus: any BrowserEventBusing = BrowserEventBus()
 #else
 @MainActor
-let store: any DefaultDispatchStore = Store()
+let browserEventBus: any BrowserEventBusing = BrowserEventBus()
 #endif
 
 /// The six services that were middlewares. None of them has a screen or a state — each reacts to
@@ -22,7 +22,7 @@ let store: any DefaultDispatchStore = Store()
 /// them read state a view model owns, and they keep the relative order the middleware array had
 /// them in, because some react to what an earlier one dispatches.
 ///
-/// Held for the app's lifetime: the store keeps observers weakly.
+/// Held for the app's lifetime: the bus keeps observers weakly.
 @MainActor
 final class BrowserActionHandlers {
     static let shared = BrowserActionHandlers()
@@ -36,7 +36,7 @@ final class BrowserActionHandlers {
 
     private var isRegistered = false
 
-    func register(on bus: any ActionObserving = store) {
+    func register(on bus: any ActionObserving = browserEventBus) {
         guard !isRegistered else { return }
         isRegistered = true
 

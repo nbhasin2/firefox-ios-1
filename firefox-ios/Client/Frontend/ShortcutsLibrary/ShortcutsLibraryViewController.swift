@@ -226,7 +226,7 @@ class ShortcutsLibraryViewController: UIViewController,
             sourceView: sourceView,
             toastContainer: self.view
         )
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.contextMenu, contextMenuConfiguration: configuration),
                 windowUUID: windowUUID,
@@ -242,7 +242,7 @@ class ShortcutsLibraryViewController: UIViewController,
                                 theme: currentTheme,
                                 completion: { buttonPressed in
             if buttonPressed {
-                store.dispatch(
+                browserEventBus.dispatch(
                     ShortcutsLibraryAction(
                         tab: tab,
                         windowUUID: self.windowUUID,
@@ -323,7 +323,7 @@ class ShortcutsLibraryViewController: UIViewController,
 
         recordTelemetryOnDisappear = false
 
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: destination,
                 windowUUID: windowUUID,

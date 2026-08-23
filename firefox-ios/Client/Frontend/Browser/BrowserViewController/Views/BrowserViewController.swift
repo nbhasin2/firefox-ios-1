@@ -394,8 +394,8 @@ class BrowserViewController: UIViewController,
     let crashTracker: CrashTracker
     let ratingPromptManager: RatingPromptManager
     private(set) var browserViewControllerState: BrowserViewControllerState?
-    /// The store holds observers weakly and sweeps dead ones, so there is nothing to unregister.
-    private var actionBus: (any ActionObserving)? { return store }
+    /// The bus holds observers weakly and sweeps dead ones, so there is nothing to unregister.
+    private var actionBus: (any ActionObserving)? { return browserEventBus }
     var appAuthenticator: AppAuthenticationProtocol
     let searchEnginesManager: SearchEnginesManager
     private let summarizerNimbusUtils: SummarizerNimbusUtils
@@ -609,7 +609,7 @@ class BrowserViewController: UIViewController,
             toolbarPosition: newSearchBarPosition,
             windowUUID: windowUUID,
             actionType: GeneralBrowserMiddlewareActionType.toolbarPositionChanged)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
         updateSwipingTabs()
 
         searchController?.viewModel.updateBottomSearchBarState(isBottomSearchBar: isBottomSearchBar)
@@ -733,7 +733,7 @@ class BrowserViewController: UIViewController,
             windowUUID: self.windowUUID,
             actionType: ToolbarActionType.showMenuWarningBadge
         )
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     private func updateAddressToolbarContainerPosition(for traitCollection: UITraitCollection) {
@@ -914,7 +914,7 @@ class BrowserViewController: UIViewController,
     override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
         super.motionEnded(motion, with: event)
         guard motion == .motionShake, summarizerNimbusUtils.isShakeGestureEnabled else { return }
-        store.dispatch(
+        browserEventBus.dispatch(
             GeneralBrowserAction(
                 windowUUID: windowUUID,
                 actionType: GeneralBrowserActionType.shakeMotionEnded
@@ -928,7 +928,7 @@ class BrowserViewController: UIViewController,
             windowUUID: windowUUID,
             actionType: StartAtHomeActionType.didBrowserBecomeActive
         )
-        store.dispatch(startAtHomeAction)
+        browserEventBus.dispatch(startAtHomeAction)
     }
 
     private func dismissModalsIfStartAtHome() {
@@ -951,7 +951,7 @@ class BrowserViewController: UIViewController,
             toolbarPosition: searchBarPosition,
             windowUUID: windowUUID,
             actionType: GeneralBrowserMiddlewareActionType.browserDidLoad)
-        store.dispatch(browserAction)
+        browserEventBus.dispatch(browserAction)
     }
 
     func stopObservingBrowserActions() {
@@ -1016,7 +1016,7 @@ class BrowserViewController: UIViewController,
                                     theme: currentTheme(),
                                     completion: { buttonPressed in
                 if let action = toast.reduxAction(for: uuid), buttonPressed {
-                    store.dispatch(action)
+                    browserEventBus.dispatch(action)
                 }
             })
 
@@ -1309,7 +1309,7 @@ class BrowserViewController: UIViewController,
         updateBlurViews()
         addOrUpdateMaskViewIfNeeded()
 
-        store.dispatch(
+        browserEventBus.dispatch(
             ToolbarAction(
                 isTranslucent: toolbarHelper.shouldBlur(),
                 windowUUID: windowUUID,
@@ -1331,7 +1331,7 @@ class BrowserViewController: UIViewController,
         guard shouldShowSearchBar, !isEditing, contentContainer.hasHomepage else {
             guard addressToolbarContainer.isHidden == true else { return }
             addressToolbarContainer.isHidden = false
-            store.dispatch(
+            browserEventBus.dispatch(
                 GeneralBrowserAction(windowUUID: windowUUID, actionType: GeneralBrowserActionType.didUnhideToolbar)
             )
             return
@@ -1933,7 +1933,7 @@ class BrowserViewController: UIViewController,
     private func setupMicrosurvey() {
         guard featureFlagsProvider.isEnabled(.microsurvey), microsurvey == nil else { return }
 
-        store.dispatch(
+        browserEventBus.dispatch(
             MicrosurveyPromptAction(windowUUID: windowUUID, actionType: MicrosurveyPromptActionType.showPrompt)
         )
     }
@@ -2340,7 +2340,7 @@ class BrowserViewController: UIViewController,
             windowUUID: windowUUID,
             actionType: NavigationBrowserActionType.tapOnReaderMode
         )
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
         return true
     }
 
@@ -2359,7 +2359,7 @@ class BrowserViewController: UIViewController,
         let shouldAnimate = ToolbarViewModel.instance(for: windowUUID).state.shouldAnimate
 
         guard shouldAnimate == false else { return }
-        store.dispatch(
+        browserEventBus.dispatch(
             ToolbarAction(
                 shouldAnimate: true,
                 windowUUID: windowUUID,
@@ -2447,7 +2447,7 @@ class BrowserViewController: UIViewController,
             windowUUID: windowUUID,
             actionType: ToolbarActionType.websiteLoadingStateDidChange
         )
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     private func handleURL(url: URL?, tab: Tab, webView: WKWebView) {
@@ -2563,7 +2563,7 @@ class BrowserViewController: UIViewController,
             lockIconNeedsTheming: lockIconState.needsTheming,
             windowUUID: windowUUID,
             actionType: ToolbarActionType.lockIconChanged)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     // MARK: - Update UI
@@ -2588,14 +2588,14 @@ class BrowserViewController: UIViewController,
                 windowUUID: windowUUID,
                 actionType: ToolbarMiddlewareActionType.loadSummaryState
             )
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         } else {
             let action = ToolbarAction(
                 readerModeState: readerModeState,
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.readerModeStateChanged
             )
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         }
     }
 
@@ -2637,14 +2637,14 @@ class BrowserViewController: UIViewController,
             ),
             windowUUID: windowUUID,
             actionType: ToolbarActionType.urlDidChange)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
 
         // update toolbar borders
         let middlewareAction = ToolbarMiddlewareAction(
             scrollOffset: scrollController.contentOffset,
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.urlDidChange)
-        store.dispatch(middlewareAction)
+        browserEventBus.dispatch(middlewareAction)
 
         // update the background view to ensure translucency is displayed correctly
         applyTheme()
@@ -2676,7 +2676,7 @@ class BrowserViewController: UIViewController,
             guard let destination = state.navigationDestination else { return }
             handleNavigation(to: destination)
             // clear the navigation state for BrowserViewControllerState to make diffing works for subsequent navigations.
-            store.dispatch(
+            browserEventBus.dispatch(
                 NavigationBrowserAction(
                     navigationDestination: destination,
                     windowUUID: windowUUID,
@@ -2695,7 +2695,7 @@ class BrowserViewController: UIViewController,
                                    canGoForward: canGoForward,
                                    windowUUID: windowUUID,
                                    actionType: ToolbarActionType.backForwardButtonStateChanged)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     /// Used to handle general navigation for views that can be presented from multiple places
@@ -2755,7 +2755,7 @@ class BrowserViewController: UIViewController,
         case .tabTray(let panelType):
             navigationHandler?.showTabTray(selectedPanel: panelType)
         case .homepageZeroSearch:
-            store.dispatch(
+            browserEventBus.dispatch(
                 GeneralBrowserAction(
                     windowUUID: windowUUID,
                     actionType: GeneralBrowserActionType.enteredZeroSearchScreen)
@@ -2820,7 +2820,7 @@ class BrowserViewController: UIViewController,
         case .tabTray:
             updateZoomPageBarVisibility(visible: false)
             focusOnTabSegment()
-            store.dispatch(
+            browserEventBus.dispatch(
                 ToolbarAction(
                     shouldAnimate: false,
                     windowUUID: windowUUID,
@@ -2877,7 +2877,7 @@ class BrowserViewController: UIViewController,
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.websiteLoadingStateDidChange
             )
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
             addressToolbarContainer.updateProgressBar(progress: 0.0)
         case .newTab:
             willNavigateAway(from: tabManager.selectedTab)
@@ -2976,7 +2976,7 @@ class BrowserViewController: UIViewController,
             let title = native == localized ? native : "\(native) (\(localized))"
             alert.addAction(UIAlertAction(title: title, style: .default) { [weak self] _ in
                 guard let self else { return }
-                store.dispatch(TranslationLanguageSelectedAction(
+                browserEventBus.dispatch(TranslationLanguageSelectedAction(
                     windowUUID: windowUUID,
                     targetLanguage: code,
                     actionType: TranslationsActionType.didSelectTargetLanguage
@@ -2989,7 +2989,7 @@ class BrowserViewController: UIViewController,
             style: .default
         ) { [weak self] _ in
             guard let self else { return }
-            store.dispatch(NavigationBrowserAction(
+            browserEventBus.dispatch(NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.settings(.translation)),
                 windowUUID: windowUUID,
                 actionType: NavigationBrowserActionType.tapOnSettingsSection
@@ -3037,7 +3037,7 @@ class BrowserViewController: UIViewController,
             style: .default
         ) { [weak self] _ in
             guard let self else { return }
-            store.dispatch(ToolbarMiddlewareAction(
+            browserEventBus.dispatch(ToolbarMiddlewareAction(
                 buttonType: .translate,
                 gestureType: .tap,
                 windowUUID: windowUUID,
@@ -3200,7 +3200,7 @@ class BrowserViewController: UIViewController,
             windowUUID: windowUUID,
             actionType: ToolbarActionType.traitCollectionDidChange
         )
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     func updateHomepageAvailableContentHeight() {
@@ -3303,7 +3303,7 @@ class BrowserViewController: UIViewController,
             windowUUID: windowUUID,
             actionType: ToolbarActionType.didSubmitSearchTerm
         )
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     // Extract frame information from navigation action
@@ -3328,7 +3328,7 @@ class BrowserViewController: UIViewController,
             let action = TabPanelViewAction(panelType: .tabs,
                                             windowUUID: self.windowUUID,
                                             actionType: TabPanelViewActionType.addNewTab)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
             self.debugOpen(numberOfNewTabs: numberOfNewTabs - 1, at: url)
         })
@@ -3416,7 +3416,7 @@ class BrowserViewController: UIViewController,
     private func cancelEditMode() {
         let action = ToolbarAction(windowUUID: self.windowUUID,
                                    actionType: ToolbarActionType.cancelEdit)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     func closeAllPrivateTabs() {
@@ -3488,7 +3488,7 @@ class BrowserViewController: UIViewController,
                                        shouldAnimate: true,
                                        windowUUID: self.windowUUID,
                                        actionType: ToolbarActionType.didStartEditingUrl)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         }
     }
 
@@ -4503,7 +4503,7 @@ extension BrowserViewController {
                     windowUUID: self.windowUUID,
                     actionType: ToolbarActionType.cancelEdit
                 )
-                store.dispatch(toolbarAction)
+                browserEventBus.dispatch(toolbarAction)
                 self.tabManager.selectTab(tab)
             }
         })
@@ -4555,7 +4555,7 @@ extension BrowserViewController: SearchViewControllerDelegate {
     func updateForDefaultSearchEngineDidChange() {
         // Update search icon when the search engine changes
         let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.searchEngineDidChange)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
         searchController?.reloadSearchEngines()
         searchController?.reloadData()
     }
@@ -4570,7 +4570,7 @@ extension BrowserViewController: SearchViewControllerDelegate {
             windowUUID: windowUUID,
             actionType: ToolbarActionType.didSetTextInLocationView
         )
-        store.dispatch(toolbarAction)
+        browserEventBus.dispatch(toolbarAction)
 
         if search {
             openSuggestions(searchTerm: text)
@@ -4679,7 +4679,7 @@ extension BrowserViewController: TabManagerDelegate {
 
     private func updateSelectedTabWebview(selectedTab: Tab, previousTab: Tab?, webView: TabWebView) {
         if selectedTab.isFxHomeTab && previousTab != nil {
-            store.dispatch(
+            browserEventBus.dispatch(
                 GeneralBrowserAction(
                     windowUUID: windowUUID,
                     actionType: GeneralBrowserActionType.didSelectedTabChangeToHomepage
@@ -4870,7 +4870,7 @@ extension BrowserViewController: TabManagerDelegate {
         let action = ToolbarAction(numberOfTabs: count,
                                    windowUUID: windowUUID,
                                    actionType: ToolbarActionType.numberOfTabsChanged)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 }
 
@@ -4973,7 +4973,7 @@ extension BrowserViewController: KeyboardHelperDelegate {
         // user has scrolled previously, restore the address back here would leave the
         // address bar full while the bottom containers stay collapsed (inconsistent state).
         if #available(iOS 26.0, *), isBottomSearchBar, scrollController.isToolbarFullyExpanded {
-            store.dispatch(ToolbarModernAction.keyboardDidHide, forWindowUUID: windowUUID)
+            browserEventBus.dispatch(ToolbarModernAction.keyboardDidHide, forWindowUUID: windowUUID)
         }
         keyboardState = nil
         updateConstraintsForKeyboard()
@@ -5000,7 +5000,7 @@ extension BrowserViewController: KeyboardHelperDelegate {
         let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
         let isEditing = toolbarState.addressToolbar.isEditing
         if !isEditing {
-            store.dispatch(
+            browserEventBus.dispatch(
                 ToolbarAction(
                     shouldShowKeyboard: false,
                     windowUUID: windowUUID,

@@ -21,7 +21,7 @@ public enum ActionObserverTier {
 /// Observing dispatched actions directly, rather than deriving them from a state change.
 ///
 /// This is the subscribe half of the browser event bus. `StoreSubscriber` answers "the state
-/// changed, re-render", which requires the observer to keep state in the store. A view model that
+/// changed, re-render", which requires the observer to keep state in the bus. A view model that
 /// owns its own state still needs to hear about cross-cutting browser events — a tab changed, the
 /// toolbar was unhidden — without putting a `ScreenState` back into the tree to hang a
 /// subscription off.

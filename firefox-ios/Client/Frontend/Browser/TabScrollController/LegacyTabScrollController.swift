@@ -667,7 +667,8 @@ private extension LegacyTabScrollController {
 
             if tab?.isFindInPageMode == false && tab?.url?.isReaderModeURL == false {
                 let isMinimized = alpha.isZero
-                store.dispatch(ToolbarModernAction.userDidScroll(minimizeAddressBar: isMinimized), forWindowUUID: windowUUID)
+                browserEventBus.dispatch(ToolbarModernAction.userDidScroll(minimizeAddressBar: isMinimized),
+                                         forWindowUUID: windowUUID)
             }
 
             overKeyboardContainerOffset = overKeyboardOffset
@@ -781,7 +782,7 @@ extension LegacyTabScrollController: UIScrollViewDelegate {
         if (lastContentOffsetY > 0 && contentOffset.y <= 0) ||
             (lastContentOffsetY <= 0 && contentOffset.y > 0) {
             lastContentOffsetY = contentOffset.y
-            store.dispatch(
+            browserEventBus.dispatch(
                 GeneralBrowserMiddlewareAction(
                     scrollOffset: contentOffset,
                     windowUUID: windowUUID,

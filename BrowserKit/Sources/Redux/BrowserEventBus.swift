@@ -13,7 +13,7 @@ import Common
 /// the part that was never about state: an action is dispatched, and the observers registered for
 /// it are told, in a defined order, one action at a time.
 @MainActor
-public final class Store: DispatchStore, ActionObserving {
+public final class BrowserEventBus: ActionDispatching, ActionObserving {
     private let logger: Logger
 
     private var actionQueue: [(action: Either<Action, ModernAction>, windowUUID: WindowUUID)] = []
@@ -45,7 +45,7 @@ public final class Store: DispatchStore, ActionObserving {
 
     // MARK: - Dispatching
 
-    /// Legacy method to dispatch actions to the global store. Eventually will be deprecated and replaced by
+    /// Legacy method to dispatch actions onto the bus. Eventually will be deprecated and replaced by
     /// `dispatch(_action:forWindowUUID)`, which takes a `ModernAction`.
     public func dispatch(_ action: Action) {
         MainActor.assertIsolated("Expected to be called only on main actor.")
@@ -57,7 +57,7 @@ public final class Store: DispatchStore, ActionObserving {
         processQueuedActions()
     }
 
-    /// Method to dispatch actions to the global store.
+    /// Method to dispatch actions onto the bus.
     public func dispatch(_ action: ModernAction, forWindowUUID windowUUID: WindowUUID) {
         MainActor.assertIsolated("Expected to be called only on main actor.")
         logger.log("Dispatched action: \(action.description)", level: .info, category: .redux)

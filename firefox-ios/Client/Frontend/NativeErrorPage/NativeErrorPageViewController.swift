@@ -384,7 +384,7 @@ final class NativeErrorPageViewController: UIViewController,
         isNativeErrorPage: Bool = false
     ) {
         ensureMainThread {
-            store.dispatch(
+            browserEventBus.dispatch(
                 GeneralBrowserAction(
                     isNativeErrorPage: isNativeErrorPage,
                     windowUUID: self.windowUUID,
@@ -415,7 +415,7 @@ final class NativeErrorPageViewController: UIViewController,
                 }
                 telemetry.foundArchive()
                 await MainActor.run {
-                    store.dispatch(
+                    browserEventBus.dispatch(
                         GeneralBrowserAction(
                             destinationURL: archivedURL,
                             isNativeErrorPage: true,
@@ -433,7 +433,7 @@ final class NativeErrorPageViewController: UIViewController,
     func regularContentViewDidTapWaybackLink() {
         guard let waybackURL = URL(string: "https://web.archive.org") else { return }
 
-        store.dispatch(
+        browserEventBus.dispatch(
             GeneralBrowserAction(
                 destinationURL: waybackURL,
                 isNativeErrorPage: true,
@@ -451,7 +451,7 @@ final class NativeErrorPageViewController: UIViewController,
         let query = "\"\(failingURL.absoluteString)\""
         guard let searchURL = defaultEngine.searchURLForQuery(query) else { return }
 
-        store.dispatch(
+        browserEventBus.dispatch(
             GeneralBrowserAction(
                 destinationURL: searchURL,
                 isNativeErrorPage: true,
@@ -485,7 +485,7 @@ final class NativeErrorPageViewController: UIViewController,
             errorPageURL: errorURL,
             certificateTitle: model?.title ?? ""
         )
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: destination,
                 windowUUID: windowUUID,
@@ -505,7 +505,7 @@ final class NativeErrorPageViewController: UIViewController,
         }
 
         let destination = NavigationDestination(.nativeErrorPageLearnMore, url: url)
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: destination,
                 windowUUID: windowUUID,

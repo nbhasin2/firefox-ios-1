@@ -16,14 +16,14 @@ import XCTest
 final class ReduxIntegrationTests: XCTestCase {
     let initialCountValue = 8
 
-    private var store: Store!
+    private var store: BrowserEventBus!
     private var handler: FakeReduxActionHandler!
     private var observer: MockActionObserver!
 
     override func setUp() async throws {
         try await super.setUp()
 
-        store = Store()
+        store = BrowserEventBus()
         observer = MockActionObserver()
         handler = FakeReduxActionHandler()
         handler.generateInitialCountValue = { [initialCountValue] in initialCountValue }

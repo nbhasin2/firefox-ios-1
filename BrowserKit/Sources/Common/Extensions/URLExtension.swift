@@ -212,7 +212,7 @@ extension URL {
         var currentDomain: String = host
 
         for offset in 0..<tokenCount {
-            // Store the offset for use outside of this scope so we can add additional parts if needed
+            // BrowserEventBus the offset for use outside of this scope so we can add additional parts if needed
             let nextDot: String? = offset + 1 < tokenCount ? tokens[offset + 1..<tokenCount].joined(separator: ".") : nil
 
             if let entry = etldEntries?[currentDomain] {

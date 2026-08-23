@@ -48,10 +48,10 @@ final class SearchEngineSelectionViewModel {
 
     func didTap(searchEngineModel: SearchEngineModel) {
         // Both are consumed by the toolbar's reducers, which have not migrated.
-        store.dispatch(
+        browserEventBus.dispatch(
             ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.didStartEditingUrl)
         )
-        store.dispatch(
+        browserEventBus.dispatch(
             SearchEngineSelectionAction(
                 windowUUID: windowUUID,
                 actionType: SearchEngineSelectionActionType.didTapSearchEngine,

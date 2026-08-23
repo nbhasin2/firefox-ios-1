@@ -61,7 +61,7 @@ final class SummarizeSettingsViewController: SettingsTableViewController {
             self.settings = self.generateSettings()
             self.tableView.reloadData()
 
-            store.dispatch(
+            browserEventBus.dispatch(
                 ToolbarAction(
                     canSummarize: isOn,
                     windowUUID: self.windowUUID,

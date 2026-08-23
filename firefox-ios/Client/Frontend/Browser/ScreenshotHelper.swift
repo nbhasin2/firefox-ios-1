@@ -76,7 +76,7 @@ class ScreenshotHelper {
                 }
                 tab.hasHomeScreenshot = true
                 tab.setScreenshot(screenshot)
-                store.dispatch(
+                browserEventBus.dispatch(
                     ScreenshotAction(
                         windowUUID: windowUUID,
                         tab: tab,
@@ -91,7 +91,7 @@ class ScreenshotHelper {
                 let screenshot = view.screenshot(quality: UIConstants.ActiveScreenshotQuality)
                 tab.hasHomeScreenshot = false
                 tab.setScreenshot(screenshot)
-                store.dispatch(
+                browserEventBus.dispatch(
                     ScreenshotAction(
                         windowUUID: windowUUID,
                         tab: tab,
@@ -117,7 +117,7 @@ class ScreenshotHelper {
                 if let image, let tab {
                     tab.hasHomeScreenshot = false
                     tab.setScreenshot(image)
-                    store.dispatch(
+                    browserEventBus.dispatch(
                         ScreenshotAction(
                             windowUUID: windowUUID,
                             tab: tab,

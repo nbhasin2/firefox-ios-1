@@ -226,7 +226,7 @@ class TopTabsViewController: UIViewController, Themeable, Notifiable {
     @objc
     func newTabTapped() {
         delegate?.topTabsDidPressNewTab(self.topTabDisplayManager.isPrivate)
-        store.dispatch(TopTabsAction(windowUUID: windowUUID, actionType: TopTabsActionType.didTapNewTab))
+        browserEventBus.dispatch(TopTabsAction(windowUUID: windowUUID, actionType: TopTabsActionType.didTapNewTab))
     }
 
     @objc
@@ -381,10 +381,10 @@ extension TopTabsViewController: TabDisplayerDelegate {
 extension TopTabsViewController: TopTabCellDelegate {
     @MainActor
     func tabCellDidClose(_ cell: UICollectionViewCell) {
-        store.dispatch(ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.cancelEdit))
+        browserEventBus.dispatch(ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.cancelEdit))
         topTabDisplayManager.closeActionPerformed(forCell: cell)
         NotificationCenter.default.post(name: .TopTabsTabClosed, object: nil, userInfo: windowUUID.userInfo)
-        store.dispatch(TopTabsAction(windowUUID: windowUUID, actionType: TopTabsActionType.didTapCloseTab))
+        browserEventBus.dispatch(TopTabsAction(windowUUID: windowUUID, actionType: TopTabsActionType.didTapCloseTab))
 
         // Focus voice-over on the selected tab after current tab is closed
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in

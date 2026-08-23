@@ -132,7 +132,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
                     .state.addressToolbar.translationConfiguration
                 let translationState = translationConfig?.state
                 guard translationState == .active || translationState == .loading else { continue }
-                store.dispatch(GeneralBrowserAction(
+                browserEventBus.dispatch(GeneralBrowserAction(
                     windowUUID: uuid,
                     actionType: GeneralBrowserActionType.reloadWebsite
                 ))
@@ -182,13 +182,13 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
                 let pageLanguage = try? await translationsService.detectPageLanguage(for: action.windowUUID)
                 let filteredLanguages = languages.filter { $0 != pageLanguage }
                 if !translationConfiguration.isMultiLanguageFlow, let singleLanguage = filteredLanguages.first {
-                    store.dispatch(TranslationLanguageSelectedAction(
+                    browserEventBus.dispatch(TranslationLanguageSelectedAction(
                         windowUUID: action.windowUUID,
                         targetLanguage: singleLanguage,
                         actionType: TranslationsActionType.didSelectTargetLanguage
                     ))
                 } else {
-                    store.dispatch(GeneralBrowserAction(
+                    browserEventBus.dispatch(GeneralBrowserAction(
                         buttonTapped: capturedButton,
                         translationLanguages: filteredLanguages,
                         windowUUID: action.windowUUID,
@@ -253,7 +253,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
             let supported = await translationsService.fetchSupportedTargetLanguages()
             let languages = manager.preferredLanguages(supportedTargetLanguages: supported)
             let filteredLanguages = languages.filter { $0 != sourceLanguage && $0 != translatedToLanguage }
-            store.dispatch(GeneralBrowserAction(
+            browserEventBus.dispatch(GeneralBrowserAction(
                 buttonTapped: capturedButton,
                 translationLanguages: filteredLanguages,
                 isPageTranslated: true,
@@ -278,7 +278,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
                 let languages = manager.preferredLanguages(supportedTargetLanguages: supported)
                 let pageLanguage = try? await translationsService.detectPageLanguage(for: action.windowUUID)
                 let filteredLanguages = languages.filter { $0 != pageLanguage }
-                store.dispatch(GeneralBrowserAction(
+                browserEventBus.dispatch(GeneralBrowserAction(
                     buttonTapped: capturedButton,
                     translationLanguages: filteredLanguages,
                     windowUUID: action.windowUUID,
@@ -330,7 +330,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
         if isCurrentlyTranslated {
             pendingLanguageSwitchTargets[action.windowUUID] = action.targetLanguage
             handleUpdatingTranslationIcon(windowUUID: action.windowUUID, with: .inactive, on: originatingTab)
-            store.dispatch(GeneralBrowserAction(
+            browserEventBus.dispatch(GeneralBrowserAction(
                 windowUUID: action.windowUUID,
                 actionType: GeneralBrowserActionType.reloadWebsite
             ))
@@ -357,7 +357,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
             windowUUID: windowUUID,
             actionType: TranslationsActionType.didStartTranslatingPage
         )
-        store.dispatch(translationsAction)
+        browserEventBus.dispatch(translationsAction)
     }
 
     /// Mirrors the dispatched translation config onto the originating tab so it survives tab-tray
@@ -490,7 +490,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
                     windowUUID: action.windowUUID,
                     actionType: TranslationsActionType.receivedTranslationLanguage
                 )
-                store.dispatch(translationsAction)
+                browserEventBus.dispatch(translationsAction)
             } catch {
                 let serviceError = TranslationsServiceError.fromUnknown(error)
                 translationsTelemetry.pageLanguageIdentificationFailed(
@@ -508,7 +508,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
 
     private func dispatchClearTranslationIcon(windowUUID: WindowUUID, on tab: Tab? = nil) {
         persistTranslationConfig(nil, on: tab ?? selectedTab(for: windowUUID))
-        store.dispatch(TranslationsAction(
+        browserEventBus.dispatch(TranslationsAction(
             translationConfiguration: nil,
             windowUUID: windowUUID,
             actionType: TranslationsActionType.receivedTranslationLanguage
@@ -603,7 +603,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
             windowUUID: action.windowUUID,
             actionType: GeneralBrowserActionType.reloadWebsite
         )
-        store.dispatch(reloadAction)
+        browserEventBus.dispatch(reloadAction)
         translationsTelemetry.webpageRestored(translationFlowId: flowId(for: action.windowUUID))
         clearFlowId(for: action)
     }
@@ -616,7 +616,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
             let tab = selectedTab(for: windowUUID)
             pendingLanguageSwitchTargets[windowUUID] = targetLanguage
             handleUpdatingTranslationIcon(windowUUID: windowUUID, with: .loading, on: tab)
-            store.dispatch(GeneralBrowserAction(
+            browserEventBus.dispatch(GeneralBrowserAction(
                 windowUUID: windowUUID,
                 actionType: GeneralBrowserActionType.reloadWebsite
             ))
@@ -636,7 +636,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
             let tab = selectedTab(for: uuid)
             pendingLanguageSwitchTargets[uuid] = targetLanguage
             handleUpdatingTranslationIcon(windowUUID: uuid, with: .loading, on: tab)
-            store.dispatch(GeneralBrowserAction(
+            browserEventBus.dispatch(GeneralBrowserAction(
                 windowUUID: uuid,
                 actionType: GeneralBrowserActionType.reloadWebsite
             ))
@@ -673,7 +673,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
             windowUUID: windowUUID,
             actionType: actionType
         )
-        store.dispatch(translationsAction)
+        browserEventBus.dispatch(translationsAction)
     }
 
     private func dispatchShowRetryTranslationToastAction(
@@ -684,7 +684,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
             windowUUID: windowUUID,
             actionType: GeneralBrowserActionType.showToast
         )
-        store.dispatch(toastAction)
+        browserEventBus.dispatch(toastAction)
     }
 
     private func maybeShowAutoTranslatePrompt(windowUUID: WindowUUID) {
@@ -692,7 +692,7 @@ final class TranslationsActionHandler: FeatureFlaggable, Notifiable {
         let autoTranslateEnabled = profile.prefs.boolForKey(PrefsKeys.Settings.translationAutoTranslate) ?? false
         guard !promptShown && !autoTranslateEnabled else { return }
         profile.prefs.setBool(true, forKey: PrefsKeys.Settings.translationAutoTranslatePromptShown)
-        store.dispatch(TranslationsAction(
+        browserEventBus.dispatch(TranslationsAction(
             windowUUID: windowUUID,
             actionType: TranslationsActionType.showAutoTranslatePrompt
         ))

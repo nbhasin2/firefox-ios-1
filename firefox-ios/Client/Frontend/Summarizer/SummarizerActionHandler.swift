@@ -102,7 +102,7 @@ final class SummarizerActionHandler: SummarizerConfigFactory {
 
     private func handleDidTapReaderModeSummarizerButton(windowUUID: WindowUUID, summarizerConfig: SummarizerConfig?) {
         guard let summarizerConfig else { return }
-        store.dispatch(
+        browserEventBus.dispatch(
             GeneralBrowserAction(
                 summarizerConfig: summarizerConfig,
                 summarizerTrigger: .readerModeBarButton,
@@ -117,7 +117,7 @@ final class SummarizerActionHandler: SummarizerConfigFactory {
             dispatchSummaryNotAvailable(windowUUID: windowUUID)
             return
         }
-        store.dispatch(
+        browserEventBus.dispatch(
             SummarizeAction(
                 windowUUID: windowUUID,
                 actionType: SummarizeMiddlewareActionType.showReaderModeBarSummarizerButton,
@@ -130,7 +130,7 @@ final class SummarizerActionHandler: SummarizerConfigFactory {
             dispatchShakeToSummarizeNotAvailable(windowUUID: windowUUID)
             return
         }
-        store.dispatch(
+        browserEventBus.dispatch(
             GeneralBrowserAction(
                 summarizerConfig: summarizerConfig,
                 summarizerTrigger: .shakeGesture,
@@ -143,7 +143,7 @@ final class SummarizerActionHandler: SummarizerConfigFactory {
     private func dispatchShakeToSummarizeNotAvailable(windowUUID: WindowUUID) {
         let isHomePage = windowManager.tabManager(for: windowUUID)?.selectedTab?.isFxHomeTab ?? false
         guard summarizerNimbusUtils.isShakeGestureEnabled, !isHomePage else { return }
-        store.dispatch(
+        browserEventBus.dispatch(
             GeneralBrowserAction(
                 toastType: .shakeToSummarizeNotAvailable,
                 windowUUID: windowUUID,
@@ -170,7 +170,7 @@ final class SummarizerActionHandler: SummarizerConfigFactory {
     }
 
     private func dispatchSummaryNotAvailable(windowUUID: WindowUUID) {
-        store.dispatch(
+        browserEventBus.dispatch(
             SummarizeAction(
                 windowUUID: windowUUID,
                 actionType: SummarizeMiddlewareActionType.summaryNotAvailable,

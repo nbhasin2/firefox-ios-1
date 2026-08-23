@@ -229,7 +229,7 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
             UIView.animate(withDuration: UX.closeTabAnimationsDuration) { [self] in
                 tabPreview.tossPreview()
             } completion: { [weak self, windowUUID] _ in
-                store.dispatch(
+                browserEventBus.dispatch(
                     TabPanelViewAction(
                         panelType: .tabs,
                         tabUUID: self?.tabManager?.selectedTab?.tabUUID,
@@ -252,7 +252,7 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
                 self.tabPreview.dismissForTabTray()
             }
             toolbarTelemetry.addressBarDragged(outcome: ToolbarTelemetry.PanGestureOutcomes.tabTrayOpened)
-            store.dispatch(
+            browserEventBus.dispatch(
                 GeneralBrowserAction(
                     windowUUID: windowUUID,
                     actionType: GeneralBrowserActionType.showTabTray
@@ -281,8 +281,8 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
         }
 
         addHaptics()
-        store.dispatch(ToolbarMiddlewareAction(windowUUID: windowUUID,
-                                               actionType: ToolbarMiddlewareActionType.didSwipeToOpenTabTray))
+        browserEventBus.dispatch(ToolbarMiddlewareAction(windowUUID: windowUUID,
+                                                         actionType: ToolbarMiddlewareActionType.didSwipeToOpenTabTray))
     }
 
     private func addHaptics() {

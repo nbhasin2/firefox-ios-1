@@ -6,7 +6,7 @@ import Foundation
 import Shared
 
 /// Persists user preferences related to the Quick Answers feature.
-struct Store {
+struct BrowserEventBus {
     private let prefs: Prefs
 
     init(prefs: Prefs) {

@@ -97,7 +97,7 @@ final class TabsPanelService {
         dismissTabTray()
 
         if !isTabTrayUIExperimentsEnabled {
-            store.dispatch(
+            browserEventBus.dispatch(
                 GeneralBrowserAction(showOverlay: showOverlay,
                                      windowUUID: windowUUID,
                                      actionType: GeneralBrowserActionType.showOverlay)
@@ -248,7 +248,7 @@ final class TabsPanelService {
     /// Browser-level: the homepage observes this on the bus to refresh jump back in, and the tray
     /// itself listens for it to dismiss.
     private func dismissTabTray() {
-        store.dispatch(
+        browserEventBus.dispatch(
             TabTrayAction(windowUUID: windowUUID, actionType: TabTrayActionType.dismissTabTray)
         )
     }

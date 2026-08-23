@@ -28,7 +28,7 @@ final class StartAtHomeActionHandler {
         switch action.actionType {
         case StartAtHomeActionType.didBrowserBecomeActive:
             let shouldStartAtHome = self.startAtHomeCheck(windowUUID: action.windowUUID)
-            store.dispatch(
+            browserEventBus.dispatch(
                 StartAtHomeAction(
                     shouldStartAtHome: shouldStartAtHome,
                     windowUUID: action.windowUUID,

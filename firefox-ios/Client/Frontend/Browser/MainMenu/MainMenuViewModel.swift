@@ -199,7 +199,7 @@ final class MainMenuViewModel: MainMenuActionHandling {
 
     /// Browser-level, so it stays on the bus (DECISIONS.md D-016/D-017).
     private func showAddBookmarkToast(urlString: String) {
-        store.dispatch(
+        browserEventBus.dispatch(
             GeneralBrowserAction(
                 toastType: .addBookmark(urlString: urlString),
                 windowUUID: windowUUID,

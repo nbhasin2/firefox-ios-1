@@ -110,7 +110,7 @@ final class ToolbarActionHandler {
                 isNovaDesignEnabled: featureFlagsProvider.isEnabled(.novaDesign),
                 windowUUID: uuid,
                 actionType: ToolbarActionType.didLoadToolbars)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
             dispatchGoogleLensAvailability(for: uuid)
 
         case GeneralBrowserMiddlewareActionType.websiteDidScroll:
@@ -152,7 +152,7 @@ final class ToolbarActionHandler {
         case ToolbarMiddlewareActionType.didClearSearch:
             let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
             let action = ToolbarAction(windowUUID: action.windowUUID, actionType: ToolbarActionType.clearSearch)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
             toolbarTelemetry.clearSearchButtonTapped(isPrivate: toolbarState.isPrivateMode)
 
         case ToolbarMiddlewareActionType.didStartDragInteraction:
@@ -162,7 +162,7 @@ final class ToolbarActionHandler {
             toolbarTelemetry.addressBarSwiped()
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.showTabTray)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case ToolbarMiddlewareActionType.loadSummaryState:
             checkPageCanSummarize(action: action)
@@ -180,7 +180,7 @@ final class ToolbarActionHandler {
                 windowUUID: action.windowUUID,
                 actionType: SearchEngineSelectionMiddlewareActionType.didClearAlternativeSearchEngine
             )
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case ToolbarActionType.searchEngineDidChange, ToolbarActionType.googleLensSettingDidChange:
             dispatchGoogleLensAvailability(for: action.windowUUID)
@@ -222,7 +222,7 @@ final class ToolbarActionHandler {
         case .readerMode:
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.addToReadingListLongPressAction)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         default: break
         }
     }
@@ -236,25 +236,25 @@ final class ToolbarActionHandler {
             toolbarTelemetry.homeButtonTapped(isPrivate: toolbarState.isPrivateMode)
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.goToHomepage)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case .newTab:
             toolbarTelemetry.oneTapNewTabButtonTapped(isPrivate: toolbarState.isPrivateMode)
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.addNewTab)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case .back:
             toolbarTelemetry.backButtonTapped(isPrivate: toolbarState.isPrivateMode)
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.navigateBack)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case .forward:
             toolbarTelemetry.forwardButtonTapped(isPrivate: toolbarState.isPrivateMode)
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.navigateForward)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case .tabs:
             cancelEditMode(windowUUID: action.windowUUID)
@@ -262,14 +262,14 @@ final class ToolbarActionHandler {
             toolbarTelemetry.tabTrayButtonTapped(isPrivate: toolbarState.isPrivateMode)
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.showTabTray)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case .trackingProtection:
             toolbarTelemetry.siteInfoButtonTapped(isPrivate: toolbarState.isPrivateMode)
             let action = GeneralBrowserAction(buttonTapped: action.buttonTapped,
                                               windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.showTrackingProtectionDetails)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case .menu:
             cancelEditMode(windowUUID: action.windowUUID)
@@ -278,7 +278,7 @@ final class ToolbarActionHandler {
             let action = GeneralBrowserAction(buttonTapped: action.buttonTapped,
                                               windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.showMenu)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case .cancelEdit:
             cancelEditMode(windowUUID: action.windowUUID)
@@ -288,25 +288,25 @@ final class ToolbarActionHandler {
             let action = NavigationBrowserAction(navigationDestination: NavigationDestination(.readerMode),
                                                  windowUUID: action.windowUUID,
                                                  actionType: NavigationBrowserActionType.tapOnReaderMode)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case .reload:
             toolbarTelemetry.refreshButtonTapped(isPrivate: toolbarState.isPrivateMode)
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.reloadWebsite)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case .stopLoading:
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.stopLoadingWebsite)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case .share:
             toolbarTelemetry.shareButtonTapped(isPrivate: toolbarState.isPrivateMode)
             let action = GeneralBrowserAction(buttonTapped: action.buttonTapped,
                                               windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.showShare)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case .googleLens:
             toolbarTelemetry.googleLensButtonTapped()
@@ -315,18 +315,18 @@ final class ToolbarActionHandler {
             toolbarTelemetry.googleLensContextMenuOptionSelected(option: .photoPicker)
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.showGoogleLensPhotoPicker)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case .googleLensTakePhoto:
             toolbarTelemetry.googleLensContextMenuOptionSelected(option: .camera)
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.showGoogleLensCamera)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case .search:
             toolbarTelemetry.searchButtonTapped(isPrivate: toolbarState.isPrivateMode)
             let action = ToolbarAction(windowUUID: action.windowUUID, actionType: ToolbarActionType.didStartEditingUrl)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
         case .summarizer:
             Task { @MainActor in
@@ -336,7 +336,7 @@ final class ToolbarActionHandler {
                                                   summarizerTrigger: .toolbarIcon,
                                                   windowUUID: action.windowUUID,
                                                   actionType: GeneralBrowserActionType.showSummarizer)
-                store.dispatch(action)
+                browserEventBus.dispatch(action)
             }
         case .translate:
             // The effects of tapping on the translate button is also handled in
@@ -358,40 +358,40 @@ final class ToolbarActionHandler {
             toolbarTelemetry.backButtonLongPressed(isPrivate: toolbarState.isPrivateMode)
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.showBackForwardList)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         case .forward:
             toolbarTelemetry.forwardButtonLongPressed(isPrivate: toolbarState.isPrivateMode)
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.showBackForwardList)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         case .tabs:
             toolbarTelemetry.tabTrayButtonLongPressed(isPrivate: toolbarState.isPrivateMode)
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.showTabsLongPressActions)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         case .locationView:
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.showLocationViewLongPressActionSheet)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         case .reload:
             let action = GeneralBrowserAction(buttonTapped: action.buttonTapped,
                                               windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.showReloadLongPressAction)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         case .newTab:
             toolbarTelemetry.oneTapNewTabButtonLongPressed(isPrivate: toolbarState.isPrivateMode)
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.showNewTabLongPressActions)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         case .readerMode:
             let action = GeneralBrowserAction(windowUUID: action.windowUUID,
                                               actionType: GeneralBrowserActionType.addToReadingListLongPressAction)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         case .summarizer:
             let action = NavigationBrowserAction(navigationDestination: NavigationDestination(.readerMode),
                                                  windowUUID: action.windowUUID,
                                                  actionType: NavigationBrowserActionType.tapOnReaderMode)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         case .readerModeWithSummarizer:
             Task {
                 guard let webView = windowManager.tabManager(for: action.windowUUID)?.selectedTab?.webView else { return }
@@ -400,7 +400,7 @@ final class ToolbarActionHandler {
                                                   summarizerTrigger: .toolbarIcon,
                                                   windowUUID: action.windowUUID,
                                                   actionType: GeneralBrowserActionType.showSummarizer)
-                store.dispatch(action)
+                browserEventBus.dispatch(action)
             }
         case .translate:
             // Long-press on translate is handled in TranslationsActionHandler.
@@ -427,7 +427,7 @@ final class ToolbarActionHandler {
             windowUUID: windowUUID,
             actionType: ToolbarActionType.borderPositionChanged
         )
-        store.dispatch(toolbarAction)
+        browserEventBus.dispatch(toolbarAction)
     }
 
     private func isMicrosurveyShown(action: GeneralBrowserMiddlewareAction) -> Bool {
@@ -448,13 +448,13 @@ final class ToolbarActionHandler {
             let toolbarAction = ToolbarAction(displayNavBorder: !isMicrosurveyShown,
                                               windowUUID: windowUUID,
                                               actionType: ToolbarActionType.borderPositionChanged)
-            store.dispatch(toolbarAction)
+            browserEventBus.dispatch(toolbarAction)
         } else {
             let toolbarAction = ToolbarAction(addressBorderPosition: isMicrosurveyShown ? .none : .top,
                                               displayNavBorder: false,
                                               windowUUID: windowUUID,
                                               actionType: ToolbarActionType.borderPositionChanged)
-            store.dispatch(toolbarAction)
+            browserEventBus.dispatch(toolbarAction)
         }
     }
 
@@ -485,7 +485,7 @@ final class ToolbarActionHandler {
                                           displayNavBorder: displayNavToolbarBorder,
                                           windowUUID: action.windowUUID,
                                           actionType: ToolbarActionType.toolbarPositionChanged)
-        store.dispatch(toolbarAction)
+        browserEventBus.dispatch(toolbarAction)
     }
 
     @MainActor
@@ -496,7 +496,7 @@ final class ToolbarActionHandler {
 
         Task { @MainActor in
             let canSummarize = await summarizerConfigFactory.makeConfiguration(from: webView) != nil
-            store.dispatch(
+            browserEventBus.dispatch(
                 ToolbarAction(
                     canSummarize: canSummarize,
                     readerModeState: action.readerModeState,
@@ -515,12 +515,12 @@ final class ToolbarActionHandler {
             url = (currentURL.isWebPage() && !currentURL.isReaderModeURL) ? url : nil
         }
         let action = ToolbarAction(url: url, windowUUID: windowUUID, actionType: ToolbarActionType.cancelEdit)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
 
         let browserAction = GeneralBrowserAction(showOverlay: false,
                                                  windowUUID: windowUUID,
                                                  actionType: GeneralBrowserActionType.leaveOverlay)
-        store.dispatch(browserAction)
+        browserEventBus.dispatch(browserAction)
     }
 
     private func addressToolbarPositionFromSearchBarPosition(_ position: SearchBarPosition) -> AddressToolbarPosition {
@@ -584,6 +584,6 @@ final class ToolbarActionHandler {
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.googleLensAvailabilityDidChange
         )
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 }

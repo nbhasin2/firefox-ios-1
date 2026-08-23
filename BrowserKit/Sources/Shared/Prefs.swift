@@ -251,7 +251,7 @@ public struct PrefsKeys {
     // Only used to force faster Terms of Use timeout for debugging purposes
     public static let FasterTermsOfUseTimeoutOverride = "FasterTermsOfUseTimeoutOverride"
 
-    // Only used to force showing the App Store review dialog for debugging purposes
+    // Only used to force showing the App BrowserEventBus review dialog for debugging purposes
     public static let ForceShowAppReviewPromptOverride = "ForceShowAppReviewPromptOverride"
 
     public static let PasswordGeneratorShown = "PasswordGeneratorShown"

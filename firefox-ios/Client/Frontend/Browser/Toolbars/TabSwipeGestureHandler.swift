@@ -275,7 +275,7 @@ final class TabSwipeGestureHandler: NSObject, UIGestureRecognizerDelegate {
             if shouldCompleteTransition {
                 webPagePreview.isHidden = true
                 webPagePreview.alpha = 1
-                store.dispatch(
+                browserEventBus.dispatch(
                     ToolbarAction(
                         shouldAnimate: false,
                         windowUUID: windowUUID,
@@ -288,8 +288,8 @@ final class TabSwipeGestureHandler: NSObject, UIGestureRecognizerDelegate {
                 if let nextTab {
                     tabManager.selectTab(nextTab)
                 } else {
-                    store.dispatch(GeneralBrowserAction(windowUUID: windowUUID,
-                                                        actionType: GeneralBrowserActionType.addNewTab))
+                    browserEventBus.dispatch(GeneralBrowserAction(windowUUID: windowUUID,
+                                                                  actionType: GeneralBrowserActionType.addNewTab))
                 }
             } else {
                 webPagePreview.isHidden = true

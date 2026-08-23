@@ -167,7 +167,7 @@ class HomePageSettingViewController: SettingsTableViewController,
                 defaultValue: userPreferences.getPreferenceFor(.homepageBookmarksSectionDefault),
                 titleText: .Settings.Homepage.CustomizeFirefoxHome.Bookmarks
             ) { value in
-                store.dispatch(
+                browserEventBus.dispatch(
                     BookmarksAction(
                         isEnabled: value,
                         windowUUID: self.windowUUID,
@@ -187,7 +187,7 @@ class HomePageSettingViewController: SettingsTableViewController,
                 defaultValue: true,
                 titleText: .Settings.Homepage.CustomizeFirefoxHome.Stories
             ) { value in
-                store.dispatch(
+                browserEventBus.dispatch(
                     MerinoAction(
                         isEnabled: value,
                         windowUUID: self.windowUUID,

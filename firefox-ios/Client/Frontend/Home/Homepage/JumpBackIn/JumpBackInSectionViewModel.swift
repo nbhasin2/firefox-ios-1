@@ -40,7 +40,7 @@ final class JumpBackInSectionViewModel {
          userPreferences: UserFeaturePreferring = AppContainer.shared.resolve(),
          recentTabsProvider: RecentTabsProviding? = nil,
          syncedTabProvider: SyncedTabProviding? = nil,
-         bus: (any ActionObserving)? = store,
+         bus: (any ActionObserving)? = browserEventBus,
          initialState: JumpBackInSectionState? = nil) {
         self.windowUUID = windowUUID
         self.recentTabsProvider = recentTabsProvider ?? DefaultRecentTabsProvider()

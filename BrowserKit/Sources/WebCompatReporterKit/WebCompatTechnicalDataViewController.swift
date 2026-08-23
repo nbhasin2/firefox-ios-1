@@ -12,7 +12,7 @@ public protocol WebCompatTechnicalDataDelegate: AnyObject {
 }
 
 /// The Technical Data screen, pushed from Report Preview: collapsible sections listing the raw
-/// payload as key/value pairs. Store-agnostic, so configure it with a view model.
+/// payload as key/value pairs. BrowserEventBus-agnostic, so configure it with a view model.
 public final class WebCompatTechnicalDataViewController: UIViewController,
                                                          Themeable,
                                                          UICollectionViewDelegate {

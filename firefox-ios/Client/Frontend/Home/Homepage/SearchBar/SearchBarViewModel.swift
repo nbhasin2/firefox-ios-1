@@ -34,7 +34,7 @@ final class SearchBarViewModel {
          },
          isLandscape: @escaping () -> Bool = { UIWindow.isLandscape },
          deviceIdiom: @escaping () -> UIUserInterfaceIdiom = { UIDevice.current.userInterfaceIdiom },
-         bus: (any ActionObserving)? = store,
+         bus: (any ActionObserving)? = browserEventBus,
          visibilityStore: SearchBarVisibilityStore = .shared) {
         self.windowUUID = windowUUID
         self.visibilityStore = visibilityStore

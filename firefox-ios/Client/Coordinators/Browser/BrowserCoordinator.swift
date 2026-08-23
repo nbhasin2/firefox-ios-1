@@ -752,7 +752,7 @@ final class BrowserCoordinator: BaseCoordinator,
             navigationController.sheetPresentationController?.detents = [.medium(), .large()]
             navigationController.sheetPresentationController?.prefersGrabberVisible = true
             if isEditing {
-                store.dispatch(
+                browserEventBus.dispatch(
                     ToolbarAction(
                         shouldShowKeyboard: false,
                         windowUUID: windowUUID,
@@ -1033,7 +1033,7 @@ final class BrowserCoordinator: BaseCoordinator,
         navigationController.onViewDismissed = { [weak self] in
             guard let self else { return }
             self.didDismissTabTray(from: tabTrayCoordinator)
-            store.dispatch(
+            browserEventBus.dispatch(
                 TabTrayAction(
                     windowUUID: self.windowUUID,
                     actionType: TabTrayActionType.modalSwipedToClose
@@ -1167,9 +1167,9 @@ final class BrowserCoordinator: BaseCoordinator,
         }
         add(child: coordinator)
         coordinator.start()
-        store.dispatch(GeneralBrowserAction(showOverlay: false,
-                                            windowUUID: self.windowUUID,
-                                            actionType: GeneralBrowserActionType.leaveOverlay))
+        browserEventBus.dispatch(GeneralBrowserAction(showOverlay: false,
+                                                      windowUUID: self.windowUUID,
+                                                      actionType: GeneralBrowserActionType.leaveOverlay))
     }
 
     func showGoogleLensCamera() {
@@ -1184,9 +1184,9 @@ final class BrowserCoordinator: BaseCoordinator,
         }
         add(child: coordinator)
         coordinator.start()
-        store.dispatch(GeneralBrowserAction(showOverlay: false,
-                                            windowUUID: self.windowUUID,
-                                            actionType: GeneralBrowserActionType.leaveOverlay))
+        browserEventBus.dispatch(GeneralBrowserAction(showOverlay: false,
+                                                      windowUUID: self.windowUUID,
+                                                      actionType: GeneralBrowserActionType.leaveOverlay))
     }
 
     func searchGoogleLens(with image: UIImage, source: GoogleLensTelemetry.Source, searchTimerId: GleanTimerId? = nil) {

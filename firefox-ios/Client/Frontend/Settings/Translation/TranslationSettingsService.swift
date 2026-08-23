@@ -153,7 +153,7 @@ final class TranslationSettingsService: TranslationSettingsServicing {
     private static func dispatchSettingsChange(isEnabled: Bool?,
                                                configuration: TranslationConfiguration,
                                                windowUUID: WindowUUID) {
-        store.dispatch(TranslationsAction(
+        browserEventBus.dispatch(TranslationsAction(
             isTranslationsEnabled: isEnabled,
             translationConfiguration: configuration,
             windowUUID: windowUUID,

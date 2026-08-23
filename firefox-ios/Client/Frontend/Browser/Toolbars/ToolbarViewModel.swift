@@ -36,7 +36,7 @@ final class ToolbarViewModel {
     }
 
     /// Test seam: the registry is static, so a state one test seeds would otherwise be read by the
-    /// next one. Called from `StoreTestUtilityHelper.resetStore`.
+    /// next one. Called from `BusTestUtilityHelper.resetBus`.
     static func removeAllInstances() {
         instances.removeAll()
     }
@@ -66,7 +66,7 @@ final class ToolbarViewModel {
     private let bus: (any ActionObserving)?
 
     init(windowUUID: WindowUUID,
-         bus: (any ActionObserving)? = store,
+         bus: (any ActionObserving)? = browserEventBus,
          initialState: ToolbarState? = nil) {
         self.windowUUID = windowUUID
         self.bus = bus

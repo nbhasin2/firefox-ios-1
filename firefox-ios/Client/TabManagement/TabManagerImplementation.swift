@@ -811,7 +811,7 @@ final class TabManagerImplementation: NSObject,
         let currentTabs = tab.isPrivate ? privateTabs : normalTabs
         guard let index = currentTabs.firstIndex(of: tab) else { return }
 
-        store.dispatch(
+        browserEventBus.dispatch(
             ToolbarAction(
                 previousTabScreenshot: currentTabs[safe: index-1]?.screenshot,
                 nextTabScreenshot: currentTabs[safe: index+1]?.screenshot,
@@ -826,7 +826,7 @@ final class TabManagerImplementation: NSObject,
     @MainActor
     private func dispatchScreenshotRestoredAction(for tab: Tab) {
         guard isDeeplinkOptimizationRefactorEnabled else { return }
-        store.dispatch(
+        browserEventBus.dispatch(
             ScreenshotAction(
                 windowUUID: windowUUID,
                 tab: tab,
@@ -1058,7 +1058,7 @@ final class TabManagerImplementation: NSObject,
                                           isNativeErrorPage: isNativeErrorPage,
                                           windowUUID: windowUUID,
                                           actionType: GeneralBrowserActionType.updateSelectedTab)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     private func selectTabWithSession(tab: Tab, sessionData: Data?) {

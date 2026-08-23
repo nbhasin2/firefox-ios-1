@@ -60,7 +60,7 @@ struct NavigationToolbarContainerModel: Equatable {
             let action = ToolbarMiddlewareAction(buttonType: action.actionType,
                                                  windowUUID: windowUUID,
                                                  actionType: ToolbarMiddlewareActionType.customA11yAction)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         } : nil
     }
 
@@ -72,7 +72,7 @@ struct NavigationToolbarContainerModel: Equatable {
                                                  gestureType: .tap,
                                                  windowUUID: windowUUID,
                                                  actionType: ToolbarMiddlewareActionType.didTapButton)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         }
     }
 
@@ -86,7 +86,7 @@ struct NavigationToolbarContainerModel: Equatable {
                                                  gestureType: .longPress,
                                                  windowUUID: windowUUID,
                                                  actionType: ToolbarMiddlewareActionType.didTapButton)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         } : nil
     }
 }

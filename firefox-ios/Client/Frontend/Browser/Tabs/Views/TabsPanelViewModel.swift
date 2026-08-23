@@ -34,7 +34,7 @@ final class TabsPanelViewModel {
     init(windowUUID: WindowUUID,
          panelType: TabTrayPanelType,
          service: TabsPanelService,
-         bus: (any ActionObserving)? = store,
+         bus: (any ActionObserving)? = browserEventBus,
          initialState: TabsPanelState? = nil) {
         self.windowUUID = windowUUID
         self.panelType = panelType

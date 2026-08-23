@@ -357,7 +357,7 @@ final class HomepageViewController: UIViewController,
         if (lastContentOffsetY > 0 && scrollView.contentOffset.y <= 0) ||
             (lastContentOffsetY <= 0 && scrollView.contentOffset.y > 0) {
             lastContentOffsetY = scrollView.contentOffset.y
-            store.dispatch(
+            browserEventBus.dispatch(
                 GeneralBrowserMiddlewareAction(
                     scrollOffset: scrollView.contentOffset,
                     windowUUID: windowUUID,
@@ -368,7 +368,7 @@ final class HomepageViewController: UIViewController,
     private func handleToolbarStateOnScroll() {
         // When the user scrolls the homepage (not overlaid on a webpage when searching) we cancel edit mode
         let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.cancelEditOnHomepage)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     /// Calculates the number of tiles that can fit in a single row based on the available width.
@@ -948,7 +948,7 @@ final class HomepageViewController: UIViewController,
     @objc
     private func dismissKeyboard() {
         let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.cancelEdit)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     // MARK: Long Press (Photon Action Sheet)
@@ -978,7 +978,7 @@ final class HomepageViewController: UIViewController,
     }
 
     private func navigateToPocketLearnMore() {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(
                     .link,
@@ -998,7 +998,7 @@ final class HomepageViewController: UIViewController,
             sourceView: sourceView,
             toastContainer: toastContainer
         )
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.contextMenu, contextMenuConfiguration: configuration),
                 windowUUID: windowUUID,
@@ -1033,7 +1033,7 @@ final class HomepageViewController: UIViewController,
     }
 
     private func navigateToBookmarksPanel() {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.bookmarksPanel),
                 windowUUID: windowUUID,
@@ -1043,7 +1043,7 @@ final class HomepageViewController: UIViewController,
     }
 
     private func navigateToShortcutsLibrary() {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.shortcutsLibrary),
                 windowUUID: windowUUID,
@@ -1053,7 +1053,7 @@ final class HomepageViewController: UIViewController,
     }
 
     private func dispatchNavigationBrowserAction(with destination: NavigationDestination, actionType: ActionType) {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: destination,
                 windowUUID: self.windowUUID,
@@ -1064,7 +1064,7 @@ final class HomepageViewController: UIViewController,
 
     private func dispatchOpenPocketAction(at index: Int, actionType: ActionType) {
         let config = OpenPocketTelemetryConfig(isZeroSearch: homepageViewModel.isZeroSearch, position: index)
-        store.dispatch(
+        browserEventBus.dispatch(
             MerinoAction(
                 telemetryConfig: config,
                 windowUUID: self.windowUUID,
@@ -1078,7 +1078,7 @@ final class HomepageViewController: UIViewController,
     }
 
     private func dispatchPrivacyNoticeLinkTapped(url: URL) {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.privacyNoticeLink(url)),
                 windowUUID: windowUUID,
@@ -1242,7 +1242,7 @@ final class HomepageViewController: UIViewController,
             )
         case .jumpBackIn(let config):
             dispatchDidSelectCardItemAction(with: item)
-            store.dispatch(
+            browserEventBus.dispatch(
                 JumpBackInAction(
                     tab: config.tab,
                     windowUUID: self.windowUUID,

@@ -221,7 +221,7 @@ class TrackingProtectionModel {
             // Closing the screen is the owner's call; the toast is browser-level and stays Redux.
             self?.onDidClearCookiesAndSiteData?()
 
-            store.dispatch(
+            browserEventBus.dispatch(
                 GeneralBrowserAction(
                     toastType: .clearCookies,
                     windowUUID: windowUUID,

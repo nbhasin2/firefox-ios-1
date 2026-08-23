@@ -63,7 +63,7 @@ final class MicrosurveyViewModel {
     // MARK: - Default prompt close
 
     static func dispatchClosePrompt(windowUUID: WindowUUID) {
-        store.dispatch(
+        browserEventBus.dispatch(
             MicrosurveyPromptAction(
                 windowUUID: windowUUID,
                 actionType: MicrosurveyPromptActionType.closePrompt

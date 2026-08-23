@@ -44,7 +44,7 @@ final class MicrosurveyPromptActionHandler {
             windowUUID: windowUUID,
             actionType: MicrosurveyPromptMiddlewareActionType.initialize
         )
-        store.dispatch(newAction)
+        browserEventBus.dispatch(newAction)
         microsurveyManager.handleMessageDisplayed()
     }
 

@@ -20,7 +20,7 @@ extension BrowserViewController: PhotonActionSheetProtocol {
         } else {
             navigationHintDoubleTapTimer = nil
             let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.navigationButtonDoubleTapped)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         }
     }
 
@@ -35,7 +35,7 @@ extension BrowserViewController: PhotonActionSheetProtocol {
             actionOnDismiss: {
                 let action = ToolbarAction(windowUUID: self.windowUUID,
                                            actionType: ToolbarActionType.navigationHintFinishedPresenting)
-                store.dispatch(action)
+                browserEventBus.dispatch(action)
             },
             andActionForButton: { },
             overlayState: overlayManager,
@@ -58,7 +58,7 @@ extension BrowserViewController: PhotonActionSheetProtocol {
         } else {
             let action = ToolbarAction(windowUUID: self.windowUUID,
                                        actionType: ToolbarActionType.navigationHintFinishedPresenting)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         }
     }
 
@@ -241,7 +241,7 @@ extension BrowserViewController: PhotonActionSheetProtocol {
             if let tab = self.tabManager.selectedTab {
                 self.tabsPanelTelemetry.tabClosed(mode: tab.isPrivate ? .private : .normal)
                 self.tabManager.removeTab(tab.tabUUID)
-                store.dispatch(
+                browserEventBus.dispatch(
                     GeneralBrowserAction(
                         windowUUID: self.windowUUID,
                         actionType: GeneralBrowserActionType.didCloseTabFromToolbar

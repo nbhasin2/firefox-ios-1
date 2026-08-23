@@ -8,10 +8,10 @@ import Common
 /// Dispatching an action onto the bus. Separate from `ActionObserving` so a sender can be handed
 /// the dispatch half without the ability to register observers.
 @MainActor
-public protocol DispatchStore {
+public protocol ActionDispatching {
     func dispatch(_ action: Action)
     func dispatch(_ action: ModernAction, forWindowUUID windowUUID: WindowUUID)
 }
 
 /// What the app's global bus is typed as: it both dispatches and takes observers.
-public typealias DefaultDispatchStore = DispatchStore & ActionObserving
+public typealias BrowserEventBusing = ActionDispatching & ActionObserving

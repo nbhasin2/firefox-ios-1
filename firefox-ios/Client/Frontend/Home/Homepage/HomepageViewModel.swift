@@ -69,7 +69,7 @@ final class HomepageViewModel: Notifiable {
          telemetry: HomepageTelemetry = HomepageTelemetry(),
          termsOfUseTelemetry: TermsOfUseTelemetry = TermsOfUseTelemetry(),
          profile: Profile = AppContainer.shared.resolve(),
-         bus: (any ActionObserving)? = store,
+         bus: (any ActionObserving)? = browserEventBus,
          notificationCenter: NotificationProtocol = NotificationCenter.default) {
         self.windowUUID = windowUUID
         self.messageCard = messageCard ?? MessageCardViewModel(windowUUID: windowUUID)
