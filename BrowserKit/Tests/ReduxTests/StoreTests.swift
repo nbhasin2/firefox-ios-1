@@ -16,8 +16,7 @@ final class StoreTests: XCTestCase {
 
     func testDispatchBasicAction_mainThread() {
         let store = Store(state: mockState,
-                          reducer: MockState.reducer,
-                          middlewares: [])
+                          reducer: MockState.reducer)
 
         let action = FakeReduxAction(
             windowUUID: UUID(),
@@ -30,8 +29,7 @@ final class StoreTests: XCTestCase {
 
     func testDispatchMultipleActions_mainThread() {
         let store = Store(state: mockState,
-                          reducer: MockState.reducer,
-                          middlewares: [])
+                          reducer: MockState.reducer)
 
         let action1 = FakeReduxAction(
             windowUUID: UUID(),
@@ -57,8 +55,7 @@ final class StoreTests: XCTestCase {
         let expectation = expectation(description: "Wait for actions to run")
 
         let store = Store(state: mockState,
-                          reducer: MockState.reducer,
-                          middlewares: [])
+                          reducer: MockState.reducer)
 
         let action = FakeReduxAction(
             windowUUID: UUID(),
@@ -80,8 +77,7 @@ final class StoreTests: XCTestCase {
         let expectation = expectation(description: "Wait for actions to run")
 
         let store = Store(state: mockState,
-                          reducer: MockState.reducer,
-                          middlewares: [])
+                          reducer: MockState.reducer)
 
         Task.detached(priority: .background) {
             let action1 = FakeReduxAction(
@@ -112,8 +108,7 @@ final class StoreTests: XCTestCase {
 
     func testDispatchAction_withMidReduceActions() {
         let store = Store(state: mockState,
-                          reducer: MockState.reducer,
-                          middlewares: [])
+                          reducer: MockState.reducer)
 
         MockState.runMidReducerActions = true
         MockState.midReducerActions = {

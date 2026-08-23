@@ -17,13 +17,9 @@ protocol StoreTestUtility {
 /// Utility class used when replacing the global store for testing purposes
 class StoreTestUtilityHelper {
     @MainActor
-    static func setupStore(with appState: AppState, middlewares: [Middleware<AppState>]) {
+    static func setupStore(with appState: AppState) {
 #if TESTING
-        store = Store(
-            state: appState,
-            reducer: AppState.reducer,
-            middlewares: middlewares
-        )
+        store = Store(state: appState, reducer: AppState.reducer)
 #endif
     }
     @MainActor
@@ -37,11 +33,10 @@ class StoreTestUtilityHelper {
     @MainActor
     static func resetStore() {
 #if TESTING
-        store = Store(
-            state: AppState(),
-            reducer: AppState.reducer,
-            middlewares: []
-        )
+        store = Store(state: AppState(), reducer: AppState.reducer)
+        // Static per-window registries outlive a single test, so a state a previous test seeded
+        // would otherwise be read by the next one.
+        ToolbarViewModel.removeAllInstances()
 #endif
     }
 }

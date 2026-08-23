@@ -16,22 +16,21 @@ final class ReduxIntegrationTests: XCTestCase {
 
     var fakeReduxViewController: FakeReduxViewController!
     var mockState: FakeReduxState!
-    var mockMiddleware: FakeReduxMiddleware!
+    var mockActionHandler: FakeReduxActionHandler!
 
     override func setUp() async throws {
         try await super.setUp()
 
         mockState = FakeReduxState()
-        mockMiddleware = FakeReduxMiddleware()
-        mockMiddleware.generateInitialCountValue = {
+        mockActionHandler = FakeReduxActionHandler()
+        mockActionHandler.generateInitialCountValue = {
             return self.initialCountValue
         }
 
-        store = Store(state: mockState,
-                      reducer: FakeReduxState.reducer,
-                      middlewares: [mockMiddleware.fakeProvider])
+        store = Store(state: mockState, reducer: FakeReduxState.reducer)
+        mockActionHandler.register(on: store)
 
-        // Initialize the VC after store and middleware are set up
+        // Initialize the VC after store and action handler are set up
         fakeReduxViewController = createAndLoadViewController()
     }
 

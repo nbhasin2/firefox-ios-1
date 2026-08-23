@@ -35,6 +35,12 @@ final class ToolbarViewModel {
         instances.removeValue(forKey: windowUUID)
     }
 
+    /// Test seam: the registry is static, so a state one test seeds would otherwise be read by the
+    /// next one. Called from `StoreTestUtilityHelper.resetStore`.
+    static func removeAllInstances() {
+        instances.removeAll()
+    }
+
     /// Test seam: seeds the instance a window's views and reducers will read.
     static func register(_ viewModel: ToolbarViewModel, for windowUUID: WindowUUID) {
         instances[windowUUID] = viewModel
@@ -83,11 +89,14 @@ final class ToolbarViewModel {
     private func observeActions() {
         bus?.addActionObserver(self) { [weak self] action in
             guard let self else { return }
-            if let modernAction = action as? ToolbarModernAction {
-                self.state = ToolbarState.reduceModern(self.state, with: modernAction)
-            } else {
-                self.state = ToolbarState.reduce(self.state, with: action)
-            }
+            self.state = ToolbarState.reduce(self.state, with: action)
+        }
+        bus?.addModernActionObserver(self) { [weak self] action, actionWindowUUID in
+            guard let self,
+                  actionWindowUUID == self.windowUUID,
+                  let action = action as? ToolbarModernAction
+            else { return }
+            self.state = ToolbarState.reduceModern(self.state, with: action)
         }
     }
 }

@@ -15,7 +15,6 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore, Act
     private let logger: Logger
 
     private var reducer: Reducer<State>
-    private var middlewares: [Middleware<State>]
     private var subscriptions: Set<SubscriptionType> = []
 
     private var actionQueue: [(action: Either<Action, ModernAction>, windowUUID: WindowUUID)] = []
@@ -25,13 +24,23 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore, Act
     /// `subscriptions`, which is state-change notification.
     private struct ActionObserverBox {
         let id: ObjectIdentifier
+        let tier: ActionObserverTier
         weak var observer: AnyObject?
         let handler: @MainActor (Action) -> Void
     }
     /// An array rather than a dictionary because delivery order is part of the contract: the
     /// services that replaced middlewares ran in a fixed order, and some of them react to actions
-    /// the earlier ones dispatch.
+    /// the earlier ones dispatch. `.state` observers are delivered to before `.effects` ones, which
+    /// is what running every reducer before any middleware used to guarantee.
     private var actionObservers: [ActionObserverBox] = []
+
+    private struct ModernActionObserverBox {
+        let id: ObjectIdentifier
+        let tier: ActionObserverTier
+        weak var observer: AnyObject?
+        let handler: @MainActor (ModernAction, WindowUUID) -> Void
+    }
+    private var modernActionObservers: [ModernActionObserverBox] = []
 
     public var state: State {
         didSet {
@@ -48,11 +57,9 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore, Act
 
     public init(state: State,
                 reducer: Reducer<State>,
-                middlewares: [Middleware<State>] = [],
                 logger: Logger = DefaultLogger.shared) {
         self.state = state
         self.reducer = reducer
-        self.middlewares = middlewares
         self.logger = logger
     }
 
@@ -89,7 +96,7 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore, Act
         MainActor.assertIsolated("Expected to be called only on main actor.")
         logger.log("Dispatched action: \(action.debugDescription)", level: .info, category: .redux)
 
-        // We queue and process actions to ensure each single action completely passes through reducers and middlewares
+        // We queue and process actions to ensure each single action completely passes through the reducer and observers
         // before the next action fires.
         actionQueue.append((.legacy(action), action.windowUUID))
         processQueuedActions()
@@ -100,7 +107,7 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore, Act
         MainActor.assertIsolated("Expected to be called only on main actor.")
         logger.log("Dispatched action: \(action.description)", level: .info, category: .redux)
 
-        // We queue and process actions to ensure each single action completely passes through reducers and middlewares
+        // We queue and process actions to ensure each single action completely passes through the reducer and observers
         // before the next action fires.
         actionQueue.append((.modern(action), windowUUID))
         processQueuedActions()
@@ -130,28 +137,20 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore, Act
              newState = reducer.modernReducer(state, modernAction, windowUUID)
         }
 
-        // Middlewares are all given an opportunity to respond to the action. This is only done once
-        // per middleware, regardless of how many active windows or screen states there are. (This
-        // differs slightly from reducers, which are called once for each screen.)
-        middlewares.forEach { middleware in
-            switch action {
-            case .legacy(let legacyAction):
-                middleware.legacyMiddleware(newState, legacyAction)
-            case .modern(let modernAction):
-                middleware.modernMiddleware(newState, modernAction, windowUUID)
-            }
-        }
-
-        notifyActionObservers(of: action)
-
         state = newState
+
+        // After the state assignment, so an observer that reads `store.state` sees the same
+        // post-action state a middleware was handed.
+        notifyActionObservers(of: action, forWindowUUID: windowUUID)
     }
 
     // MARK: - ActionObserving
 
-    public func addActionObserver(_ observer: AnyObject, handler: @escaping @MainActor (Action) -> Void) {
+    public func addActionObserver(_ observer: AnyObject,
+                                  tier: ActionObserverTier,
+                                  handler: @escaping @MainActor (Action) -> Void) {
         let id = ObjectIdentifier(observer)
-        let box = ActionObserverBox(id: id, observer: observer, handler: handler)
+        let box = ActionObserverBox(id: id, tier: tier, observer: observer, handler: handler)
         // Re-registering keeps the original position, so order does not depend on when a screen
         // happens to re-subscribe.
         if let index = actionObservers.firstIndex(where: { $0.id == id }) {
@@ -161,20 +160,50 @@ public final class Store<State: StateType & Sendable>: DefaultDispatchStore, Act
         }
     }
 
+    public func addModernActionObserver(_ observer: AnyObject,
+                                        tier: ActionObserverTier,
+                                        handler: @escaping @MainActor (ModernAction, WindowUUID) -> Void) {
+        let id = ObjectIdentifier(observer)
+        let box = ModernActionObserverBox(id: id, tier: tier, observer: observer, handler: handler)
+        if let index = modernActionObservers.firstIndex(where: { $0.id == id }) {
+            modernActionObservers[index] = box
+        } else {
+            modernActionObservers.append(box)
+        }
+    }
+
     public func removeActionObserver(_ observer: AnyObject) {
         let id = ObjectIdentifier(observer)
         actionObservers.removeAll { $0.id == id }
+        modernActionObservers.removeAll { $0.id == id }
     }
 
     /// Only legacy actions carry their own `windowUUID`; observers filter on it themselves, as
     /// reducers used to.
-    private func notifyActionObservers(of action: Either<Action, ModernAction>) {
-        guard case .legacy(let legacyAction) = action, !actionObservers.isEmpty else { return }
+    private func notifyActionObservers(of action: Either<Action, ModernAction>, forWindowUUID windowUUID: WindowUUID) {
+        switch action {
+        case .legacy(let legacyAction):
+            guard !actionObservers.isEmpty else { return }
+            // Drop deallocated observers first, so a handler cannot resurrect one mid-iteration.
+            actionObservers = actionObservers.filter { $0.observer != nil }
+            let observers = actionObservers
+            for box in observers where box.tier == .state {
+                box.handler(legacyAction)
+            }
+            for box in observers where box.tier == .effects {
+                box.handler(legacyAction)
+            }
 
-        // Drop deallocated observers first, so a handler cannot resurrect one mid-iteration.
-        actionObservers = actionObservers.filter { $0.observer != nil }
-        for box in actionObservers {
-            box.handler(legacyAction)
+        case .modern(let modernAction):
+            guard !modernActionObservers.isEmpty else { return }
+            modernActionObservers = modernActionObservers.filter { $0.observer != nil }
+            let observers = modernActionObservers
+            for box in observers where box.tier == .state {
+                box.handler(modernAction, windowUUID)
+            }
+            for box in observers where box.tier == .effects {
+                box.handler(modernAction, windowUUID)
+            }
         }
     }
 

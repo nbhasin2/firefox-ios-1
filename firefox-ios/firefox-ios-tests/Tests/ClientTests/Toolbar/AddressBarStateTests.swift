@@ -1277,7 +1277,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     /// The toolbar state lives on ToolbarViewModel now, and the middleware is an observer on the
     /// bus rather than a registered middleware.
     func setupStore(with initialToolbarState: ToolbarState) {
-        StoreTestUtilityHelper.setupStore(with: AppState(), middlewares: [])
+        StoreTestUtilityHelper.setupStore(with: AppState())
         ToolbarViewModel.register(
             ToolbarViewModel(windowUUID: windowUUID, bus: nil, initialState: initialToolbarState),
             for: windowUUID

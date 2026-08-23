@@ -6,21 +6,55 @@ import Foundation
 import Common
 import Redux
 
-/// A mock Store used to test redux middlewares.
+/// A mock Store used to test the services and view models that observe the action bus.
 ///
 /// If you need to highly customize this mock to meet your testing needs, you should subclass it and/or make your own mock
 /// store implementation (e.g. storing a completion handler for asynchronous middleware actions so you can await expectations
 ///  in your tests).
 class MockStoreForMiddleware<State: StateType>: DefaultDispatchStore {
-    /// Bus observers, so a test can assert on what a view model heard.
-    private(set) var actionObservers: [ObjectIdentifier: @MainActor (Action) -> Void] = [:]
+    /// Bus observers, so a test can assert on what a view model heard. Ordered and tiered like the
+    /// real store's, so a test sees the same delivery order production does.
+    private struct ObserverBox {
+        let id: ObjectIdentifier
+        let tier: ActionObserverTier
+        let handler: @MainActor (Action) -> Void
+    }
+    private struct ModernObserverBox {
+        let id: ObjectIdentifier
+        let tier: ActionObserverTier
+        let handler: @MainActor (ModernAction, WindowUUID) -> Void
+    }
+    private var observers: [ObserverBox] = []
+    private var modernObservers: [ModernObserverBox] = []
 
-    func addActionObserver(_ observer: AnyObject, handler: @escaping @MainActor (Action) -> Void) {
-        actionObservers[ObjectIdentifier(observer)] = handler
+    var actionObserverCount: Int { return observers.count }
+
+    func addActionObserver(_ observer: AnyObject,
+                           tier: ActionObserverTier,
+                           handler: @escaping @MainActor (Action) -> Void) {
+        let box = ObserverBox(id: ObjectIdentifier(observer), tier: tier, handler: handler)
+        if let index = observers.firstIndex(where: { $0.id == box.id }) {
+            observers[index] = box
+        } else {
+            observers.append(box)
+        }
+    }
+
+    func addModernActionObserver(_ observer: AnyObject,
+                                 tier: ActionObserverTier,
+                                 handler: @escaping @MainActor (ModernAction, WindowUUID) -> Void) {
+        let box = ModernObserverBox(id: ObjectIdentifier(observer), tier: tier, handler: handler)
+        if let index = modernObservers.firstIndex(where: { $0.id == box.id }) {
+            modernObservers[index] = box
+        } else {
+            modernObservers.append(box)
+        }
     }
 
     func removeActionObserver(_ observer: AnyObject) {
-        actionObservers.removeValue(forKey: ObjectIdentifier(observer))
+        let id = ObjectIdentifier(observer)
+        observers.removeAll { $0.id == id }
+        modernObservers.removeAll { $0.id == id }
     }
 
     private let lock = NSLock()
@@ -71,17 +105,21 @@ class MockStoreForMiddleware<State: StateType>: DefaultDispatchStore {
     func dispatch(_ action: Redux.Action) {
         lock.lock()
         dispatchedActions.append(action)
-        let observers = actionObservers.values
+        let notified = observers
         lock.unlock()
-        // Mirror the real store: bus observers see every dispatched legacy action.
-        observers.forEach { $0(action) }
+        // Mirror the real store: bus observers see every dispatched legacy action, state tier first.
+        notified.filter { $0.tier == .state }.forEach { $0.handler(action) }
+        notified.filter { $0.tier == .effects }.forEach { $0.handler(action) }
         dispatchCalled?()
     }
 
     func dispatch(_ action: any Redux.ModernAction, forWindowUUID windowUUID: Common.WindowUUID) {
         lock.lock()
-        defer { lock.unlock() }
         dispatchedModernActions.append(action)
+        let notified = modernObservers
+        lock.unlock()
+        notified.filter { $0.tier == .state }.forEach { $0.handler(action, windowUUID) }
+        notified.filter { $0.tier == .effects }.forEach { $0.handler(action, windowUUID) }
         dispatchCalled?()
     }
 }

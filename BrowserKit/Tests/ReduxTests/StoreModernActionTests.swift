@@ -24,8 +24,7 @@ final class StoreModernActionTests: XCTestCase {
     func testDispatchBasicAction() throws {
         let store = Store(
             state: mockState,
-            reducer: MockState.reducer,
-            middlewares: [])
+            reducer: MockState.reducer)
 
         let testAction = FakeReduxModernAction.counterIncreased(counterValue: 1)
 
@@ -49,8 +48,7 @@ final class StoreModernActionTests: XCTestCase {
     func testDispatchMultipleActions() throws {
         let store = Store(
             state: mockState,
-            reducer: MockState.reducer,
-            middlewares: [])
+            reducer: MockState.reducer)
 
         let testAction1 = FakeReduxModernAction.counterIncreased(counterValue: 13)
         let testAction2 = FakeReduxModernAction.counterDecreased(counterValue: 12)

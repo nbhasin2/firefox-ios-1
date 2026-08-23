@@ -21,7 +21,7 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
     private weak var tabManager: TabManager?
     private let themeManager: ThemeManager
     private let windowUUID: WindowUUID
-    private var toolbarState: ToolbarState?
+    private var toolbarState: ToolbarState
     private weak var panGesture: UIPanGestureRecognizer?
     private weak var swipeUpGesture: UISwipeGestureRecognizer?
     private weak var swipeDownGesture: UISwipeGestureRecognizer?
@@ -59,6 +59,7 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
         self.windowUUID = windowUUID
         self.swipeGestureFeatureFlagProvider = swipeGestureFeatureFlagProvider
         self.toolbarTelemetry = toolbarTelemetry
+        self.toolbarState = ToolbarViewModel.instance(for: windowUUID).state
         super.init()
         observeToolbarState()
     }
@@ -273,9 +274,9 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
     private func handleSwipeGesture(_ gesture: UISwipeGestureRecognizer) {
         let direction = gesture.direction
 
-        if direction == .up && toolbarState?.toolbarPosition == .top {
+        if direction == .up && toolbarState.toolbarPosition == .top {
             return
-        } else if direction == .down && toolbarState?.toolbarPosition == .bottom {
+        } else if direction == .down && toolbarState.toolbarPosition == .bottom {
             return
         }
 

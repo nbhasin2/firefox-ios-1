@@ -2,19 +2,31 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
+import Common
 import Foundation
 
 @testable import Redux
 
+/// Registered on the store's action bus in place of the middleware this used to be. It reads
+/// `store.state` where the middleware was handed the state, which is the same value: observers are
+/// notified after the reducer has run and the new state has been assigned.
 @MainActor
-class FakeReduxMiddleware {
+class FakeReduxActionHandler {
     var generateInitialCountValue: (() -> Int)?
 
-    lazy var fakeProvider: Middleware<FakeReduxState> = (legacyFakeProvider, modernFakeProvider)
+    func register(on store: any ActionObserving) {
+        store.addActionObserver(self, tier: .effects) { [weak self] action in
+            self?.handle(action)
+        }
+        store.addModernActionObserver(self, tier: .effects) { [weak self] action, windowUUID in
+            self?.handle(action, forWindowUUID: windowUUID)
+        }
+    }
 
-    lazy var modernFakeProvider: MiddlewareClosure<FakeReduxState> = { [self] state, action, windowUUID in
+    private func handle(_ action: ModernAction, forWindowUUID windowUUID: WindowUUID) {
         // Handles one type of action
         guard let action = action as? FakeReduxModernAction else { return }
+        let state = store.state
 
         switch action {
         case .requestInitialValue:
@@ -45,9 +57,10 @@ class FakeReduxMiddleware {
         }
     }
 
-    lazy var legacyFakeProvider: LegacyMiddlewareClosure<FakeReduxState> = { [self] state, action in
+    private func handle(_ action: Action) {
         // Handles one type of action
         guard let actionType = action.actionType as? FakeReduxActionType else { return }
+        let state = store.state
 
         switch actionType {
         case .requestInitialValue:

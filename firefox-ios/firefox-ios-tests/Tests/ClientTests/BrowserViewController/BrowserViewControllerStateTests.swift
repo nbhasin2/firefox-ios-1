@@ -620,10 +620,7 @@ final class BrowserViewControllerStateTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        StoreTestUtilityHelper.setupStore(
-            with: setupAppState(),
-            middlewares: []
-        )
+        StoreTestUtilityHelper.setupStore(with: setupAppState())
     }
 
     // In order to avoid flaky tests, we should reset the store
