@@ -14,6 +14,8 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     let storeUtilityHelper = StoreTestUtilityHelper()
     let windowUUID: WindowUUID = .XCTestDefaultUUID
     var mockProfile: MockProfile!
+    /// Held: the store keeps action observers weakly.
+    private var toolbarService: ToolbarMiddleware!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -21,11 +23,14 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
         setIsHostedSummarizerFeatureEnabled(enabled: false)
         setIsSummarizerLanguageExpansionEnabled(enabled: false)
         DependencyHelperMock().bootstrapDependencies(injectedTabManager: MockTabManager())
+        toolbarService = ToolbarMiddleware()
     }
 
     override func tearDown() async throws {
         DependencyHelperMock().reset()
         resetStore()
+        ToolbarViewModel.removeInstance(for: windowUUID)
+        toolbarService = nil
         mockProfile = nil
         try await super.tearDown()
     }
@@ -1269,15 +1274,15 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     // MARK: Helper
-    func setupAppState(with initialToolbarState: ToolbarState) -> AppState {
-        return AppState()
-    }
-
+    /// The toolbar state lives on ToolbarViewModel now, and the middleware is an observer on the
+    /// bus rather than a registered middleware.
     func setupStore(with initialToolbarState: ToolbarState) {
-        StoreTestUtilityHelper.setupStore(
-            with: setupAppState(with: initialToolbarState),
-            middlewares: [ToolbarMiddleware().toolbarProvider]
+        StoreTestUtilityHelper.setupStore(with: AppState(), middlewares: [])
+        ToolbarViewModel.register(
+            ToolbarViewModel(windowUUID: windowUUID, bus: nil, initialState: initialToolbarState),
+            for: windowUUID
         )
+        store.addActionObserver(toolbarService) { [toolbarService] in toolbarService?.handle($0) }
     }
 
     func initialToolbarState(isShowingNavigationToolbar: Bool) -> ToolbarState {
@@ -1311,10 +1316,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     }
 
     func setupStore() {
-        StoreTestUtilityHelper.setupStore(
-            with: setupAppState(),
-            middlewares: [ToolbarMiddleware().toolbarProvider]
-        )
+        setupStore(with: ToolbarState(windowUUID: windowUUID))
     }
 
     // In order to avoid flaky tests, we should reset the store

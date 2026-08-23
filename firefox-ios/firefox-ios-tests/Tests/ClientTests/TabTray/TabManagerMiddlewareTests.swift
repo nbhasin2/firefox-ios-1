@@ -56,7 +56,7 @@ final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility {
         )
         mockWindowManager.overrideWindows = true
 
-        subject.tabsPanelProvider.legacyMiddleware(appState, action)
+        subject.handle(action)
 
         XCTAssertEqual(mockTabManager.tabDidSetScreenshotCalls, 1)
     }
@@ -69,7 +69,7 @@ final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility {
             actionType: ScreenshotActionType.screenshotTaken
         )
 
-        subject.tabsPanelProvider.legacyMiddleware(appState, action)
+        subject.handle(action)
 
         XCTAssertTrue(mockWindowManager.windowsWereAccessed)
         XCTAssertEqual(mockTabManager.tabDidSetScreenshotCalls, 0)
@@ -84,7 +84,7 @@ final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility {
         )
         mockWindowManager.overrideWindows = true
 
-        subject.tabsPanelProvider.legacyMiddleware(appState, action)
+        subject.handle(action)
 
         XCTAssertEqual(
             mockTabManager.tabDidSetScreenshotCalls,
@@ -115,7 +115,7 @@ final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility {
         let mockTabManager = mockWindowManager.tabManager(for: .XCTestDefaultUUID) as? MockTabManager
         mockTabManager?.selectTabExpectation = expectation
 
-        subject.tabsPanelProvider.legacyMiddleware(appState, action)
+        subject.handle(action)
 
         wait(for: [expectation])
 
@@ -133,7 +133,7 @@ final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility {
             actionType: ShortcutsLibraryActionType.switchTabToastButtonTapped
         )
 
-        subject.tabsPanelProvider.legacyMiddleware(appState, action)
+        subject.handle(action)
         let selectedTab = mockWindowManager.tabManager(for: .XCTestDefaultUUID)!.selectedTab
 
         XCTAssertEqual(selectedTab, tab)
@@ -150,7 +150,7 @@ final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility {
             actionType: TabPanelViewActionType.addNewTab
         )
 
-        subject.tabsPanelProvider.legacyMiddleware(appState, action)
+        subject.handle(action)
         let selectedTab = mockWindowManager.tabManager(for: .XCTestDefaultUUID)!.selectedTab
 
         XCTAssertNotEqual(selectedTab, tab)

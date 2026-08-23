@@ -60,7 +60,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: GeneralBrowserMiddlewareActionType.browserDidLoad)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
@@ -100,7 +100,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: GeneralBrowserMiddlewareActionType.browserDidLoad)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.last as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
@@ -121,7 +121,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: GeneralBrowserMiddlewareActionType.browserDidLoad)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.last as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
@@ -144,7 +144,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             actionType: ToolbarActionType.searchEngineDidChange
         )
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
@@ -167,7 +167,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             actionType: ToolbarActionType.searchEngineDidChange
         )
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
@@ -188,7 +188,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             actionType: ToolbarActionType.searchEngineDidChange
         )
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
@@ -211,7 +211,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             actionType: ToolbarActionType.searchEngineDidChange
         )
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
@@ -231,7 +231,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             actionType: ToolbarActionType.searchEngineDidChange
         )
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
@@ -252,7 +252,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         )
         let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.googleLensSettingDidChange)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
@@ -273,7 +273,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         )
         let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.googleLensSettingDidChange)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
@@ -297,7 +297,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: GeneralBrowserMiddlewareActionType.browserDidLoad)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.last as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.actionType as? ToolbarMiddlewareActionType,
@@ -321,7 +321,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: GeneralBrowserMiddlewareActionType.browserDidLoad)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.last as? ToolbarMiddlewareAction)
         XCTAssertEqual(actionCalled.isGoogleLensEnabled, false)
@@ -343,7 +343,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         )
         let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.urlDidChange)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(mockStore.dispatchedActions.count, 1)
@@ -368,7 +368,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         )
         let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.urlDidChange)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarMiddlewareAction)
         XCTAssertEqual(mockStore.dispatchedActions.count, 1)
@@ -393,7 +393,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         )
         let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.urlDidChange)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         XCTAssertTrue(mockStore.dispatchedActions.isEmpty)
     }
@@ -407,7 +407,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: GeneralBrowserMiddlewareActionType.browserDidLoad)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
@@ -430,7 +430,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: GeneralBrowserMiddlewareActionType.websiteDidScroll)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
@@ -453,7 +453,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: GeneralBrowserMiddlewareActionType.toolbarPositionChanged)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
@@ -476,7 +476,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         let action = ToolbarMiddlewareAction(readerModeState: .active,
                                              windowUUID: .XCTestDefaultUUID,
                                              actionType: ToolbarMiddlewareActionType.loadSummaryState)
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         XCTAssertNil(mockStore.dispatchedActions.first as? ToolbarAction)
     }
@@ -496,7 +496,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         mockStore.dispatchCalled = {
             expectation.fulfill()
         }
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
         wait(for: [expectation])
 
         let result = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
@@ -509,7 +509,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         let action = MicrosurveyPromptMiddlewareAction(
             windowUUID: windowUUID,
             actionType: MicrosurveyPromptMiddlewareActionType.initialize)
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
@@ -527,7 +527,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         let action = MicrosurveyPromptMiddlewareAction(
             windowUUID: windowUUID,
             actionType: MicrosurveyPromptMiddlewareActionType.initialize)
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
@@ -544,7 +544,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         let action = MicrosurveyPromptAction(
             windowUUID: windowUUID,
             actionType: MicrosurveyPromptActionType.closePrompt)
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
@@ -562,7 +562,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         let action = MicrosurveyPromptAction(
             windowUUID: windowUUID,
             actionType: MicrosurveyPromptActionType.closePrompt)
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
@@ -581,7 +581,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.customA11yAction)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? GeneralBrowserAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? GeneralBrowserActionType)
@@ -662,7 +662,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.didTapButton)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         try cancelEditMode(dispatchedActionsCount: 3)
 
@@ -711,7 +711,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.didTapButton)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         try cancelEditMode(dispatchedActionsCount: 3)
 
@@ -741,7 +741,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.didTapButton)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         try cancelEditMode(dispatchedActionsCount: 2)
     }
@@ -824,7 +824,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.didTapButton)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let savedMetric = try XCTUnwrap(
             mockGleanWrapper.savedEvents.first as? EventMetricType<NoExtras>
@@ -874,7 +874,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.didTapButton)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
@@ -973,7 +973,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.didTapButton)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? GeneralBrowserAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? GeneralBrowserActionType)
@@ -1029,7 +1029,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.urlDidChange)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
@@ -1047,7 +1047,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         let action = ToolbarMiddlewareAction(
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.didClearSearch)
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
@@ -1073,7 +1073,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         let action = ToolbarMiddlewareAction(
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.didStartDragInteraction)
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         XCTAssertEqual(mockStore.dispatchedActions.count, 0)
 
@@ -1091,7 +1091,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         let action = ToolbarMiddlewareAction(
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.didSwipeToOpenTabTray)
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let savedMetric = try XCTUnwrap(
             mockGleanWrapper.savedEvents.first as? EventMetricType<NoExtras>
@@ -1111,7 +1111,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: ToolbarMiddlewareActionType.didSwipeToOpenTabTray)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let savedMetric = try XCTUnwrap(
             mockGleanWrapper.savedEvents.first as? EventMetricType<NoExtras>
@@ -1129,7 +1129,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             windowUUID: windowUUID,
             actionType: ToolbarActionType.cancelEdit)
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? SearchEngineSelectionAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? SearchEngineSelectionMiddlewareActionType)
@@ -1147,7 +1147,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             actionType: ToolbarActionType.didSubmitSearchTerm
         )
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
         XCTAssertEqual(mockRecentSearchProvider.addRecentSearchCalledCount, 1)
     }
 
@@ -1159,7 +1159,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             actionType: ToolbarActionType.didSubmitSearchTerm
         )
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
         XCTAssertEqual(mockRecentSearchProvider.addRecentSearchCalledCount, 0)
     }
 
@@ -1170,7 +1170,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             actionType: ToolbarActionType.didSubmitSearchTerm
         )
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
         XCTAssertEqual(mockRecentSearchProvider.addRecentSearchCalledCount, 0)
     }
 
@@ -1186,7 +1186,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             actionType: ToolbarActionType.didSubmitSearchTerm
         )
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
         XCTAssertEqual(mockRecentSearchProvider.addRecentSearchCalledCount, 0)
     }
 
@@ -1201,7 +1201,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             actionType: ToolbarActionType.didSubmitSearchTerm
         )
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
         XCTAssertEqual(mockRecentSearchProvider.addRecentSearchCalledCount, 0)
     }
 
@@ -1215,7 +1215,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             actionType: ToolbarActionType.didSubmitSearchTerm
         )
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
         XCTAssertEqual(mockRecentSearchProvider.addRecentSearchCalledCount, 0)
     }
 
@@ -1271,7 +1271,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             expectation?.fulfill()
         }
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         if let expectation {
             wait(for: [expectation], timeout: 1.0)
@@ -1299,7 +1299,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             expectation?.fulfill()
         }
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         if let expectation {
             wait(for: [expectation], timeout: 1.0)
@@ -1327,7 +1327,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             expectation?.fulfill()
         }
 
-        subject.toolbarProvider.legacyMiddleware(mockStore.state, action)
+        subject.handle(action)
 
         if let expectation {
             wait(for: [expectation], timeout: 1.0)
