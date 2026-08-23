@@ -13,21 +13,21 @@ import XCTest
 /// Also the first test of the retained bus (D-019): the hide events arrive as dispatched actions
 /// rather than as a state change.
 @MainActor
-final class SearchBarViewModelTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStore!
+final class SearchBarViewModelTests: XCTestCase, BusTestUtility {
+    var mockBus: MockBrowserEventBus!
     private var visibilityStore: SearchBarVisibilityStore!
 
     override func setUp() async throws {
         try await super.setUp()
         await DependencyHelperMock().bootstrapDependencies()
         visibilityStore = SearchBarVisibilityStore()
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
         visibilityStore = nil
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -81,7 +81,7 @@ final class SearchBarViewModelTests: XCTestCase, StoreTestUtility {
         let subject = createSubject()
         subject.refreshVisibility()
 
-        mockStore.dispatch(
+        mockBus.dispatch(
             GeneralBrowserAction(windowUUID: .XCTestDefaultUUID,
                                  actionType: GeneralBrowserActionType.enteredZeroSearchScreen)
         )
@@ -93,7 +93,7 @@ final class SearchBarViewModelTests: XCTestCase, StoreTestUtility {
         let subject = createSubject()
         subject.refreshVisibility()
 
-        mockStore.dispatch(
+        mockBus.dispatch(
             GeneralBrowserAction(windowUUID: .XCTestDefaultUUID,
                                  actionType: GeneralBrowserActionType.didUnhideToolbar)
         )
@@ -105,7 +105,7 @@ final class SearchBarViewModelTests: XCTestCase, StoreTestUtility {
         let subject = createSubject()
         subject.refreshVisibility()
 
-        mockStore.dispatch(
+        mockBus.dispatch(
             ToolbarAction(windowUUID: .XCTestDefaultUUID,
                           actionType: ToolbarActionType.didStartEditingUrl)
         )
@@ -118,7 +118,7 @@ final class SearchBarViewModelTests: XCTestCase, StoreTestUtility {
         subject.refreshVisibility()
         let otherWindow = WindowUUID(uuidString: "44BA0B7D-097A-484D-8358-91A6E374451D")!
 
-        mockStore.dispatch(
+        mockBus.dispatch(
             GeneralBrowserAction(windowUUID: otherWindow,
                                  actionType: GeneralBrowserActionType.enteredZeroSearchScreen)
         )
@@ -129,13 +129,13 @@ final class SearchBarViewModelTests: XCTestCase, StoreTestUtility {
 
     func test_cancelEdit_recomputesVisibility() {
         let subject = createSubject()
-        mockStore.dispatch(
+        mockBus.dispatch(
             GeneralBrowserAction(windowUUID: .XCTestDefaultUUID,
                                  actionType: GeneralBrowserActionType.enteredZeroSearchScreen)
         )
         XCTAssertFalse(subject.shouldShowSearchBar)
 
-        mockStore.dispatch(
+        mockBus.dispatch(
             ToolbarAction(windowUUID: .XCTestDefaultUUID, actionType: ToolbarActionType.cancelEdit)
         )
 
@@ -163,21 +163,21 @@ final class SearchBarViewModelTests: XCTestCase, StoreTestUtility {
             isFeatureEnabled: { isFeatureEnabled },
             isLandscape: { isLandscape },
             deviceIdiom: { idiom },
-            bus: mockStore,
+            bus: mockBus,
             visibilityStore: visibilityStore
         )
         trackForMemoryLeaks(subject)
         return subject
     }
 
-    // MARK: - StoreTestUtility
+    // MARK: - BusTestUtility
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

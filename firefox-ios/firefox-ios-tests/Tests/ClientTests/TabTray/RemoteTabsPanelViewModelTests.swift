@@ -13,8 +13,8 @@ import struct Storage.ClientAndTabs
 
 /// Replaces `RemoteTabPanelStateTests` and `DefaultSyncedTabProviderTests`' sync-state half.
 @MainActor
-final class RemoteTabsPanelViewModelTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStore!
+final class RemoteTabsPanelViewModelTests: XCTestCase, BusTestUtility {
+    var mockBus: MockBrowserEventBus!
     private var profile: MockProfile!
     private var notificationCenter: MockNotificationCenter!
 
@@ -23,14 +23,14 @@ final class RemoteTabsPanelViewModelTests: XCTestCase, StoreTestUtility {
         await DependencyHelperMock().bootstrapDependencies()
         profile = MockProfile()
         notificationCenter = MockNotificationCenter()
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
         profile = nil
         notificationCenter = nil
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -135,7 +135,7 @@ final class RemoteTabsPanelViewModelTests: XCTestCase, StoreTestUtility {
         subject.panelDidAppear()
 
         let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.last(where: { $0 is TabTrayAction }) as? TabTrayAction
+            mockBus.dispatchedActions.last(where: { $0 is TabTrayAction }) as? TabTrayAction
         )
         let actionType = try XCTUnwrap(actionCalled.actionType as? TabTrayActionType)
         XCTAssertEqual(actionType, TabTrayActionType.firefoxAccountChanged)
@@ -165,14 +165,14 @@ final class RemoteTabsPanelViewModelTests: XCTestCase, StoreTestUtility {
         return subject
     }
 
-    // MARK: - StoreTestUtility
+    // MARK: - BusTestUtility
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

@@ -8,10 +8,10 @@ import XCTest
 
 @testable import Client
 
-final class TabManagerActionHandlerTests: XCTestCase, StoreTestUtility {
+final class TabManagerActionHandlerTests: XCTestCase, BusTestUtility {
     private var mockProfile: MockProfile!
     private var mockWindowManager: MockWindowManager!
-    private var mockStore: MockStore!
+    private var mockBus: MockBrowserEventBus!
     private var mockTabManager: MockTabManager!
     private var summarizerConfigFactory: MockSummarizerConfigFactory!
     private let homepageURLString = "internal://local/about/home"
@@ -30,7 +30,7 @@ final class TabManagerActionHandlerTests: XCTestCase, StoreTestUtility {
             tabManager: mockTabManager
         )
         DependencyHelperMock().bootstrapDependencies(injectedWindowManager: mockWindowManager)
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
@@ -39,7 +39,7 @@ final class TabManagerActionHandlerTests: XCTestCase, StoreTestUtility {
         mockTabManager = nil
         summarizerConfigFactory = nil
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -185,14 +185,14 @@ final class TabManagerActionHandlerTests: XCTestCase, StoreTestUtility {
         }
     }
 
-    // MARK: StoreTestUtility
+    // MARK: BusTestUtility
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

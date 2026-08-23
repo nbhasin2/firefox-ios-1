@@ -7,11 +7,11 @@ import Common
 
 @testable import Client
 
-final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
+final class HomepageViewControllerTests: XCTestCase, BusTestUtility {
     let windowUUID: WindowUUID = .XCTestDefaultUUID
     var mockNotificationCenter: MockNotificationCenter?
     var mockThemeManager: MockThemeManager?
-    var mockStore: MockStore!
+    var mockBus: MockBrowserEventBus!
     var mockThrottler: MockThrottler!
     var homepageTabStateStore: HomepageTabStateStore!
     var mockGleanWrapper: MockGleanWrapper!
@@ -23,7 +23,7 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
         homepageTabStateStore = HomepageTabStateStore()
         mockGleanWrapper = MockGleanWrapper()
         recentTabsProvider = MockRecentTabsProvider()
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
@@ -34,7 +34,7 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
         mockNotificationCenter = nil
         mockThemeManager = nil
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -109,7 +109,7 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
 
         homepageVC.scrollViewDidScroll(scrollView)
 
-        let actionCalled = mockStore.dispatchedActions.first(where: {
+        let actionCalled = mockBus.dispatchedActions.first(where: {
             $0 is GeneralBrowserMiddlewareAction
         })
         XCTAssertNil(actionCalled)
@@ -126,7 +126,7 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
         homepageVC.scrollViewDidScroll(scrollView)
 
         let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.first(where: {
+            mockBus.dispatchedActions.first(where: {
                 $0 is GeneralBrowserMiddlewareAction
             }) as? GeneralBrowserMiddlewareAction
         )
@@ -143,7 +143,7 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
         homepageVC.scrollViewWillBeginDragging(scrollView)
 
         let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.first(where: {
+            mockBus.dispatchedActions.first(where: {
                 $0 is ToolbarAction
             }) as? ToolbarAction
         )
@@ -471,13 +471,13 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
         return homepageViewController
     }
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 
     private func setupNimbusToolbarRefactorTesting(isEnabled: Bool) {

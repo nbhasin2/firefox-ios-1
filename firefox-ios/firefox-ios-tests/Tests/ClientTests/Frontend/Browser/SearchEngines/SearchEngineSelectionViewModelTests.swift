@@ -10,8 +10,8 @@ import XCTest
 
 /// Replaces `SearchEngineSelectionMiddlewareTests` and `SearchEngineSelectionStateTests`.
 @MainActor
-final class SearchEngineSelectionViewModelTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStore!
+final class SearchEngineSelectionViewModelTests: XCTestCase, BusTestUtility {
+    var mockBus: MockBrowserEventBus!
     private var searchEnginesManager: SearchEnginesManagerProvider!
     private let searchEngines: [OpenSearchEngine] = [
         OpenSearchEngineTests.generateOpenSearchEngine(type: .wikipedia, withImage: UIImage()),
@@ -22,13 +22,13 @@ final class SearchEngineSelectionViewModelTests: XCTestCase, StoreTestUtility {
         try await super.setUp()
         await DependencyHelperMock().bootstrapDependencies()
         searchEnginesManager = MockSearchEnginesManager(searchEngines: searchEngines)
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
         searchEnginesManager = nil
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -59,7 +59,7 @@ final class SearchEngineSelectionViewModelTests: XCTestCase, StoreTestUtility {
 
         subject.viewDidLoad()
 
-        XCTAssertTrue(mockStore.dispatchedActions.isEmpty)
+        XCTAssertTrue(mockBus.dispatchedActions.isEmpty)
     }
 
     // MARK: - Selection
@@ -70,7 +70,7 @@ final class SearchEngineSelectionViewModelTests: XCTestCase, StoreTestUtility {
 
         subject.didTap(searchEngineModel: searchEngines[0].generateModel())
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? ToolbarAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? ToolbarAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? ToolbarActionType)
         XCTAssertEqual(actionType, ToolbarActionType.didStartEditingUrl)
     }
@@ -82,7 +82,7 @@ final class SearchEngineSelectionViewModelTests: XCTestCase, StoreTestUtility {
         subject.didTap(searchEngineModel: model)
 
         let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.last as? SearchEngineSelectionAction
+            mockBus.dispatchedActions.last as? SearchEngineSelectionAction
         )
         let actionType = try XCTUnwrap(actionCalled.actionType as? SearchEngineSelectionActionType)
         XCTAssertEqual(actionType, SearchEngineSelectionActionType.didTapSearchEngine)
@@ -100,14 +100,14 @@ final class SearchEngineSelectionViewModelTests: XCTestCase, StoreTestUtility {
         return subject
     }
 
-    // MARK: - StoreTestUtility
+    // MARK: - BusTestUtility
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

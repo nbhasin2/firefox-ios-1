@@ -10,8 +10,8 @@ import XCTest
 
 /// Replaces `TabsPanelStateTests` and the panel half of `TabManagerActionHandlerTests`.
 @MainActor
-final class TabsPanelViewModelTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStore!
+final class TabsPanelViewModelTests: XCTestCase, BusTestUtility {
+    var mockBus: MockBrowserEventBus!
     private var profile: MockProfile!
     private var tabManager: MockTabManager!
     private var windowManager: MockWindowManager!
@@ -23,7 +23,7 @@ final class TabsPanelViewModelTests: XCTestCase, StoreTestUtility {
         await DependencyHelperMock().bootstrapDependencies(injectedTabManager: tabManager)
         windowManager = MockWindowManager(wrappedManager: WindowManagerImplementation(),
                                           tabManager: tabManager)
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
@@ -31,7 +31,7 @@ final class TabsPanelViewModelTests: XCTestCase, StoreTestUtility {
         tabManager = nil
         windowManager = nil
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -92,7 +92,7 @@ final class TabsPanelViewModelTests: XCTestCase, StoreTestUtility {
         subject.selectTab(tab.tabUUID, at: 0)
 
         XCTAssertEqual(tabManager.lastSelectedTabs.count, 1)
-        let action = try XCTUnwrap(mockStore.dispatchedActions.last as? TabTrayAction)
+        let action = try XCTUnwrap(mockBus.dispatchedActions.last as? TabTrayAction)
         let actionType = try XCTUnwrap(action.actionType as? TabTrayActionType)
         XCTAssertEqual(actionType, TabTrayActionType.dismissTabTray)
     }
@@ -103,7 +103,7 @@ final class TabsPanelViewModelTests: XCTestCase, StoreTestUtility {
         subject.addNewTab(with: nil)
 
         XCTAssertEqual(tabManager.addTabWasCalled, true)
-        XCTAssertTrue(mockStore.dispatchedActions.contains { action in
+        XCTAssertTrue(mockBus.dispatchedActions.contains { action in
             (action.actionType as? TabTrayActionType) == .dismissTabTray
         })
     }
@@ -135,7 +135,7 @@ final class TabsPanelViewModelTests: XCTestCase, StoreTestUtility {
         tabManager.normalTabs = [makeTab()]
         let subject = createSubject(panelType: .tabs)
 
-        mockStore.dispatch(
+        mockBus.dispatch(
             ScreenshotAction(windowUUID: .XCTestDefaultUUID,
                              tab: tabManager.normalTabs[0],
                              actionType: ScreenshotActionType.screenshotTaken)
@@ -160,20 +160,20 @@ final class TabsPanelViewModelTests: XCTestCase, StoreTestUtility {
                                       windowManager: windowManager,
                                       telemetry: TabsPanelTelemetry(gleanWrapper: MockGleanWrapper()),
                                       featureFlagsProvider: MockNimbusFeatureFlags()),
-            bus: mockStore
+            bus: mockBus
         )
         trackForMemoryLeaks(subject)
         return subject
     }
 
-    // MARK: - StoreTestUtility
+    // MARK: - BusTestUtility
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

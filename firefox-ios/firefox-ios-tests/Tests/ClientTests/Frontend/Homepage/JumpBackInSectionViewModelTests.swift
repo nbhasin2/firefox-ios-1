@@ -12,8 +12,8 @@ import XCTest
 /// Replaces `JumpBackInSectionStateTests` and the jump-back-in halves of
 /// `TabManagerActionHandlerTests` and `DefaultSyncedTabProviderTests`.
 @MainActor
-final class JumpBackInSectionViewModelTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStore!
+final class JumpBackInSectionViewModelTests: XCTestCase, BusTestUtility {
+    var mockBus: MockBrowserEventBus!
     private var recentTabsProvider: MockRecentTabsProvider!
     private var syncedTabProvider: MockSyncedTabProvider!
 
@@ -22,14 +22,14 @@ final class JumpBackInSectionViewModelTests: XCTestCase, StoreTestUtility {
         await DependencyHelperMock().bootstrapDependencies()
         recentTabsProvider = MockRecentTabsProvider()
         syncedTabProvider = MockSyncedTabProvider()
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
         recentTabsProvider = nil
         syncedTabProvider = nil
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -97,7 +97,7 @@ final class JumpBackInSectionViewModelTests: XCTestCase, StoreTestUtility {
         recentTabsProvider.tabs = [makeTab(url: "https://mozilla.org", title: "Mozilla")]
         let subject = createSubject()
 
-        mockStore.dispatch(
+        mockBus.dispatch(
             TabTrayAction(windowUUID: .XCTestDefaultUUID, actionType: TabTrayActionType.dismissTabTray)
         )
 
@@ -108,7 +108,7 @@ final class JumpBackInSectionViewModelTests: XCTestCase, StoreTestUtility {
         recentTabsProvider.tabs = [makeTab(url: "https://mozilla.org", title: "Mozilla")]
         let subject = createSubject()
 
-        mockStore.dispatch(
+        mockBus.dispatch(
             TopTabsAction(windowUUID: .XCTestDefaultUUID, actionType: TopTabsActionType.didTapCloseTab)
         )
 
@@ -120,7 +120,7 @@ final class JumpBackInSectionViewModelTests: XCTestCase, StoreTestUtility {
         let subject = createSubject()
         let otherWindow = WindowUUID(uuidString: "44BA0B7D-097A-484D-8358-91A6E374451D")!
 
-        mockStore.dispatch(
+        mockBus.dispatch(
             TabTrayAction(windowUUID: otherWindow, actionType: TabTrayActionType.dismissTabTray)
         )
 
@@ -173,7 +173,7 @@ final class JumpBackInSectionViewModelTests: XCTestCase, StoreTestUtility {
             windowUUID: .XCTestDefaultUUID,
             recentTabsProvider: recentTabsProvider,
             syncedTabProvider: syncedTabProvider,
-            bus: mockStore,
+            bus: mockBus,
             initialState: JumpBackInSectionState(
                 jumpBackInTabs: [],
                 mostRecentSyncedTab: nil,
@@ -184,15 +184,15 @@ final class JumpBackInSectionViewModelTests: XCTestCase, StoreTestUtility {
         return subject
     }
 
-    // MARK: - StoreTestUtility
+    // MARK: - BusTestUtility
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }
 

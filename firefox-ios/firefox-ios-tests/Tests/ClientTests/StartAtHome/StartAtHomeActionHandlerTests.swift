@@ -9,11 +9,11 @@ import XCTest
 
 @testable import Client
 
-final class StartAtHomeActionHandlerTests: XCTestCase, StoreTestUtility {
+final class StartAtHomeActionHandlerTests: XCTestCase, BusTestUtility {
     private var mockProfile: MockProfile!
     private var mockTabManager: MockTabManager!
     private var mockWindowManager: MockWindowManager!
-    private var mockStore: MockStore!
+    private var mockBus: MockBrowserEventBus!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -31,14 +31,14 @@ final class StartAtHomeActionHandlerTests: XCTestCase, StoreTestUtility {
             injectedProfile: mockProfile,
             injectedWindowManager: mockWindowManager,
         )
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
         mockProfile = nil
         mockWindowManager = nil
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -52,7 +52,7 @@ final class StartAtHomeActionHandlerTests: XCTestCase, StoreTestUtility {
 
         let expectation = XCTestExpectation(description: "Start At Home action should be dispatched")
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -60,10 +60,10 @@ final class StartAtHomeActionHandlerTests: XCTestCase, StoreTestUtility {
 
         wait(for: [expectation])
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? StartAtHomeAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? StartAtHomeAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? StartAtHomeMiddlewareActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, StartAtHomeMiddlewareActionType.startAtHomeCheckCompleted)
         XCTAssertEqual(actionCalled.shouldStartAtHome, true)
     }
@@ -78,7 +78,7 @@ final class StartAtHomeActionHandlerTests: XCTestCase, StoreTestUtility {
 
         let expectation = XCTestExpectation(description: "Start At Home action should be dispatched")
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -86,10 +86,10 @@ final class StartAtHomeActionHandlerTests: XCTestCase, StoreTestUtility {
 
         wait(for: [expectation])
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? StartAtHomeAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? StartAtHomeAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? StartAtHomeMiddlewareActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, StartAtHomeMiddlewareActionType.startAtHomeCheckCompleted)
         XCTAssertEqual(actionCalled.shouldStartAtHome, true)
     }
@@ -104,7 +104,7 @@ final class StartAtHomeActionHandlerTests: XCTestCase, StoreTestUtility {
 
         let expectation = XCTestExpectation(description: "Start At Home action should be dispatched")
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -112,10 +112,10 @@ final class StartAtHomeActionHandlerTests: XCTestCase, StoreTestUtility {
 
         wait(for: [expectation])
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? StartAtHomeAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? StartAtHomeAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? StartAtHomeMiddlewareActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(actionType, StartAtHomeMiddlewareActionType.startAtHomeCheckCompleted)
         XCTAssertEqual(actionCalled.shouldStartAtHome, false)
     }
@@ -136,14 +136,14 @@ final class StartAtHomeActionHandlerTests: XCTestCase, StoreTestUtility {
             dateProvider: MockDateProvider(fixedDate: testDate))
     }
 
-    // MARK: StoreTestUtility
+    // MARK: BusTestUtility
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

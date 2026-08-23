@@ -10,11 +10,11 @@ import XCTest
 @testable import Client
 
 @MainActor
-final class SearchSettingsTableViewControllerTests: XCTestCase, StoreTestUtility {
+final class SearchSettingsTableViewControllerTests: XCTestCase, BusTestUtility {
     private var profile: Profile!
     private var featureFlags: MockNimbusFeatureFlags!
     private var userPreferences: MockUserFeaturePreferences!
-    private var mockStore: MockStore!
+    private var mockBus: MockBrowserEventBus!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -26,16 +26,16 @@ final class SearchSettingsTableViewControllerTests: XCTestCase, StoreTestUtility
             injectedFeatureFlagProvider: featureFlags,
             injectedUserFeaturePreferences: userPreferences
         )
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
         profile = nil
         featureFlags = nil
         userPreferences = nil
-        mockStore = nil
+        mockBus = nil
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -46,7 +46,7 @@ final class SearchSettingsTableViewControllerTests: XCTestCase, StoreTestUtility
 
         subject.didToggleGoogleLens(toggle)
 
-        let action = try XCTUnwrap(mockStore.dispatchedActions.last as? ToolbarAction)
+        let action = try XCTUnwrap(mockBus.dispatchedActions.last as? ToolbarAction)
         let actionType = try XCTUnwrap(action.actionType as? ToolbarActionType)
 
         XCTAssertEqual(action.windowUUID, .XCTestDefaultUUID)
@@ -114,12 +114,12 @@ final class SearchSettingsTableViewControllerTests: XCTestCase, StoreTestUtility
                                 isCustomEngine: isCustomEngine)
     }
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

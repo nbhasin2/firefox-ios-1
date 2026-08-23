@@ -8,32 +8,32 @@ import XCTest
 @testable import Client
 
 @MainActor
-final class MainMenuCoordinatorTests: XCTestCase, StoreTestUtility {
+final class MainMenuCoordinatorTests: XCTestCase, BusTestUtility {
     private var mockRouter: MockRouter!
-    private var mockStore: MockStore!
+    private var mockBus: MockBrowserEventBus!
 
     override func setUp() async throws {
         try await super.setUp()
         DependencyHelperMock().bootstrapDependencies()
         mockRouter = MockRouter(navigationController: MockNavigationController())
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
-    // MARK: - StoreTestUtility
+    // MARK: - BusTestUtility
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 
     func testInitialState() {
@@ -78,7 +78,7 @@ final class MainMenuCoordinatorTests: XCTestCase, StoreTestUtility {
         subject.navigateTo(MenuNavigationDestination(.readerView), animated: false)
         mockRouter.savedCompletion?()
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? NavigationBrowserAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? NavigationBrowserAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? NavigationBrowserActionType)
 
         XCTAssertEqual(actionType, NavigationBrowserActionType.tapOnReaderMode)

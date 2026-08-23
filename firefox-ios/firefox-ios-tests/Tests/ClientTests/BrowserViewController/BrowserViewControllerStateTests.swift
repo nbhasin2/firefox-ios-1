@@ -9,13 +9,13 @@ import QuickAnswersKit
 
 @testable import Client
 
-final class BrowserViewControllerStateTests: XCTestCase, StoreTestUtility {
-    let storeUtilityHelper = StoreTestUtilityHelper()
+final class BrowserViewControllerStateTests: XCTestCase, BusTestUtility {
+    let storeUtilityHelper = BusTestUtilityHelper()
 
     override func setUp() async throws {
         try await super.setUp()
         DependencyHelperMock().bootstrapDependencies()
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
@@ -23,7 +23,7 @@ final class BrowserViewControllerStateTests: XCTestCase, StoreTestUtility {
         // next test.
         SearchBarVisibilityStore.shared.setSearchBarVisible(false, for: .XCTestDefaultUUID)
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -614,15 +614,15 @@ final class BrowserViewControllerStateTests: XCTestCase, StoreTestUtility {
         SearchBarVisibilityStore.shared.setSearchBarVisible(true, for: .XCTestDefaultUUID)
     }
 
-    // MARK: StoreTestUtility
+    // MARK: BusTestUtility
 
-    func setupStore() {
-        StoreTestUtilityHelper.setupStore()
+    func setupBus() {
+        BusTestUtilityHelper.setupBus()
     }
 
     // In order to avoid flaky tests, we should reset the store
     // similar to production
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

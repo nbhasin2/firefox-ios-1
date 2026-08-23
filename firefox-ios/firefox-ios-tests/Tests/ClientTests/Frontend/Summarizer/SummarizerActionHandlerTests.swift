@@ -8,7 +8,7 @@ import XCTest
 
 @testable import Client
 
-final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
+final class SummarizerActionHandlerTests: XCTestCase, BusTestUtility {
     private var mockWindowManager: MockWindowManager!
     private var mockTabManager: MockTabManager!
     private var mockSummarizationChecker: MockSummarizationChecker!
@@ -17,7 +17,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
     private var mockSummarizerLanguageProvider: MockSummarizerLanguageProvider!
     private let mockURL = URL(string: "https://example.com")!
     private var mockProfile: MockProfile!
-    private var mockStore: MockStore!
+    private var mockBus: MockBrowserEventBus!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -35,7 +35,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
             injectedWindowManager: mockWindowManager,
             injectedTabManager: mockTabManager
         )
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
@@ -44,7 +44,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
         mockSummarizationChecker = nil
         mockSummarizerNimbusUtils = nil
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -64,7 +64,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
         )
         let expectation = XCTestExpectation(description: "General browser action initialize dispatched")
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -72,12 +72,12 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
 
         wait(for: [expectation], timeout: 1)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? GeneralBrowserAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? GeneralBrowserAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? GeneralBrowserActionType)
 
         XCTAssertEqual(actionType, .showSummarizer)
         XCTAssertEqual(actionCalled.summarizerTrigger, .shakeGesture)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
     }
 
     func test_shakeMotionAction_withoutValidConfigurationAndShakeEnabled_dispatchesToastAction() throws {
@@ -94,7 +94,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
         )
         let expectation = XCTestExpectation(description: "General browser action to show toast dispatched")
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -102,12 +102,12 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
 
         wait(for: [expectation], timeout: 1)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? GeneralBrowserAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? GeneralBrowserAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? GeneralBrowserActionType)
 
         XCTAssertEqual(actionType, .showToast)
         XCTAssertEqual(actionCalled.toastType, .shakeToSummarizeNotAvailable)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
     }
 
     func test_shakeMotionAction_withoutValidConfigurationAndShakeDisabled_doesNotDispatchToastAction() throws {
@@ -123,7 +123,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
         )
         let expectation = XCTestExpectation(description: "General browser action to show toast dispatched")
         expectation.isInverted = true
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -131,7 +131,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
 
         wait(for: [expectation], timeout: 1.0)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
     }
 
     func test_shakeMotionAction_whenTabIsHomePage_doesNotDispatchToastAction() throws {
@@ -148,7 +148,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
         )
         let expectation = XCTestExpectation(description: "General browser action show toast dispatched")
         expectation.isInverted = true
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -156,7 +156,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
 
         wait(for: [expectation], timeout: 1)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
     }
 
     func test_shakeMotionAction_withoutWebView_doesNotDispatchMiddlewareAction() throws {
@@ -168,7 +168,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
         )
         let expectation = XCTestExpectation(description: "General browser action initialize dispatched")
         expectation.isInverted = true
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -176,7 +176,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
 
         wait(for: [expectation], timeout: 1)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
         // the summarizer provider strong retains the middleware as per redux is designed
         // thus trackForMemoryLeaks would fail, the only way is to release the closure by assigning a new one
     }
@@ -194,7 +194,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
         )
         let expectation = XCTestExpectation(description: "Reader mode bar summarizer button dispatched")
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -202,12 +202,12 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
 
         wait(for: [expectation], timeout: 1)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? GeneralBrowserAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? GeneralBrowserAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? GeneralBrowserActionType)
 
         XCTAssertEqual(actionType, .showSummarizer)
         XCTAssertEqual(actionCalled.summarizerTrigger, .readerModeBarButton)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
     }
 
     // MARK: - showReaderMode
@@ -224,7 +224,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
         )
         let expectation = XCTestExpectation(description: "Show reader mode action dispatched")
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -232,11 +232,11 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
 
         wait(for: [expectation], timeout: 1)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? SummarizeAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? SummarizeAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? SummarizeMiddlewareActionType)
 
         XCTAssertEqual(actionType, .showReaderModeBarSummarizerButton)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
     }
 
     func test_showReaderModeAction_withInvalidConfiguration_dispatchesNotAvailableAction() throws {
@@ -252,7 +252,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
         )
         let expectation = XCTestExpectation(description: "Show reader mode not available dispatched")
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -260,11 +260,11 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
 
         wait(for: [expectation], timeout: 1)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? SummarizeAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? SummarizeAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? SummarizeMiddlewareActionType)
 
         XCTAssertEqual(actionType, .summaryNotAvailable)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
     }
 
     // MARK: - didSummarizeSettingsChange
@@ -280,7 +280,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
         )
         let expectation = XCTestExpectation(description: "Summarize settings change dispatched")
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -288,11 +288,11 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
 
         wait(for: [expectation], timeout: 1)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? SummarizeAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? SummarizeAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? SummarizeMiddlewareActionType)
 
         XCTAssertEqual(actionType, .showReaderModeBarSummarizerButton)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
     }
 
     func test_didSummarizeSettingsChange_withCanSummarizeFalse_dispatchesNotAvailableAction() throws {
@@ -305,7 +305,7 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
         )
         let expectation = XCTestExpectation(description: "Summarize not available dispatched")
 
-        mockStore.dispatchCalled = {
+        mockBus.dispatchCalled = {
             expectation.fulfill()
         }
 
@@ -313,11 +313,11 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
 
         wait(for: [expectation], timeout: 1)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? SummarizeAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? SummarizeAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? SummarizeMiddlewareActionType)
 
         XCTAssertEqual(actionType, .summaryNotAvailable)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
     }
 
     // MARK: - makeConfiguration
@@ -451,16 +451,16 @@ final class SummarizerActionHandlerTests: XCTestCase, StoreTestUtility {
         mockSummarizationChecker.overrideResponse = MockSummarizationChecker.success
     }
 
-    // MARK: StoreTestUtility
+    // MARK: BusTestUtility
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
     // In order to avoid flaky tests, we should reset the store
     // similar to production
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

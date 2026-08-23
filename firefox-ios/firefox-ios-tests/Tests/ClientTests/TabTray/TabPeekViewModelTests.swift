@@ -10,8 +10,8 @@ import XCTest
 
 /// Replaces `TabPeekStateTests` and the tab-peek half of `TabManagerActionHandlerTests`.
 @MainActor
-final class TabPeekViewModelTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStore!
+final class TabPeekViewModelTests: XCTestCase, BusTestUtility {
+    var mockBus: MockBrowserEventBus!
     private var profile: MockProfile!
     private var tabManager: MockTabManager!
     private var windowManager: MockWindowManager!
@@ -32,7 +32,7 @@ final class TabPeekViewModelTests: XCTestCase, StoreTestUtility {
             wrappedManager: WindowManagerImplementation(),
             tabManager: tabManager
         )
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
@@ -41,7 +41,7 @@ final class TabPeekViewModelTests: XCTestCase, StoreTestUtility {
         windowManager = nil
         bookmarksHandler = nil
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -134,7 +134,7 @@ final class TabPeekViewModelTests: XCTestCase, StoreTestUtility {
         await waitForLoad(subject)
         subject.copyURL()
 
-        XCTAssertTrue(mockStore.dispatchedActions.isEmpty)
+        XCTAssertTrue(mockBus.dispatchedActions.isEmpty)
     }
 
     // MARK: - Private Helpers
@@ -165,14 +165,14 @@ final class TabPeekViewModelTests: XCTestCase, StoreTestUtility {
         return subject
     }
 
-    // MARK: - StoreTestUtility
+    // MARK: - BusTestUtility
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

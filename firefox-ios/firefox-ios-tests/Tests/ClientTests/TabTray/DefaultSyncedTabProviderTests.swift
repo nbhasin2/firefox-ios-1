@@ -8,21 +8,21 @@ import XCTest
 
 @testable import Client
 
-final class DefaultSyncedTabProviderTests: XCTestCase, StoreTestUtility {
+final class DefaultSyncedTabProviderTests: XCTestCase, BusTestUtility {
     var mockProfile: MockProfile!
-    var mockStore: MockStore!
+    var mockBus: MockBrowserEventBus!
 
     override func setUp() async throws {
         try await super.setUp()
         mockProfile = MockProfile()
         DependencyHelperMock().bootstrapDependencies()
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
         mockProfile = nil
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -87,14 +87,14 @@ final class DefaultSyncedTabProviderTests: XCTestCase, StoreTestUtility {
         return remoteTabs
     }
 
-    // MARK: StoreTestUtility
+    // MARK: BusTestUtility
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

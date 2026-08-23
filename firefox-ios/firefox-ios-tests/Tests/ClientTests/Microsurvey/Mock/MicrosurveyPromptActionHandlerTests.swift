@@ -10,7 +10,7 @@ import XCTest
 @MainActor
 final class MicrosurveyPromptActionHandlerTests: XCTestCase {
     private var mockMicrosurveyManager: MockMicrosurveySurfaceManager!
-    var mockStore: MockStore!
+    var mockBus: MockBrowserEventBus!
 
     override func setUp() async throws {
         try await super.setUp()
@@ -29,12 +29,12 @@ final class MicrosurveyPromptActionHandlerTests: XCTestCase {
         )
         mockMicrosurveyManager = MockMicrosurveySurfaceManager(with: model)
         DependencyHelperMock().bootstrapDependencies()
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -48,7 +48,7 @@ final class MicrosurveyPromptActionHandlerTests: XCTestCase {
 
         subject.handle(action)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
         XCTAssertEqual(mockMicrosurveyManager.handleMessageDisplayedCount, 0)
     }
 
@@ -61,11 +61,11 @@ final class MicrosurveyPromptActionHandlerTests: XCTestCase {
 
         subject.handle(action)
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? MicrosurveyPromptMiddlewareAction)
+        let actionCalled = try XCTUnwrap(mockBus.dispatchedActions.first as? MicrosurveyPromptMiddlewareAction)
         let actionType = try XCTUnwrap(actionCalled.actionType as? MicrosurveyPromptMiddlewareActionType)
 
         XCTAssertEqual(actionType, MicrosurveyPromptMiddlewareActionType.initialize)
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 1)
         XCTAssertEqual(mockMicrosurveyManager.handleMessageDisplayedCount, 1)
     }
 
@@ -78,7 +78,7 @@ final class MicrosurveyPromptActionHandlerTests: XCTestCase {
 
         subject.handle(action)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
         XCTAssertEqual(mockMicrosurveyManager.handleMessageDismissCount, 1)
     }
 
@@ -91,7 +91,7 @@ final class MicrosurveyPromptActionHandlerTests: XCTestCase {
 
         subject.handle(action)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 0)
+        XCTAssertEqual(mockBus.dispatchedActions.count, 0)
         XCTAssertEqual(mockMicrosurveyManager.handleMessagePressedCount, 1)
     }
 
@@ -100,14 +100,14 @@ final class MicrosurveyPromptActionHandlerTests: XCTestCase {
         return MicrosurveyPromptActionHandler(microsurveyManager: microsurveyManager)
     }
 
-    // MARK: StoreTestUtility
+    // MARK: BusTestUtility
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

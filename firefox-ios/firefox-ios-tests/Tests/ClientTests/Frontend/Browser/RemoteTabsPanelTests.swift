@@ -8,24 +8,24 @@ import TestKit
 
 @testable import Client
 
-final class RemoteTabsPanelTests: XCTestCase, StoreTestUtility {
+final class RemoteTabsPanelTests: XCTestCase, BusTestUtility {
     private enum Constants {
         static let testUrlString = "https://mozilla.org"
         static let testDeviceId = "testDeviceId"
     }
 
     private let windowUUID: WindowUUID = .XCTestDefaultUUID
-    private var mockStore: MockStore!
+    private var mockBus: MockBrowserEventBus!
 
     override func setUp() async throws {
         try await super.setUp()
         DependencyHelperMock().bootstrapDependencies()
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await  super.tearDown()
     }
 
@@ -61,7 +61,7 @@ final class RemoteTabsPanelTests: XCTestCase, StoreTestUtility {
         subject.remoteTabsClientAndTabsDataSourceDidTabCommandsFlush(deviceId: Constants.testDeviceId)
 
         // Only the tray dismissal from opening a tab reaches the store.
-        XCTAssertTrue(mockStore.dispatchedActions.allSatisfy { $0 is TabTrayAction })
+        XCTAssertTrue(mockBus.dispatchedActions.allSatisfy { $0 is TabTrayAction })
     }
 
     // MARK: - RemotePanelDelegate
@@ -98,20 +98,20 @@ final class RemoteTabsPanelTests: XCTestCase, StoreTestUtility {
             isPrivate: false
         )
 
-        let action = try XCTUnwrap(mockStore.dispatchedActions.last as? TabTrayAction)
+        let action = try XCTUnwrap(mockBus.dispatchedActions.last as? TabTrayAction)
         let actionType = try XCTUnwrap(action.actionType as? TabTrayActionType)
         XCTAssertEqual(actionType, TabTrayActionType.dismissTabTray)
     }
 
-    // MARK: - StoreTestUtility
+    // MARK: - BusTestUtility
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 
     // MARK: - Helpers

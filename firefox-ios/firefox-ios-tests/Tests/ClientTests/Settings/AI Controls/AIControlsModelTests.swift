@@ -7,8 +7,8 @@ import Shared
 
 @testable import Client
 
-class AIControlsModelTests: XCTestCase, StoreTestUtility {
-    private var mockStore: MockStore!
+class AIControlsModelTests: XCTestCase, BusTestUtility {
+    private var mockBus: MockBrowserEventBus!
     var mockPrefs: MockProfilePrefs!
     var mockProfile: MockProfile!
     var mockGleanWrapper: MockGleanWrapper!
@@ -25,11 +25,11 @@ class AIControlsModelTests: XCTestCase, StoreTestUtility {
         mockProfile.prefs = mockPrefs
         DependencyHelperMock().bootstrapDependencies(injectedProfile: mockProfile)
         mockGleanWrapper = MockGleanWrapper()
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
-        resetStore()
+        resetBus()
         DependencyHelperMock().reset()
         try await super.tearDown()
     }
@@ -370,12 +370,12 @@ class AIControlsModelTests: XCTestCase, StoreTestUtility {
         return subject
     }
 
-    func setupStore() {
-        mockStore = MockStore()
-        StoreTestUtilityHelper.setupStore(with: mockStore)
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }
