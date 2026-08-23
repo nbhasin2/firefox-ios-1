@@ -890,3 +890,39 @@ back out by the thing that handled it) still holds, with the handler in the midd
 Renaming them is 230-odd mechanical references across files this branch does not otherwise touch,
 which buys accuracy in a name at the cost of a reviewable diff and a merge conflict in every one of
 those files. Recorded as follow-up work, not done here.
+
+## D-043 — A protocol that replaces a dispatch needs a test that goes through the closure
+
+The main menu rendered correctly and did nothing. `MainMenuConfigurationUtility` generates the
+`MenuElement` closures, and the migration changed each one from `store.dispatch(...)` to
+`self?.actionHandler?.tapX()` — but nothing ever assigned `actionHandler`. It is `weak` and
+optional, so every row silently no-opped: no crash, no warning, and a full unit suite passing.
+
+`store` was a global; an `actionHandler` is a wire someone has to connect. Every migration that
+turns a dispatch into a protocol call adds a wire, and a `weak var … ?` that is never assigned
+looks exactly like one that is.
+
+The unit tests did not catch it because they all call `subject.tapSettings()` directly — they test
+the handler, not the path from the rendered element to the handler. The new tests invoke
+`state.menuElements`' own closures, which is the only thing that exercises the hand-off. Both fail
+without the one-line fix.
+
+Swept the other 172 Client files this branch touches for the same shape — a stored
+delegate/handler/callback property with no assignment anywhere in the app or its tests. This was
+the only one.
+
+## D-044 — A fixed yield count is not a wait
+
+Thirteen test helpers written during this migration spun `for _ in 0..<40 { await Task.yield() }`
+until an async load landed. That is a race with the machine: under a full-suite run the work can
+need more yields than the loop allows, and the test then fails on the assertion rather than on the
+wait — `("0") is not equal to ("1")`, with nothing pointing at the timeout that actually happened.
+`ShortcutsLibraryViewModelTests` hit exactly that, passing in isolation every time.
+
+`XCTestCase.waitUntil(timeout:_:)` replaces all thirteen: it yields until the condition holds or
+five seconds pass, and fails with "condition was still false after 5.0s" when it does not.
+
+Two of the call sites were asserting a *negative* — that a load leaves the state alone — so there
+was no condition to wait for, and a fixed spin could only ever produce a false pass. Both now wait
+on evidence the load ran: the provider's call count, and for `TabPeekViewModel` a state change,
+which its `onChange` publishes exactly once whether or not there is a tab.
