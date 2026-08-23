@@ -30,12 +30,10 @@ final class TabTrayViewController: UIViewController,
                                    UIPageViewControllerDataSource,
                                    UIPageViewControllerDelegate,
                                    UIScrollViewDelegate,
-                                   StoreSubscriber,
                                    TabTraySelectorDelegate,
                                    TabTrayAnimationDelegate,
                                    TabDisplayViewDragAndDropInteraction,
                                    Notifiable {
-    typealias SubscriberStateType = TabTrayState
     private struct UX {
         struct NavigationMenu {
             static let width: CGFloat = 343
@@ -326,13 +324,19 @@ final class TabTrayViewController: UIViewController,
 
     let windowUUID: WindowUUID
     var currentWindowUUID: UUID? { windowUUID }
+    private let viewModel: TabTrayViewModel
+    private let service: TabsPanelService
 
     init(panelType: TabTrayPanelType,
          tabTrayUtils: TabTrayUtils = DefaultTabTrayUtils(),
          themeManager: ThemeManager = AppContainer.shared.resolve(),
          logger: Logger = DefaultLogger.shared,
          windowUUID: WindowUUID,
+         service: TabsPanelService? = nil,
          and notificationCenter: NotificationProtocol = NotificationCenter.default) {
+        let service = service ?? TabsPanelService(windowUUID: windowUUID)
+        self.service = service
+        self.viewModel = TabTrayViewModel(windowUUID: windowUUID, service: service)
         self.tabTrayState = TabTrayState(windowUUID: windowUUID, panelType: panelType)
         self.tabTrayUtils = tabTrayUtils
         self.themeManager = themeManager
@@ -342,6 +346,15 @@ final class TabTrayViewController: UIViewController,
 
         super.init(nibName: nil, bundle: nil)
         themeAnimator.delegate = self
+        viewModel.onChange = { [weak self] state in
+            self?.applyState(state)
+        }
+        viewModel.onDismiss = { [weak self] in
+            self?.delegate?.didFinish()
+        }
+        viewModel.onShowCloseConfirmation = { [weak self] in
+            self?.showCloseAllConfirmation()
+        }
         applyTheme()
     }
 
@@ -352,7 +365,7 @@ final class TabTrayViewController: UIViewController,
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
-        subscribeToRedux()
+        viewModel.didLoad(panelType: tabTrayState.selectedPanel)
         updateToolbarItems()
 
         startObservingNotifications(
@@ -386,12 +399,6 @@ final class TabTrayViewController: UIViewController,
         }
     }
 
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-
-        unsubscribeFromRedux()
-    }
-
     private func updateLayout() {
         navigationController?.isToolbarHidden = isRegularLayout
         titleWidthConstraint?.isActive = isRegularLayout
@@ -419,35 +426,7 @@ final class TabTrayViewController: UIViewController,
         return shouldUseiPadSetup() ? experimentiPadSegmentControl : experimentSegmentControl
     }
 
-    // MARK: - Redux
-
-    func subscribeToRedux() {
-        let initialSelectedPanel = tabTrayState.selectedPanel
-        let screenAction = ComponentAction(windowUUID: windowUUID,
-                                           actionType: ComponentActionType.addComponent,
-                                           component: .tabsTray)
-        store.dispatch(screenAction)
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            $0.select({ appState in
-                return TabTrayState(appState: appState, uuid: uuid)
-            })
-        })
-        let action = TabTrayAction(
-            panelType: initialSelectedPanel,
-            windowUUID: windowUUID,
-            actionType: TabTrayActionType.tabTrayDidLoad)
-        store.dispatch(action)
-    }
-
-    func unsubscribeFromRedux() {
-        let screenAction = ComponentAction(windowUUID: windowUUID,
-                                           actionType: ComponentActionType.removeComponent,
-                                           component: .tabsTray)
-        store.dispatch(screenAction)
-    }
-
-    func newState(state: TabTrayState) {
+    private func applyState(_ state: TabTrayState) {
         guard state != tabTrayState else { return }
         if state.normalTabsCount != tabTrayState.normalTabsCount {
             updateTabCountImage(count: state.normalTabsCount)
@@ -455,14 +434,6 @@ final class TabTrayViewController: UIViewController,
         tabTrayState = state
 
         segmentedControl.selectedSegmentIndex = tabTrayState.selectedPanel.rawValue
-        if tabTrayState.shouldDismiss {
-            delegate?.didFinish()
-        }
-
-        if tabTrayState.showCloseConfirmation {
-            showCloseAllConfirmation()
-            tabTrayState.showCloseConfirmation = false
-        }
 
         if let enableDeleteTabsButton = tabTrayState.enableDeleteTabsButton {
             deleteButton.isEnabled = enableDeleteTabsButton
@@ -486,8 +457,7 @@ final class TabTrayViewController: UIViewController,
     }
 
     var shouldBeInPrivateTheme: Bool {
-        let tabTrayState = store.state.componentState(TabTrayState.self, for: .tabsTray, window: windowUUID)
-        return tabTrayState?.isPrivateMode ?? false
+        return tabTrayState.isPrivateMode
     }
 
     func applyTheme() {
@@ -914,18 +884,12 @@ final class TabTrayViewController: UIViewController,
 
         setupOpenPanel(panelType: panelType)
 
-        let action = TabTrayAction(panelType: panelType,
-                                   windowUUID: windowUUID,
-                                   actionType: TabTrayActionType.changePanel)
-        store.dispatch(action)
+        viewModel.changePanel(panelType)
     }
 
     @objc
     private func deleteTabsButtonTapped() {
-        let action = TabPanelViewAction(panelType: tabTrayState.selectedPanel,
-                                        windowUUID: windowUUID,
-                                        actionType: TabPanelViewActionType.closeAllTabs)
-        store.dispatch(action)
+        viewModel.closeAllTabsTapped()
     }
 
     private func showCloseAllConfirmation() {
@@ -1013,53 +977,41 @@ final class TabTrayViewController: UIViewController,
     }
 
     private func cancelCloseAll() {
-        let action = TabPanelViewAction(panelType: tabTrayState.selectedPanel,
-                                        windowUUID: windowUUID,
-                                        actionType: TabPanelViewActionType.cancelCloseAllTabs)
-        store.dispatch(action)
+        service.cancelCloseAllTabs(isPrivate: tabTrayState.isPrivateMode)
     }
 
     private func confirmCloseAll() {
-        let action = TabPanelViewAction(panelType: tabTrayState.selectedPanel,
-                                        windowUUID: windowUUID,
-                                        actionType: TabPanelViewActionType.confirmCloseAllTabs)
-        store.dispatch(action)
+        service.closeAllTabs(isPrivate: tabTrayState.isPrivateMode)
     }
 
     private func deleteTabsOlderThan(period: TabsDeletionPeriod) {
-        let action = TabPanelViewAction(panelType: tabTrayState.selectedPanel,
-                                        deleteTabPeriod: period,
-                                        windowUUID: windowUUID,
-                                        actionType: TabPanelViewActionType.deleteTabsOlderThan)
-        store.dispatch(action)
+        service.deleteNormalTabsOlderThan(period)
     }
 
     @objc
     private func newTabButtonTapped() {
-        let action = TabPanelViewAction(panelType: tabTrayState.selectedPanel,
-                                        windowUUID: windowUUID,
-                                        actionType: TabPanelViewActionType.addNewTab)
-        store.dispatch(action)
+        service.newTabButtonTapped(panelType: tabTrayState.selectedPanel)
+        service.addNewTab(with: nil, isPrivate: tabTrayState.isPrivateMode, showOverlay: true)
     }
 
     @objc
     private func doneButtonTapped() {
         notificationCenter.post(name: .TabsTrayDidClose, withUserInfo: windowUUID.userInfo)
-        store.dispatch(
-            TabTrayAction(
-                panelType: tabTrayState.selectedPanel,
-                windowUUID: windowUUID,
-                actionType: TabTrayActionType.doneButtonTapped
-            )
-        )
+        viewModel.doneButtonTapped()
         delegate?.didFinish()
     }
 
     @objc
     private func syncTabsTapped() {
-        let action = RemoteTabsPanelAction(windowUUID: windowUUID,
-                                           actionType: RemoteTabsPanelActionType.refreshTabs)
-        store.dispatch(action)
+        // The tab tray owns the synced-tabs panel as a child, so this is a call rather than a
+        // dispatch now that RemoteTabsPanel holds its own state.
+        remoteTabsPanel?.syncTabsTapped()
+    }
+
+    private var remoteTabsPanel: RemoteTabsPanel? {
+        return childPanelControllers
+            .compactMap { $0.viewControllers.first as? RemoteTabsPanel }
+            .first
     }
 
     // MARK: - TabTraySelectorDelegate
@@ -1087,10 +1039,7 @@ final class TabTrayViewController: UIViewController,
         }
 
         setupOpenPanel(panelType: panelType)
-        let action = TabTrayAction(panelType: panelType,
-                                   windowUUID: windowUUID,
-                                   actionType: TabTrayActionType.changePanel)
-        store.dispatch(action)
+        viewModel.changePanel(panelType)
     }
 
     // MARK: - UIPageViewControllerDataSource & UIPageViewControllerDelegate
@@ -1122,10 +1071,7 @@ final class TabTrayViewController: UIViewController,
         let newPanelType = TabTrayPanelType.getExperimentConvert(index: currentIndex)
         if tabTrayState.selectedPanel != newPanelType {
             tabTrayState.selectedPanel = newPanelType
-            let action = TabTrayAction(panelType: newPanelType,
-                                       windowUUID: windowUUID,
-                                       actionType: TabTrayActionType.changePanel)
-            store.dispatch(action)
+            viewModel.changePanel(newPanelType)
 
             experimentSegmentControl.didFinishSelection(to: experimentConvertSelectedIndex())
 

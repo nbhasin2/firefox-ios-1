@@ -271,7 +271,7 @@ extension BrowserViewController: ReaderModeBarViewDelegate {
             readerModeBar.added = false
             readerModeBar.unread = false
         case .summarizer:
-            store.dispatch(
+            browserEventBus.dispatch(
                 GeneralBrowserAction(
                     windowUUID: windowUUID,
                     actionType: GeneralBrowserActionType.didTapReaderModeBarSummarizerButton

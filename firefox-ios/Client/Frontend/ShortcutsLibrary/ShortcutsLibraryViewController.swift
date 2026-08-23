@@ -9,7 +9,6 @@ import Storage
 
 class ShortcutsLibraryViewController: UIViewController,
                                       UICollectionViewDelegate,
-                                      StoreSubscriber,
                                       Themeable,
                                       DismissalNotifiable {
     struct UX {
@@ -19,7 +18,7 @@ class ShortcutsLibraryViewController: UIViewController,
     // MARK: - Private variables
     private var collectionView: UICollectionView?
     private var dataSource: ShortcutsLibraryDiffableDataSource?
-    private var shortcutsLibraryState: ShortcutsLibraryState
+    private let viewModel: ShortcutsLibraryViewModel
     private var recordTelemetryOnDisappear = true
 
     private var currentTheme: Theme {
@@ -47,39 +46,26 @@ class ShortcutsLibraryViewController: UIViewController,
          profile: Profile = AppContainer.shared.resolve(),
          themeManager: ThemeManager = AppContainer.shared.resolve(),
          notificationCenter: NotificationProtocol = NotificationCenter.default,
-         logger: Logger = DefaultLogger.shared
+         logger: Logger = DefaultLogger.shared,
+         viewModel: ShortcutsLibraryViewModel? = nil
     ) {
         self.windowUUID = windowUUID
         self.profile = profile
         self.themeManager = themeManager
         self.notificationCenter = notificationCenter
         self.logger = logger
-        self.shortcutsLibraryState = ShortcutsLibraryState(windowUUID: windowUUID)
+        self.viewModel = viewModel ?? ShortcutsLibraryViewModel(windowUUID: windowUUID)
 
         super.init(nibName: nil, bundle: nil)
 
-        subscribeToRedux()
+        self.viewModel.onChange = { [weak self] in
+            guard let self else { return }
+            self.dataSource?.updateSnapshot(viewModel: self.viewModel)
+        }
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    deinit {
-        // TODO: FXIOS-13097 This is a work around until we can leverage isolated deinits
-        guard Thread.isMainThread else {
-            logger.log(
-                "MainMenuViewController was not deallocated on the main thread. Redux was not cleaned up.",
-                level: .fatal,
-                category: .lifecycle
-            )
-            assertionFailure("The view controller was not deallocated on the main thread. Redux was not cleaned up.")
-            return
-        }
-
-        MainActor.assumeIsolated {
-            unsubscribeFromRedux()
-        }
     }
 
     // MARK: View lifecycle
@@ -91,12 +77,7 @@ class ShortcutsLibraryViewController: UIViewController,
         setupLayout()
         configureDataSource()
 
-        store.dispatch(
-            ShortcutsLibraryAction(
-                windowUUID: windowUUID,
-                actionType: ShortcutsLibraryActionType.initialize
-            )
-        )
+        viewModel.viewDidLoad()
 
         listenForThemeChanges(withNotificationCenter: notificationCenter)
         applyTheme()
@@ -109,58 +90,14 @@ class ShortcutsLibraryViewController: UIViewController,
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        store.dispatch(
-            ShortcutsLibraryAction(
-                windowUUID: windowUUID,
-                actionType: ShortcutsLibraryActionType.viewDidAppear
-            )
-        )
+        viewModel.viewDidAppear()
     }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         if recordTelemetryOnDisappear {
-            store.dispatch(
-                ShortcutsLibraryAction(
-                    windowUUID: windowUUID,
-                    actionType: ShortcutsLibraryActionType.viewDidDisappear)
-            )
+            viewModel.viewDidDisappear()
         }
-    }
-
-    // MARK: - Redux
-    func subscribeToRedux() {
-        let action = ComponentAction(
-            windowUUID: windowUUID,
-            actionType: ComponentActionType.addComponent,
-            component: .shortcutsLibrary
-        )
-        store.dispatch(action)
-
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            return $0.select({ appState in
-                return ShortcutsLibraryState(
-                    appState: appState,
-                    uuid: uuid
-                )
-            })
-        })
-    }
-
-    func newState(state: ShortcutsLibraryState) {
-        self.shortcutsLibraryState = state
-
-        dataSource?.updateSnapshot(state: state)
-    }
-
-    func unsubscribeFromRedux() {
-        let action = ComponentAction(
-            windowUUID: windowUUID,
-            actionType: ComponentActionType.removeComponent,
-            component: .shortcutsLibrary
-        )
-        store.dispatch(action)
     }
 
     // MARK: - Themeable
@@ -211,8 +148,14 @@ class ShortcutsLibraryViewController: UIViewController,
         let layout = UICollectionViewCompositionalLayout { [weak self ](sectionIndex, environment)
             -> NSCollectionLayoutSection? in
             guard let self else { return nil }
-            let homepageState = store.state.componentState(HomepageState.self, for: .homepage, window: windowUUID)
-            let numberOfTilesPerRow = homepageState?.topSitesState.numberOfTilesPerRow ?? 4
+            // Read the homepage's tiles-per-row out of the store before; computed from this
+            // screen's own width now, which is what it should have been measuring all along.
+            let numberOfTilesPerRow = HomepageDimensionCalculator.numberOfTopSitesPerRow(
+                availableWidth: environment.container.contentSize.width,
+                leadingInset: HomepageSectionLayoutProvider.UX.leadingInset(
+                    traitCollection: environment.traitCollection
+                )
+            )
             let section = TopSitesSectionLayoutProvider.createTopSitesSectionLayout(
                 for: environment.traitCollection,
                 numberOfTilesPerRow: numberOfTilesPerRow
@@ -283,7 +226,7 @@ class ShortcutsLibraryViewController: UIViewController,
             sourceView: sourceView,
             toastContainer: self.view
         )
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.contextMenu, contextMenuConfiguration: configuration),
                 windowUUID: windowUUID,
@@ -299,7 +242,7 @@ class ShortcutsLibraryViewController: UIViewController,
                                 theme: currentTheme,
                                 completion: { buttonPressed in
             if buttonPressed {
-                store.dispatch(
+                browserEventBus.dispatch(
                     ShortcutsLibraryAction(
                         tab: tab,
                         windowUUID: self.windowUUID,
@@ -380,19 +323,14 @@ class ShortcutsLibraryViewController: UIViewController,
 
         recordTelemetryOnDisappear = false
 
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: destination,
                 windowUUID: windowUUID,
                 actionType: NavigationBrowserActionType.tapOnCell
             )
         )
-        store.dispatch(
-            ShortcutsLibraryAction(
-                windowUUID: windowUUID,
-                actionType: ShortcutsLibraryActionType.tapOnShortcutCell
-            )
-        )
+        viewModel.shortcutTapped()
     }
 
     private func presentAddShortcutAlert() {
@@ -408,13 +346,7 @@ class ShortcutsLibraryViewController: UIViewController,
             title: url.shortDisplayString.capitalized
         )
         profile.pinnedSites.addPinnedTopSite(site)
-        store.dispatch(
-            TopSitesAction(
-                shortcutPinnedSource: .homescreenButton,
-                windowUUID: windowUUID,
-                actionType: TopSitesActionType.shortcutPinned
-            )
-        )
+        TopSitesTelemetryService.shared.sendShortcutPinned(source: .homescreenButton)
     }
 
     // MARK: - DismissalNotifiable

@@ -4,13 +4,11 @@
 
 import Common
 import Shared
-import Redux
 import ComponentLibrary
 
 final class TermsOfUseViewController: UIViewController,
                                       Themeable,
                                       UITextViewDelegate,
-                                      StoreSubscriber,
                                       PreventsDismissal {
     private struct UX {
         static let cornerRadius: CGFloat = 20
@@ -36,8 +34,8 @@ final class TermsOfUseViewController: UIViewController,
         static let descriptionFont = FXFontStyles.Regular.body.scaledFont()
         static let buttonFont = FXFontStyles.Bold.callout.scaledFont()
     }
-    typealias SubscriberStateType = TermsOfUseState
     weak var coordinator: TermsOfUseCoordinatorDelegate?
+    private let viewModel: TermsOfUseViewModel
     var notificationCenter: NotificationProtocol
     var themeManager: ThemeManager
     var themeListenerCancellable: Any?
@@ -118,7 +116,9 @@ final class TermsOfUseViewController: UIViewController,
          windowUUID: UUID,
          notificationCenter: NotificationProtocol = NotificationCenter.default,
          enableDragToDismiss: Bool = true,
-         contentOption: TermsOfUseContentOption = .value0) {
+         contentOption: TermsOfUseContentOption = .value0,
+         viewModel: TermsOfUseViewModel? = nil) {
+        self.viewModel = viewModel ?? TermsOfUseViewModel()
         self.themeManager = themeManager
         self.notificationCenter = notificationCenter
         self.windowUUID = windowUUID
@@ -140,39 +140,11 @@ final class TermsOfUseViewController: UIViewController,
 
         listenForThemeChanges(withNotificationCenter: notificationCenter)
         applyTheme()
-
-        subscribeToRedux()
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        store.dispatch(TermsOfUseAction(windowUUID: windowUUID, actionType: .termsShown))
-    }
-
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        unsubscribeFromRedux()
-    }
-
-    func subscribeToRedux() {
-        let action = ComponentAction(windowUUID: windowUUID,
-                                     actionType: ComponentActionType.addComponent,
-                                     component: .termsOfUse)
-        store.dispatch(action)
-        store.subscribe(self) {
-            $0.select { appState in
-                appState.componentState(TermsOfUseState.self, for: .termsOfUse, window: self.windowUUID)
-                ?? TermsOfUseState(windowUUID: self.windowUUID)
-            }
-        }
-    }
-
-    func unsubscribeFromRedux() {
-        let action = ComponentAction(windowUUID: windowUUID,
-                                     actionType: ComponentActionType.removeComponent,
-                                     component: .termsOfUse)
-        store.dispatch(action)
-        // Note: actual `store.unsubscribe()` is not strictly needed; Redux uses weak subscribers
+        viewModel.termsShown()
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -186,12 +158,6 @@ final class TermsOfUseViewController: UIViewController,
             descriptionTextView.attributedText = makeAttributedDescription()
             view.setNeedsLayout()
             view.layoutIfNeeded()
-        }
-    }
-
-    func newState(state: TermsOfUseState) {
-        if state.hasAccepted || state.wasDismissed {
-            coordinator?.dismissTermsFlow()
         }
     }
 
@@ -312,9 +278,7 @@ final class TermsOfUseViewController: UIViewController,
             sheetContainer.transform = CGAffineTransform(translationX: 0, y: translation.y)
         case .ended:
             if translation.y > UX.panDismissDistance || gesture.velocity(in: view).y > UX.panDismissVelocity {
-                store.dispatch(TermsOfUseAction(windowUUID: windowUUID, actionType: .gestureDismiss))
-                // In rare external-open flows the Redux subscriber can be delayed for gestures
-                // due to window/state selection timing, so it should be dismissed directly
+                viewModel.gestureDismiss()
                 coordinator?.dismissTermsFlow()
             } else {
                 UIView.animate(withDuration: UX.animationDuration,
@@ -331,12 +295,12 @@ final class TermsOfUseViewController: UIViewController,
     }
 
     @objc private func acceptTapped() {
-        store.dispatch(TermsOfUseAction(windowUUID: windowUUID, actionType: .termsAccepted))
+        viewModel.termsAccepted()
         coordinator?.dismissTermsFlow()
     }
 
     @objc private func remindMeLaterTapped() {
-        store.dispatch(TermsOfUseAction(windowUUID: windowUUID, actionType: .remindMeLaterTapped))
+        viewModel.remindMeLaterTapped()
         coordinator?.dismissTermsFlow()
     }
 
@@ -385,7 +349,7 @@ final class TermsOfUseViewController: UIViewController,
                   interaction: UITextItemInteraction) -> Bool {
         guard interaction == .invokeDefaultAction else { return true }
         if let linkType = TermsOfUseLinkType.linkType(for: url) {
-            store.dispatch(TermsOfUseAction(windowUUID: windowUUID, actionType: linkType.actionType))
+            viewModel.linkTapped(linkType)
         }
         coordinator?.showTermsLink(url: url)
         return false

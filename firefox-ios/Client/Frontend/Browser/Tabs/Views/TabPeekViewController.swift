@@ -5,64 +5,30 @@
 import UIKit
 import Common
 import WebKit
-import Redux
 
-final class TabPeekViewController: UIViewController,
-                                   StoreSubscriber {
-    typealias SubscriberStateType = TabPeekState
-
-    var tabPeekState: TabPeekState
+final class TabPeekViewController: UIViewController {
+    var tabPeekState: TabPeekState { return viewModel.state }
     private let windowUUID: WindowUUID
+    private let viewModel: TabPeekViewModel
 
     private var tabModel: TabModel
 
     // MARK: - Lifecycle methods
 
-    init(tab: TabModel, windowUUID: WindowUUID) {
-        tabPeekState = TabPeekState(windowUUID: windowUUID)
+    init(tab: TabModel, windowUUID: WindowUUID, viewModel: TabPeekViewModel? = nil) {
         self.tabModel = tab
         self.windowUUID = windowUUID
+        self.viewModel = viewModel ?? TabPeekViewModel(tabUUID: tab.tabUUID, windowUUID: windowUUID)
         super.init(nibName: nil, bundle: nil)
 
-        subscribeToRedux()
-        let action = TabPeekAction(tabUUID: tab.tabUUID,
-                                   windowUUID: windowUUID,
-                                   actionType: TabPeekActionType.didLoadTabPeek)
-        store.dispatch(action)
+        self.viewModel.onChange = { [weak self] _ in
+            self?.setupWithScreenshot()
+        }
+        self.viewModel.viewDidLoad()
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        unsubscribeFromRedux()
-    }
-
-    func newState(state: TabPeekState) {
-        tabPeekState = state
-        setupWithScreenshot()
-    }
-
-    func subscribeToRedux() {
-        let action = ComponentAction(windowUUID: windowUUID,
-                                     actionType: ComponentActionType.addComponent,
-                                     component: .tabPeek)
-        store.dispatch(action)
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            return $0.select({ appState in
-                return TabPeekState(appState: appState, uuid: uuid)
-            })
-        })
-    }
-
-    func unsubscribeFromRedux() {
-        let action = ComponentAction(windowUUID: windowUUID,
-                                     actionType: ComponentActionType.removeComponent,
-                                     component: .tabPeek)
-        store.dispatch(action)
     }
 
     func contextActions(defaultActions: [UIMenuElement]) -> UIMenu {
@@ -95,48 +61,28 @@ final class TabPeekViewController: UIViewController,
             actions.append(UIAction(title: .TabPeekAddToBookmarks,
                                     image: UIImage.templateImageNamed(StandardImageIdentifiers.Large.bookmark),
                                     identifier: nil) { [weak self] _ in
-                guard let self else { return }
-                let action = TabPeekAction(tabUUID: self.tabModel.tabUUID,
-                                           windowUUID: self.windowUUID,
-                                           actionType: TabPeekActionType.addToBookmarks)
-                store.dispatch(action)
-                return
+                self?.viewModel.addToBookmarks()
             })
         }
         if tabPeekState.showRemoveBookmark {
             actions.append(UIAction(title: .TabPeekRemoveBookmark,
                                     image: UIImage.templateImageNamed(StandardImageIdentifiers.Large.bookmarkFill),
                                     identifier: nil) { [weak self] _ in
-                guard let self else { return }
-                let action = TabPeekAction(tabUUID: self.tabModel.tabUUID,
-                                           windowUUID: self.windowUUID,
-                                           actionType: TabPeekActionType.removeBookmark)
-                store.dispatch(action)
-                return
+                self?.viewModel.removeBookmark()
             })
         }
         if tabPeekState.showCopyURL {
             actions.append(UIAction(title: .TabPeekCopyUrl,
                                     image: UIImage.templateImageNamed(StandardImageIdentifiers.Large.link),
                                     identifier: nil) { [weak self] _ in
-                guard let self else { return }
-                let action = TabPeekAction(tabUUID: self.tabModel.tabUUID,
-                                           windowUUID: self.windowUUID,
-                                           actionType: TabPeekActionType.copyURL)
-                store.dispatch(action)
-                return
+                self?.viewModel.copyURL()
             })
         }
         if tabPeekState.showCloseTab {
             actions.append(UIAction(title: .TabPeekCloseTab,
                                     image: UIImage.templateImageNamed(StandardImageIdentifiers.Large.cross),
                                     identifier: nil) { [weak self] _ in
-                guard let self else { return }
-                let action = TabPeekAction(tabUUID: self.tabModel.tabUUID,
-                                           windowUUID: self.windowUUID,
-                                           actionType: TabPeekActionType.closeTab)
-                store.dispatch(action)
-                return
+                self?.viewModel.closeTab()
             })
         }
 

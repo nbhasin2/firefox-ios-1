@@ -124,11 +124,7 @@ struct ContextMenuState {
             iconString: StandardImageIdentifiers.Large.cross,
             allowIconScaling: true,
             tapHandler: { _ in
-                ContextMenuState.dispatchContextMenuAction(
-                    windowUUID: windowUUID,
-                    site: site,
-                    actionType: ContextMenuActionType.tappedOnRemoveTopSite
-                )
+                ContextMenuState.removeTopSite(site)
             }).items
     }
 
@@ -142,11 +138,7 @@ struct ContextMenuState {
             iconString: StandardImageIdentifiers.Large.pin,
             allowIconScaling: true,
             tapHandler: { _ in
-                ContextMenuState.dispatchContextMenuAction(
-                    windowUUID: windowUUID,
-                    site: site,
-                    actionType: ContextMenuActionType.tappedOnPinTopSite
-                )
+                ContextMenuState.pinTopSite(site)
             }).items
     }
 
@@ -162,11 +154,7 @@ struct ContextMenuState {
             iconString: StandardImageIdentifiers.Large.pinSlash,
             allowIconScaling: true,
             tapHandler: { _ in
-                ContextMenuState.dispatchContextMenuAction(
-                    windowUUID: windowUUID,
-                    site: site,
-                    actionType: ContextMenuActionType.tappedOnUnpinTopSite
-                )
+                ContextMenuState.unpinTopSite(site)
             }).items
     }
 
@@ -180,9 +168,9 @@ struct ContextMenuState {
                                      allowIconScaling: true,
                                      tapHandler: { _ in
             ContextMenuState.dispatchSettingsAction(windowUUID: windowUUID, section: .topSites)
-            store.dispatch(
-                ContextMenuAction(windowUUID: windowUUID, actionType: ContextMenuActionType.tappedOnSettingsAction)
-            )
+            ensureMainThread {
+                TopSitesTelemetryService.shared.sendContextMenuOpened(for: .settings)
+            }
         }).items
     }
 
@@ -211,7 +199,7 @@ struct ContextMenuState {
                     isPrivate: false,
                     selectNewTab: true
                 )
-                store.dispatch(
+                browserEventBus.dispatch(
                     ContextMenuAction(windowUUID: windowUUID, actionType: ContextMenuActionType.tappedOnSponsoredAction)
                 )
             }).items
@@ -296,6 +284,11 @@ struct ContextMenuState {
                 menuType: menuType,
                 actionType: ContextMenuActionType.tappedOnOpenNewPrivateTab
             )
+            if case .topSite = menuType {
+                ensureMainThread {
+                    TopSitesTelemetryService.shared.sendOpenInPrivateTab()
+                }
+            }
         }.items
     }
 
@@ -374,7 +367,7 @@ struct ContextMenuState {
     // MARK: Dispatch Actions
     @MainActor
     private static func dispatchSettingsAction(windowUUID: WindowUUID, section: Route.SettingsSection) {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.settings(section)),
                 windowUUID: windowUUID,
@@ -390,7 +383,7 @@ struct ContextMenuState {
         isPrivate: Bool,
         selectNewTab: Bool = false
     ) {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(
                     .newTab,
@@ -406,7 +399,7 @@ struct ContextMenuState {
 
     @MainActor
     private static func dispatchShareSheetAction(windowUUID: WindowUUID, shareSheetConfiguration: ShareSheetConfiguration) {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.shareSheet(shareSheetConfiguration)),
                 windowUUID: windowUUID,
@@ -416,14 +409,30 @@ struct ContextMenuState {
     }
 
     @MainActor
-    private static func dispatchContextMenuAction(windowUUID: WindowUUID, site: Site, actionType: ActionType) {
-        store.dispatch(
-            ContextMenuAction(
-                site: site,
-                windowUUID: windowUUID,
-                actionType: actionType
-            )
-        )
+    /// Top-site mutations reach `TopSitesService` directly. The tap handlers are `nonisolated`
+    /// closures (see the FXIOS-12750 notes above), so they hop to the main actor rather than
+    /// dispatching an action for a middleware to pick up.
+    private static func pinTopSite(_ site: Site) {
+        ensureMainThread {
+            TopSitesService.shared.pin(site)
+            TopSitesTelemetryService.shared.sendContextMenuOpened(for: .pin)
+            TopSitesTelemetryService.shared.sendShortcutPinned(source: .contextMenu)
+        }
+    }
+
+    private static func unpinTopSite(_ site: Site) {
+        ensureMainThread {
+            TopSitesService.shared.unpin(site)
+            TopSitesTelemetryService.shared.sendContextMenuOpened(for: .unpin)
+            TopSitesTelemetryService.shared.sendShortcutUnpinned(source: .contextMenu)
+        }
+    }
+
+    private static func removeTopSite(_ site: Site) {
+        ensureMainThread {
+            TopSitesService.shared.remove(site)
+            TopSitesTelemetryService.shared.sendContextMenuOpened(for: .remove)
+        }
     }
 
     @MainActor
@@ -432,7 +441,7 @@ struct ContextMenuState {
         menuType: MenuType?,
         actionType: ActionType
     ) {
-        store.dispatch(
+        browserEventBus.dispatch(
             ContextMenuAction(
                 menuType: menuType,
                 windowUUID: windowUUID,

@@ -2,93 +2,63 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
+import Common
 import XCTest
 
 @testable import Client
 
-final class ShortcutsLibraryViewControllerTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStoreForMiddleware<AppState>!
+@MainActor
+final class ShortcutsLibraryViewControllerTests: XCTestCase {
+    private var mockGleanWrapper: MockGleanWrapper!
 
     override func setUp() async throws {
         try await super.setUp()
-        DependencyHelperMock().bootstrapDependencies()
-        setupStore()
+        await DependencyHelperMock().bootstrapDependencies()
+        mockGleanWrapper = MockGleanWrapper()
     }
 
     override func tearDown() async throws {
+        mockGleanWrapper = nil
         DependencyHelperMock().reset()
-        resetStore()
         try await super.tearDown()
     }
 
-    func test_viewDidLoad_triggersShortcutsLibraryAction() throws {
-        let subject = createSubject()
-
-        subject.viewDidLoad()
-
-        let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.last(where: { $0 is ShortcutsLibraryAction }) as? ShortcutsLibraryAction
-        )
-        let actionType = try XCTUnwrap(actionCalled.actionType as? ShortcutsLibraryActionType)
-        XCTAssertEqual(actionType, ShortcutsLibraryActionType.initialize)
-        XCTAssertEqual(actionCalled.windowUUID, .XCTestDefaultUUID)
-    }
-
-    func test_viewDidAppear_triggersShortcutsLibraryAction() throws {
+    /// The lifecycle dispatches are gone; the controller drives the view model, which records the
+    /// telemetry the middleware used to.
+    func test_viewDidAppear_recordsTheViewedEvent() {
         let subject = createSubject()
 
         subject.viewDidAppear(false)
 
-        let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.last(where: { $0 is ShortcutsLibraryAction }) as? ShortcutsLibraryAction
-        )
-        let actionType = try XCTUnwrap(actionCalled.actionType as? ShortcutsLibraryActionType)
-        XCTAssertEqual(actionType, ShortcutsLibraryActionType.viewDidAppear)
-        XCTAssertEqual(actionCalled.windowUUID, .XCTestDefaultUUID)
+        XCTAssertEqual(mockGleanWrapper.recordEventNoExtraCalled, 1)
     }
 
-    func test_viewDidDisappear_whenRecordTelemetryOnDisappearIsTrue_triggersShortcutsLibraryAction() throws {
+    func test_viewDidDisappear_recordsTheClosedEvent() {
         let subject = createSubject()
 
         subject.viewDidDisappear(false)
 
-        let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.last(where: { $0 is ShortcutsLibraryAction }) as? ShortcutsLibraryAction
-        )
-        let actionType = try XCTUnwrap(actionCalled.actionType as? ShortcutsLibraryActionType)
-        XCTAssertEqual(actionType, ShortcutsLibraryActionType.viewDidDisappear)
-        XCTAssertEqual(actionCalled.windowUUID, .XCTestDefaultUUID)
+        XCTAssertEqual(mockGleanWrapper.recordEventNoExtraCalled, 1)
     }
 
-    func test_viewDidDisappear_whenRecordTelemetryOnDisappearIsTrue_doesNotTriggerShortcutsLibraryAction() throws {
+    func test_viewDidDisappear_afterDeeplinkDismissal_recordsNothing() {
         let subject = createSubject()
 
         subject.willBeDismissed(reason: .deeplink)
-
         subject.viewDidDisappear(false)
 
-        let dispatchedActions = mockStore.dispatchedActions
-            .compactMap { $0 as? ShortcutsLibraryAction }
-
-        XCTAssertTrue(dispatchedActions.isEmpty)
+        XCTAssertEqual(mockGleanWrapper.recordEventNoExtraCalled, 0)
     }
 
-    private func createSubject(statusBarScrollDelegate: StatusBarScrollDelegate? = nil) -> ShortcutsLibraryViewController {
-        let shortcutsLibraryViewController = ShortcutsLibraryViewController(windowUUID: .XCTestDefaultUUID)
-        trackForMemoryLeaks(shortcutsLibraryViewController)
-        return shortcutsLibraryViewController
-    }
-
-    func setupAppState() -> Client.AppState {
-        return AppState()
-    }
-
-    func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
-        StoreTestUtilityHelper.setupStore(with: mockStore)
-    }
-
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    private func createSubject() -> ShortcutsLibraryViewController {
+        let viewModel = ShortcutsLibraryViewModel(
+            windowUUID: .XCTestDefaultUUID,
+            topSitesService: TopSitesService(topSitesManager: MockTopSitesManager()),
+            featureFlagsProvider: MockNimbusFeatureFlags(),
+            telemetry: ShortcutsLibraryTelemetry(gleanWrapper: mockGleanWrapper)
+        )
+        let subject = ShortcutsLibraryViewController(windowUUID: .XCTestDefaultUUID, viewModel: viewModel)
+        trackForMemoryLeaks(subject)
+        return subject
     }
 }

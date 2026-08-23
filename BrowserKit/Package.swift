@@ -194,7 +194,7 @@ let package = Package(
         ),
         .target(
             name: "TestKit",
-            dependencies: ["Shared", "Redux", "AppAttestKit"]
+            dependencies: ["Shared", "AppAttestKit"]
         ),
         .target(
             name: "ToolbarKit",

@@ -83,8 +83,10 @@ final class MockBookmarksHandler: BookmarksHandler, @unchecked Sendable {
         completion(.success(bookmarksInTreeValue))
     }
 
+    var isBookmarkedResult = true
+
     func isBookmarked(url: String, completion: @escaping @Sendable (Result<Bool, Error>) -> Void) {
-        completion(.success(true))
+        completion(.success(isBookmarkedResult))
     }
 
     func deleteBookmarkNode(guid: GUID) -> Success {

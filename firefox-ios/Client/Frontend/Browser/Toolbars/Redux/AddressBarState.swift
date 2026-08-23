@@ -9,7 +9,7 @@ import ToolbarKit
 import SummarizeKit
 
 @Copyable
-struct AddressBarState: StateType, Sendable, Equatable {
+struct AddressBarState: ResettableState, Sendable {
     var windowUUID: WindowUUID
     var navigationActions: [ToolbarActionConfiguration]
     var leadingPageActions: [ToolbarActionConfiguration]
@@ -160,15 +160,28 @@ struct AddressBarState: StateType, Sendable, Equatable {
         self.isNovaDesignEnabled = isNovaDesignEnabled
     }
 
-    static let reducer: Reducer<Self> = (legacyReducer, modernReducer)
+    /// The reducer body, unchanged; what went is the tuple the store used to call it through.
+    @MainActor
+    static func reduce(_ state: AddressBarState, with action: Action) -> AddressBarState {
+        return legacyReducer(state, action)
+    }
 
-    static let modernReducer: ReducerMethod<Self> = { state, action, actionWindowUUID in
+    @MainActor
+
+    static func reduceModern(_ state: AddressBarState, with action: ModernAction) -> AddressBarState {
+        return modernReducer(state, action, state.windowUUID)
+    }
+
+    @MainActor
+
+    static func modernReducer(_ state: Self, _ action: ModernAction, _ actionWindowUUID: WindowUUID) -> Self {
         // Does not handle any modern actions
         return defaultState(from: state)
     }
 
     // swiftlint:disable:next closure_body_length
-    static let legacyReducer: LegacyReducerMethod<Self> = { state, action in
+    @MainActor
+    static func legacyReducer(_ state: Self, _ action: Action) -> Self {
         guard action.windowUUID == .unavailable || action.windowUUID == state.windowUUID
         else {
             return defaultState(from: state)
@@ -736,8 +749,7 @@ struct AddressBarState: StateType, Sendable, Equatable {
     ) -> [ToolbarActionConfiguration] {
         var actions = [ToolbarActionConfiguration]()
 
-        guard let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: action.windowUUID)
-        else { return actions }
+        let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
 
         let isShowingNavigationToolbar = action.isShowingNavigationToolbar ?? toolbarState.isShowingNavigationToolbar
 
@@ -762,9 +774,8 @@ struct AddressBarState: StateType, Sendable, Equatable {
 
         guard action is ToolbarAction || action is TranslationsAction else { return actions }
 
-        guard let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: action.windowUUID),
-              !isEditing
-        else { return actions }
+        guard !isEditing else { return actions }
+        let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
 
         let toolbarAction = action as? ToolbarAction
         let actionTranslationConfiguration = TranslationConfiguration(from: action)
@@ -891,10 +902,7 @@ struct AddressBarState: StateType, Sendable, Equatable {
     ) -> [ToolbarActionConfiguration] {
         var actions = [ToolbarActionConfiguration]()
 
-        guard let toolbarState = store.state.componentState(ToolbarState.self,
-                                                            for: .toolbar,
-                                                            window: action.windowUUID)
-        else { return actions }
+        let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
 
         let isShowingNavigationToolbar = action.isShowingNavigationToolbar ?? toolbarState.isShowingNavigationToolbar
         let isURLDidChangeAction = action.actionType as? ToolbarActionType == .urlDidChange
@@ -976,8 +984,7 @@ struct AddressBarState: StateType, Sendable, Equatable {
     // MARK: - Helper
     @MainActor
     private static func toolbarPosition(action: ToolbarAction) -> AddressToolbarPosition? {
-        guard let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: action.windowUUID)
-        else { return nil }
+        let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
 
         guard action.actionType as? ToolbarActionType == .toolbarPositionChanged,
               let toolbarPosition = action.toolbarPosition
@@ -993,8 +1000,7 @@ struct AddressBarState: StateType, Sendable, Equatable {
 
     @MainActor
     private static func shouldUseAlternativeLocationColor(action: ToolbarAction) -> Bool {
-        guard let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: action.windowUUID)
-        else { return false }
+        let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
 
         let isTraitCollectionDidChangeAction = action.actionType as? ToolbarActionType == .traitCollectionDidChange
         let isShowingNavigationToolbar = if isTraitCollectionDidChangeAction {

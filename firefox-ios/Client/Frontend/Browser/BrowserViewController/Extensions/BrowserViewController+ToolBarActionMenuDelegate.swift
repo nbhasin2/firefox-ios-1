@@ -20,7 +20,7 @@ extension BrowserViewController: PhotonActionSheetProtocol {
         } else {
             navigationHintDoubleTapTimer = nil
             let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.navigationButtonDoubleTapped)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         }
     }
 
@@ -35,7 +35,7 @@ extension BrowserViewController: PhotonActionSheetProtocol {
             actionOnDismiss: {
                 let action = ToolbarAction(windowUUID: self.windowUUID,
                                            actionType: ToolbarActionType.navigationHintFinishedPresenting)
-                store.dispatch(action)
+                browserEventBus.dispatch(action)
             },
             andActionForButton: { },
             overlayState: overlayManager,
@@ -48,10 +48,7 @@ extension BrowserViewController: PhotonActionSheetProtocol {
         // 2. Microsurvey prompt is not being displayed
         // If the hint does not show,
         // ToolbarActionType.navigationButtonDoubleTapped will have to be dispatched again through user action
-        guard let state = store.state.componentState(BrowserViewControllerState.self,
-                                                     for: .browserViewController,
-                                                     window: windowUUID)
-        else { return }
+        guard let state = browserViewControllerState else { return }
 
         if let selectedTab = tabManager.selectedTab,
             selectedTab.isFxHomeTab || !selectedTab.isLoading,
@@ -61,13 +58,13 @@ extension BrowserViewController: PhotonActionSheetProtocol {
         } else {
             let action = ToolbarAction(windowUUID: self.windowUUID,
                                        actionType: ToolbarActionType.navigationHintFinishedPresenting)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         }
     }
 
     // MARK: - Summarize CFR / Contextual Hint
     func configureSummarizeToolbarEntryContextualHint(for view: UIView) {
-        guard let state = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID) else { return }
+        let state = ToolbarViewModel.instance(for: windowUUID).state
         // Show up arrow for iPad and landscape or top address bar; otherwise show down arrow
         let showNavToolbar = toolbarHelper.shouldShowNavigationToolbar(for: traitCollection)
         let shouldShowUpArrow = state.toolbarPosition == .top || !showNavToolbar
@@ -96,7 +93,7 @@ extension BrowserViewController: PhotonActionSheetProtocol {
 
     // MARK: - Translation CFR
     func configureTranslationContextualHint(for view: UIView) {
-        guard let state = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID) else { return }
+        let state = ToolbarViewModel.instance(for: windowUUID).state
         // Show up arrow for iPad and landscape or top address bar; otherwise show down arrow
         let showNavToolbar = toolbarHelper.shouldShowNavigationToolbar(for: traitCollection)
         let shouldShowUpArrow = state.toolbarPosition == .top || !showNavToolbar
@@ -141,11 +138,9 @@ extension BrowserViewController: PhotonActionSheetProtocol {
                 case .available:
                     guard let button,
                           button.window != nil,
-                          self.presentedViewController == nil,
-                          let toolbarState = store.state.componentState(ToolbarState.self,
-                                                                        for: .toolbar,
-                                                                        window: self.windowUUID)
+                          self.presentedViewController == nil
                     else { return }
+                    let toolbarState = ToolbarViewModel.instance(for: self.windowUUID).state
 
                     let tipViewController = TipUIPopoverViewController(tip, sourceItem: button)
                     tipViewController.popoverPresentationController?.permittedArrowDirections =
@@ -180,13 +175,7 @@ extension BrowserViewController: PhotonActionSheetProtocol {
     }
 
     func dismissToolbarCFRs(with windowUUID: WindowUUID) {
-        guard let toolbarState = store.state.componentState(
-            ToolbarState.self,
-            for: .toolbar,
-            window: windowUUID
-        ) else {
-            return
-        }
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
         let translationAction = toolbarState.addressToolbar.leadingPageActions.first(where: { $0.actionType == .translate })
         if translationAction == nil {
             resetTranslationCFRTimer()
@@ -252,7 +241,7 @@ extension BrowserViewController: PhotonActionSheetProtocol {
             if let tab = self.tabManager.selectedTab {
                 self.tabsPanelTelemetry.tabClosed(mode: tab.isPrivate ? .private : .normal)
                 self.tabManager.removeTab(tab.tabUUID)
-                store.dispatch(
+                browserEventBus.dispatch(
                     GeneralBrowserAction(
                         windowUUID: self.windowUUID,
                         actionType: GeneralBrowserActionType.didCloseTabFromToolbar

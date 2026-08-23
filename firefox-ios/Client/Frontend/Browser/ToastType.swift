@@ -62,11 +62,4 @@ enum ToastType: Equatable {
             return nil
         }
     }
-
-    private func tabPanelAction(for actionType: TabPanelViewActionType, uuid: WindowUUID) -> TabPanelViewAction {
-        // None of the above handled toast actions require a specific panelType
-        return TabPanelViewAction(panelType: nil,
-                                  windowUUID: uuid,
-                                  actionType: actionType)
-    }
 }

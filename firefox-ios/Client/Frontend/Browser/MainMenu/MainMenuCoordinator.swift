@@ -131,7 +131,7 @@ class MainMenuCoordinator: BaseCoordinator {
             navigationHandler?.showSettings(at: .password)
 
         case .readerView:
-            store.dispatch(NavigationBrowserAction(
+            browserEventBus.dispatch(NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.readerMode),
                 windowUUID: windowUUID,
                 actionType: NavigationBrowserActionType.tapOnReaderMode
@@ -176,8 +176,8 @@ class MainMenuCoordinator: BaseCoordinator {
             navigationHandler?.showSummarizePanel(.mainMenu, config: config)
 
         case .translatePage:
-            let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID)
-            let translationConfig = toolbarState?.addressToolbar.translationConfiguration
+            let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
+            let translationConfig = toolbarState.addressToolbar.translationConfiguration
             let isTranslated = translationConfig?.state == .active
             let translatedLanguage = translationConfig?.translatedToLanguage
             let isSingleLanguageFlow = if let translationConfig {
@@ -186,7 +186,7 @@ class MainMenuCoordinator: BaseCoordinator {
                 false
             }
             if isSingleLanguageFlow && isTranslated {
-                store.dispatch(ToolbarMiddlewareAction(
+                browserEventBus.dispatch(ToolbarMiddlewareAction(
                     buttonType: .translate,
                     gestureType: .tap,
                     windowUUID: windowUUID,
@@ -204,13 +204,13 @@ class MainMenuCoordinator: BaseCoordinator {
                     : (try? await TranslationsService().detectPageLanguage(for: windowUUID))
                 let filteredLanguages = languages.filter { $0 != pageLanguage && $0 != translatedLanguage }
                 if isSingleLanguageFlow, let language = filteredLanguages.first {
-                    store.dispatch(TranslationLanguageSelectedAction(
+                    browserEventBus.dispatch(TranslationLanguageSelectedAction(
                         windowUUID: windowUUID,
                         targetLanguage: language,
                         actionType: TranslationsActionType.didSelectTargetLanguage
                     ))
                 } else {
-                    store.dispatch(GeneralBrowserAction(
+                    browserEventBus.dispatch(GeneralBrowserAction(
                         translationLanguages: filteredLanguages,
                         isPageTranslated: isTranslated,
                         translatedToLanguage: translatedLanguage,

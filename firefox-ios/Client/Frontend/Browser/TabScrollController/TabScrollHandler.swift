@@ -406,7 +406,7 @@ final class TabScrollHandler: NSObject,
         if (lastContentOffsetY > 0 && contentOffset.y <= 0) ||
             (lastContentOffsetY <= 0 && contentOffset.y > 0) {
             lastContentOffsetY = contentOffset.y
-            store.dispatch(
+            browserEventBus.dispatch(
                 GeneralBrowserMiddlewareAction(
                     scrollOffset: contentOffset,
                     windowUUID: windowUUID,

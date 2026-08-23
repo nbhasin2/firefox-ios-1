@@ -13,25 +13,24 @@ import Shared
 /// Tests for KVO observer management in BrowserViewController.
 /// Verifies that the fix for the collection mutation bug correctly removes all observers.
 @MainActor
-final class BrowserViewControllerKVOTests: XCTestCase, StoreTestUtility {
+final class BrowserViewControllerKVOTests: XCTestCase, BusTestUtility {
     var profile: MockProfile!
     var tabManager: MockTabManager!
-    var mockStore: MockStoreForMiddleware<AppState>!
-    var appState: AppState!
+    var mockBus: MockBrowserEventBus!
 
     override func setUp() async throws {
         try await super.setUp()
         tabManager = MockTabManager()
         profile = MockProfile()
         DependencyHelperMock().bootstrapDependencies(injectedTabManager: tabManager)
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
         profile.shutdown()
         profile = nil
         tabManager = nil
-        resetStore()
+        resetBus()
         DependencyHelperMock().reset()
         try await super.tearDown()
     }
@@ -245,30 +244,14 @@ final class BrowserViewControllerKVOTests: XCTestCase, StoreTestUtility {
         return subject
     }
 
-    // MARK: - StoreTestUtility
+    // MARK: - BusTestUtility
 
-    func setupAppState() -> Client.AppState {
-        let appState = AppState(
-            presentedComponents: PresentedComponentsState(
-                components: [
-                    .browserViewController(
-                        BrowserViewControllerState(
-                            windowUUID: .XCTestDefaultUUID
-                        )
-                    )
-                ]
-            )
-        )
-        self.appState = appState
-        return appState
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
-        StoreTestUtilityHelper.setupStore(with: mockStore)
-    }
-
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

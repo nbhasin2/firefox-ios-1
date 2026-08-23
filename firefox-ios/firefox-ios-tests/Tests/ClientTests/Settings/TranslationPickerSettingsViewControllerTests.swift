@@ -2,93 +2,79 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
-import Redux
 import UIKit
 import XCTest
 
 @testable import Client
 
 @MainActor
-final class TranslationPickerSettingsViewControllerTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStoreForMiddleware<AppState>!
+final class TranslationPickerSettingsViewControllerTests: XCTestCase {
+    private var service: MockTranslationSettingsService!
 
     override func setUp() async throws {
         try await super.setUp()
         DependencyHelperMock().bootstrapDependencies()
-        setupStore()
+        service = MockTranslationSettingsService()
     }
 
     override func tearDown() async throws {
+        service = nil
         DependencyHelperMock().reset()
-        resetStore()
         try await super.tearDown()
     }
 
     // MARK: - Init
 
     func test_init_setsTitle() {
-        let subject = createSubject()
+        let subject = createSubject().viewController
         XCTAssertEqual(subject.title, .Settings.Translation.Title)
     }
 
-    // MARK: - newState
+    // MARK: - Rendering
 
-    func test_newState_withTranslationsEnabled_doesNotCrash() {
-        let subject = createSubject()
+    func test_render_withTranslationsEnabled_doesNotCrash() {
+        let (subject, viewModel) = createSubject()
         subject.loadViewIfNeeded()
-        subject.newState(state: TranslationSettingsState(windowUUID: .XCTestDefaultUUID)
-            .copy(preferredLanguages: [
+        service.saveResult = (
+            [
                 PreferredLanguageDetails(code: "en", mainText: "English", subtitleText: "Device Language"),
                 PreferredLanguageDetails(code: "fr", mainText: "français", subtitleText: "French")
-            ])
-            .copy(supportedLanguages: ["en", "fr", "de"]))
+            ],
+            ["de"]
+        )
+
+        viewModel.saveLanguages(["en", "fr"])
     }
 
-    func test_newState_withTranslationsDisabled_doesNotCrash() {
-        let subject = createSubject()
+    func test_render_withTranslationsDisabled_doesNotCrash() {
+        let (subject, viewModel) = createSubject()
         subject.loadViewIfNeeded()
-        subject.newState(state: TranslationSettingsState(windowUUID: .XCTestDefaultUUID)
-            .copy(isTranslationsEnabled: false))
+
+        viewModel.toggleTranslationsEnabled(newValue: false)
+
+        XCTAssertFalse(viewModel.state.isTranslationsEnabled)
     }
 
     // MARK: - collectionView delegate
 
     func test_shouldSelectItem_returnsFalse() {
-        let subject = createSubject()
+        let subject = createSubject().viewController
         subject.loadViewIfNeeded()
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
         let result = subject.collectionView(collectionView, shouldSelectItemAt: IndexPath(item: 0, section: 0))
         XCTAssertFalse(result)
     }
 
-    // MARK: - StoreTestUtility
-
-    func setupAppState() -> AppState {
-        return AppState(
-            presentedComponents: PresentedComponentsState(
-                components: [
-                    .translationSettings(
-                        TranslationSettingsState(windowUUID: .XCTestDefaultUUID)
-                    )
-                ]
-            )
-        )
-    }
-
-    func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
-        StoreTestUtilityHelper.setupStore(with: mockStore)
-    }
-
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
-    }
-
     // MARK: - Helpers
 
-    private func createSubject() -> TranslationPickerSettingsViewController {
-        let subject = TranslationPickerSettingsViewController(windowUUID: .XCTestDefaultUUID)
+    private func createSubject() -> (viewController: TranslationPickerSettingsViewController,
+                                     viewModel: TranslationSettingsViewModel) {
+        let viewModel = TranslationSettingsViewModel(service: service)
+        let subject = TranslationPickerSettingsViewController(
+            windowUUID: .XCTestDefaultUUID,
+            viewModel: viewModel
+        )
         trackForMemoryLeaks(subject)
-        return subject
+        return (subject, viewModel)
     }
 }

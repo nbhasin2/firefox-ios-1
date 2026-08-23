@@ -24,6 +24,10 @@ class TrackingProtectionModel {
     let globalETPIsEnabled: Bool
     var selectedTab: Tab?
 
+    /// Invoked once the user confirms clearing cookies, so the owner can close the screen.
+    /// Replaces the `dismissTrackingProtection` action this used to dispatch.
+    var onDidClearCookiesAndSiteData: (@MainActor () -> Void)?
+
     let clearCookiesButtonTitle: String = .Menu.EnhancedTrackingProtection.clearDataButtonTitle
     let clearCookiesButtonA11yId: String = AccessibilityIdentifiers.EnhancedTrackingProtection.MainScreen.clearCookiesButton
 
@@ -214,14 +218,10 @@ class TrackingProtectionModel {
             self?.selectedTab?.webView?.reload()
 
             guard let windowUUID = self?.selectedTab?.windowUUID else { return }
-            store.dispatch(
-                TrackingProtectionMiddlewareAction(
-                    windowUUID: windowUUID,
-                    actionType: TrackingProtectionMiddlewareActionType.dismissTrackingProtection
-                )
-            )
+            // Closing the screen is the owner's call; the toast is browser-level and stays Redux.
+            self?.onDidClearCookiesAndSiteData?()
 
-            store.dispatch(
+            browserEventBus.dispatch(
                 GeneralBrowserAction(
                     toastType: .clearCookies,
                     windowUUID: windowUUID,

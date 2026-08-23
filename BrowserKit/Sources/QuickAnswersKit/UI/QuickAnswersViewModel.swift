@@ -18,7 +18,7 @@ final class QuickAnswersViewModel {
 
     private let service: QuickAnswersService?
     private let telemetry: QuickAnswersTelemetry
-    private let store: Store
+    private let store: BrowserEventBus
     private var recordVoiceTask: Task<Void, Never>?
     private var searchResultTask: Task<Void, Never>?
     var onStateChange: ((State) -> Void)?
@@ -35,7 +35,7 @@ final class QuickAnswersViewModel {
         }
     ) {
         self.telemetry = telemetry
-        self.store = Store(prefs: prefs)
+        self.store = BrowserEventBus(prefs: prefs)
         self.modelDisplayName = configFetcher.model.displayName
         do {
             self.service = try makeService(prefs, configFetcher)

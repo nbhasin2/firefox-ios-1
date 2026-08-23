@@ -28,7 +28,7 @@ final class AutoTranslatePromptStateTests: XCTestCase {
 
         XCTAssertFalse(initialState.showPrompt)
 
-        let newState = reducer.legacyReducer(initialState, getAction(for: .showAutoTranslatePrompt))
+        let newState = reducer(initialState, getAction(for: .showAutoTranslatePrompt))
 
         XCTAssertTrue(newState.showPrompt)
     }
@@ -39,7 +39,7 @@ final class AutoTranslatePromptStateTests: XCTestCase {
 
         XCTAssertTrue(initialState.showPrompt)
 
-        let newState = reducer.legacyReducer(initialState, getAction(for: .didTapEnableAutoTranslate))
+        let newState = reducer(initialState, getAction(for: .didTapEnableAutoTranslate))
 
         XCTAssertFalse(newState.showPrompt)
     }
@@ -50,7 +50,7 @@ final class AutoTranslatePromptStateTests: XCTestCase {
 
         XCTAssertTrue(initialState.showPrompt)
 
-        let newState = reducer.legacyReducer(initialState, getAction(for: .didDismissAutoTranslatePrompt))
+        let newState = reducer(initialState, getAction(for: .didDismissAutoTranslatePrompt))
 
         XCTAssertFalse(newState.showPrompt)
     }
@@ -60,7 +60,7 @@ final class AutoTranslatePromptStateTests: XCTestCase {
         let reducer = autoTranslatePromptReducer()
 
         let action = TranslationsAction(windowUUID: .XCTestDefaultUUID, actionType: FakeActionType.testAction)
-        let newState = reducer.legacyReducer(initialState, action)
+        let newState = reducer(initialState, action)
 
         XCTAssertEqual(newState.showPrompt, true)
     }
@@ -70,7 +70,7 @@ final class AutoTranslatePromptStateTests: XCTestCase {
         let reducer = autoTranslatePromptReducer()
 
         let action = TranslationsAction(windowUUID: WindowUUID(), actionType: TranslationsActionType.showAutoTranslatePrompt)
-        let newState = reducer.legacyReducer(initialState, action)
+        let newState = reducer(initialState, action)
 
         XCTAssertFalse(newState.showPrompt)
     }
@@ -81,8 +81,8 @@ final class AutoTranslatePromptStateTests: XCTestCase {
         return AutoTranslatePromptState(windowUUID: .XCTestDefaultUUID)
     }
 
-    private func autoTranslatePromptReducer() -> Reducer<AutoTranslatePromptState> {
-        return AutoTranslatePromptState.reducer
+    private func autoTranslatePromptReducer() -> @MainActor (AutoTranslatePromptState, Action) -> AutoTranslatePromptState {
+        return AutoTranslatePromptState.reduce
     }
 
     private func getAction(for actionType: TranslationsActionType) -> TranslationsAction {

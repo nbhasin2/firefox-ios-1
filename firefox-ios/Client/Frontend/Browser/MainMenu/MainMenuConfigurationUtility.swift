@@ -7,7 +7,27 @@ import Foundation
 import MenuKit
 import Shared
 
-struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
+@MainActor
+protocol MainMenuActionHandling: AnyObject {
+    func tapNavigateToDestination(_ destination: MenuNavigationDestination)
+    func tapAddToBookmarks()
+    func tapEditBookmark()
+    func tapAddToShortcuts()
+    func tapRemoveFromShortcuts()
+    func tapToggleUserAgent(isDefaultUserAgentDesktop: Bool, hasChangedUserAgent: Bool)
+    func tapToggleNightMode(isActionOn: Bool)
+    func tapZoom()
+    func tapMoreOptions(isExpanded: Bool)
+}
+
+/// A class rather than a struct so the generated `MenuElement` closures can hold it weakly: they
+/// used to dispatch, and now call back through `actionHandler`.
+@MainActor
+final class MainMenuConfigurationUtility: FeatureFlaggable {
+    /// Set by the owning view model. Weak in both directions - the view model retains this utility,
+    /// and its state retains the closures that reference it.
+    weak var actionHandler: MainMenuActionHandling?
+
     private struct Icons {
         static let findInPage = StandardImageIdentifiers.Large.search
         static let bookmarksTray = StandardImageIdentifiers.Large.bookmarkTray
@@ -110,15 +130,8 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
                 a11yLabel: .MainMenu.PanelLinkSection.AccessibilityLabels.Bookmarks,
                 a11yHint: "",
                 a11yId: AccessibilityIdentifiers.MainMenu.bookmarks,
-                action: {
-                    store.dispatch(
-                        MainMenuAction(
-                            windowUUID: uuid,
-                            actionType: MainMenuActionType.tapNavigateToDestination,
-                            navigationDestination: MenuNavigationDestination(.bookmarks),
-                            telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                        )
-                    )
+                action: { [weak self] in
+                    self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(.bookmarks))
                 }
             ),
             MenuElement(
@@ -129,15 +142,8 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
                 a11yLabel: .MainMenu.PanelLinkSection.AccessibilityLabels.History,
                 a11yHint: "",
                 a11yId: AccessibilityIdentifiers.MainMenu.history,
-                action: {
-                    store.dispatch(
-                        MainMenuAction(
-                            windowUUID: uuid,
-                            actionType: MainMenuActionType.tapNavigateToDestination,
-                            navigationDestination: MenuNavigationDestination(.history),
-                            telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                        )
-                    )
+                action: { [weak self] in
+                    self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(.history))
                 }
             ),
             MenuElement(
@@ -148,15 +154,8 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
                 a11yLabel: .MainMenu.PanelLinkSection.AccessibilityLabels.Downloads,
                 a11yHint: "",
                 a11yId: AccessibilityIdentifiers.MainMenu.downloads,
-                action: {
-                    store.dispatch(
-                        MainMenuAction(
-                            windowUUID: uuid,
-                            actionType: MainMenuActionType.tapNavigateToDestination,
-                            navigationDestination: MenuNavigationDestination(.downloads),
-                            telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                        )
-                    )
+                action: { [weak self] in
+                    self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(.downloads))
                 }
             ),
             MenuElement(
@@ -167,15 +166,8 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
                 a11yLabel: .MainMenu.PanelLinkSection.AccessibilityLabels.Passwords,
                 a11yHint: "",
                 a11yId: AccessibilityIdentifiers.MainMenu.passwords,
-                action: {
-                    store.dispatch(
-                        MainMenuAction(
-                            windowUUID: uuid,
-                            actionType: MainMenuActionType.tapNavigateToDestination,
-                            navigationDestination: MenuNavigationDestination(.passwords),
-                            telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                        )
-                    )
+                action: { [weak self] in
+                    self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(.passwords))
                 }
             ),
         ])
@@ -197,16 +189,10 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
                     a11yLabel: "\(tabInfo.accountData.title) \(tabInfo.accountData.subtitle ?? "")",
                     a11yHint: "",
                     a11yId: AccessibilityIdentifiers.MainMenu.signIn,
-                    action: {
-                        store.dispatch(
-                            MainMenuAction(
-                                windowUUID: uuid,
-                                actionType: MainMenuActionType.tapNavigateToDestination,
-                                navigationDestination: MenuNavigationDestination(.syncSignIn),
-                                currentTabInfo: tabInfo,
-                                telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                            )
-                        )
+                    action: { [weak self] in
+                        // The action also carried `currentTabInfo`, which no handler of
+                        // `tapNavigateToDestination` ever read.
+                        self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(.syncSignIn))
                     }
                 ),
                 MenuElement(
@@ -217,15 +203,8 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
                     a11yLabel: .MainMenu.OtherToolsSection.AccessibilityLabels.Settings,
                     a11yHint: "",
                     a11yId: AccessibilityIdentifiers.MainMenu.settings,
-                    action: {
-                        store.dispatch(
-                            MainMenuAction(
-                                windowUUID: uuid,
-                                actionType: MainMenuActionType.tapNavigateToDestination,
-                                navigationDestination: MenuNavigationDestination(.settings),
-                                telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                            )
-                        )
+                    action: { [weak self] in
+                        self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(.settings))
                     }
                 ),
         ])
@@ -250,15 +229,8 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
                 a11yLabel: .MainMenu.ToolsSection.AccessibilityLabels.FindInPage,
                 a11yHint: "",
                 a11yId: AccessibilityIdentifiers.MainMenu.findInPage,
-                action: {
-                    store.dispatch(
-                        MainMenuAction(
-                            windowUUID: uuid,
-                            actionType: MainMenuActionType.tapNavigateToDestination,
-                            navigationDestination: MenuNavigationDestination(.findInPage),
-                            telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                        )
-                    )
+                action: { [weak self] in
+                    self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(.findInPage))
                 }
             ),
         ]
@@ -291,18 +263,11 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
                     a11yHint: "",
                     a11yId: AccessibilityIdentifiers.MainMenu.saveAsPDF,
                     isOptional: true,
-                    action: {
-                        store.dispatch(
-                            MainMenuAction(
-                                windowUUID: uuid,
-                                actionType: MainMenuActionType.tapNavigateToDestination,
-                                navigationDestination: MenuNavigationDestination(
-                                    .saveAsPDF,
-                                    url: tabInfo.canonicalURL
-                                ),
-                                telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                            )
-                        )
+                    action: { [weak self] in
+                        self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(
+                                        .saveAsPDF,
+                                        url: tabInfo.canonicalURL
+                                    ))
                     }
                 ),
                 MenuElement(
@@ -314,18 +279,11 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
                     a11yHint: "",
                     a11yId: AccessibilityIdentifiers.MainMenu.print,
                     isOptional: true,
-                    action: {
-                        store.dispatch(
-                            MainMenuAction(
-                                windowUUID: uuid,
-                                actionType: MainMenuActionType.tapNavigateToDestination,
-                                navigationDestination: MenuNavigationDestination(
-                                    .printSheet,
-                                    url: tabInfo.canonicalURL
-                                ),
-                                telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                            )
-                        )
+                    action: { [weak self] in
+                        self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(
+                                        .printSheet,
+                                        url: tabInfo.canonicalURL
+                                    ))
                     }
                 ),
                 MenuElement(
@@ -337,18 +295,11 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
                     a11yHint: "",
                     a11yId: AccessibilityIdentifiers.MainMenu.share,
                     isOptional: true,
-                    action: {
-                        store.dispatch(
-                            MainMenuAction(
-                                windowUUID: uuid,
-                                actionType: MainMenuActionType.tapNavigateToDestination,
-                                navigationDestination: MenuNavigationDestination(
-                                    .shareSheet,
-                                    url: tabInfo.canonicalURL
-                                ),
-                                telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                            )
-                        )
+                    action: { [weak self] in
+                        self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(
+                                        .shareSheet,
+                                        url: tabInfo.canonicalURL
+                                    ))
                     }
                 ),
             ])
@@ -374,18 +325,11 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
             a11yHint: "",
             a11yId: AccessibilityIdentifiers.MainMenu.reportBrokenSite,
             isOptional: true,
-            action: {
-                store.dispatch(
-                    MainMenuAction(
-                        windowUUID: uuid,
-                        actionType: MainMenuActionType.tapNavigateToDestination,
-                        navigationDestination: MenuNavigationDestination(
-                            .reportBrokenSite,
-                            url: tabInfo.url
-                        ),
-                        telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                    )
-                )
+            action: { [weak self] in
+                self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(
+                        .reportBrokenSite,
+                        url: tabInfo.url
+                    ))
             }
         )
     }
@@ -400,7 +344,6 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
         let title = tabInfo.isBookmarked ? SaveMenu.EditBookmark : SaveMenu.BookmarkPage
         let icon = tabInfo.isBookmarked ? Icons.editThisBookmark : Icons.bookmarkThisPage
         let a11yLabel = tabInfo.isBookmarked ? A11y.EditBookmark : A11y.BookmarkPage
-        let actionType: MainMenuActionType = tabInfo.isBookmarked ? .tapEditBookmark : .tapAddToBookmarks
 
         return MenuElement(
             title: title,
@@ -410,15 +353,12 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
             a11yLabel: a11yLabel,
             a11yHint: "",
             a11yId: AccessibilityIdentifiers.MainMenu.bookmarkPage,
-            action: {
-                store.dispatch(
-                    MainMenuAction(
-                        windowUUID: uuid,
-                        actionType: actionType,
-                        tabID: tabInfo.tabID,
-                        telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                    )
-                )
+            action: { [weak self] in
+                if tabInfo.isBookmarked {
+                    self?.actionHandler?.tapEditBookmark()
+                } else {
+                    self?.actionHandler?.tapAddToBookmarks()
+            }
             }
         )
     }
@@ -437,15 +377,10 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
             a11yHint: isActive ? .MainMenu.ToolsSection.DesktopSiteOn : .MainMenu.ToolsSection.DesktopSiteOff,
             a11yId: AccessibilityIdentifiers.MainMenu.desktopSite,
             infoTitle: isActive ? .MainMenu.ToolsSection.DesktopSiteOn : .MainMenu.ToolsSection.DesktopSiteOff,
-            action: {
-                store.dispatch(
-                    MainMenuAction(
-                        windowUUID: uuid,
-                        actionType: MainMenuActionType.tapToggleUserAgent,
-                        telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage,
-                                                     isDefaultUserAgentDesktop: tabInfo.isDefaultUserAgentDesktop,
-                                                     hasChangedUserAgent: tabInfo.hasChangedUserAgent)
-                    )
+            action: { [weak self] in
+                self?.actionHandler?.tapToggleUserAgent(
+                    isDefaultUserAgentDesktop: tabInfo.isDefaultUserAgentDesktop,
+                    hasChangedUserAgent: tabInfo.hasChangedUserAgent
                 )
             }
         )
@@ -495,15 +430,8 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
             a11yHint: infoTitle,
             a11yId: AccessibilityIdentifiers.MainMenu.translatePage,
             infoTitle: infoTitle,
-            action: {
-                store.dispatch(
-                    MainMenuAction(
-                        windowUUID: uuid,
-                        actionType: MainMenuActionType.tapNavigateToDestination,
-                        navigationDestination: MenuNavigationDestination(.translatePage),
-                        telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                    )
-                )
+            action: { [weak self] in
+                self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(.translatePage))
             }
         )
     }
@@ -520,16 +448,9 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
                 a11yLabel: .MainMenu.ToolsSection.AccessibilityLabels.SummarizePage,
                 a11yHint: "",
                 a11yId: AccessibilityIdentifiers.MainMenu.summarizePage,
-                action: {
+                action: { [weak self] in
                     let destination = MenuNavigationDestination(.webpageSummary(config: tabInfo.summarizerConfig))
-                    store.dispatch(
-                        MainMenuAction(
-                            windowUUID: uuid,
-                            actionType: MainMenuActionType.tapNavigateToDestination,
-                            navigationDestination: destination,
-                            telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                        )
-                    )
+                    self?.actionHandler?.tapNavigateToDestination(destination)
                 }
             )
     }
@@ -551,15 +472,8 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
             a11yId: AccessibilityIdentifiers.MainMenu.readerView,
             infoTitle: tabInfo.readerModeConfiguration.isActive ?
                 .MainMenu.ToolsSection.DesktopSiteOn : .MainMenu.ToolsSection.DesktopSiteOff
-        ) {
-            store.dispatch(
-                MainMenuAction(
-                    windowUUID: uuid,
-                    actionType: MainMenuActionType.tapNavigateToDestination,
-                    navigationDestination: MenuNavigationDestination(.readerView),
-                    telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                )
-            )
+        ) { [weak self] in
+            self?.actionHandler?.tapNavigateToDestination(MenuNavigationDestination(.readerView))
         }
     }
 
@@ -580,14 +494,8 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
             a11yLabel: isExpanded ? A11y.LessOptions : A11y.MoreOptions,
             a11yHint: isExpanded ? A11y.ExpandedHint : A11y.CollapsedHint,
             a11yId: AccessibilityIdentifiers.MainMenu.moreLess,
-            action: {
-                store.dispatch(
-                    MainMenuAction(
-                        windowUUID: uuid,
-                        actionType: MainMenuActionType.tapMoreOptions,
-                        isExpanded: isExpanded
-                    )
-                )
+            action: { [weak self] in
+                self?.actionHandler?.tapMoreOptions(isExpanded: isExpanded)
             }
         )
     }
@@ -620,14 +528,8 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
             a11yId: AccessibilityIdentifiers.MainMenu.zoom,
             isOptional: true,
             infoTitle: "\(zoomLevel)",
-            action: {
-                store.dispatch(
-                    MainMenuAction(
-                        windowUUID: uuid,
-                        actionType: MainMenuActionType.tapZoom,
-                        telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                    )
-                )
+            action: { [weak self] in
+                self?.actionHandler?.tapZoom()
             }
         )
     }
@@ -651,15 +553,8 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
             a11yId: AccessibilityIdentifiers.MainMenu.nightMode,
             isOptional: true,
             infoTitle: nightModeIsOn ? Tools.WebsiteDarkModeOn : Tools.WebsiteDarkModeOff,
-            action: {
-                store.dispatch(
-                    MainMenuAction(
-                        windowUUID: uuid,
-                        actionType: MainMenuActionType.tapToggleNightMode,
-                        telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage,
-                                                     isActionOn: nightModeIsOn)
-                    )
-                )
+            action: { [weak self] in
+                self?.actionHandler?.tapToggleNightMode(isActionOn: nightModeIsOn)
             }
         )
     }
@@ -675,8 +570,6 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
         let icon = tabInfo.isPinned ? Icons.removeFromShortcuts : Icons.addToShortcuts
         let a11yLabel = tabInfo.isPinned ? A11y.RemoveFromShortcuts : A11y.AddToShortcuts
 
-        let actionType: MainMenuActionType = tabInfo.isPinned ? .tapRemoveFromShortcuts : .tapAddToShortcuts
-
         return MenuElement(
             title: title,
             iconName: icon,
@@ -686,22 +579,16 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
             a11yHint: "",
             a11yId: AccessibilityIdentifiers.MainMenu.addToShortcuts,
             isOptional: true,
-            action: {
-                store.dispatch(
-                    MainMenuAction(
-                        windowUUID: uuid,
-                        actionType: actionType,
-                        tabID: tabInfo.tabID,
-                        telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
-                    )
-                )
+            action: { [weak self] in
+                if tabInfo.isPinned {
+                    self?.actionHandler?.tapRemoveFromShortcuts()
+                } else {
+                    self?.actionHandler?.tapAddToShortcuts()
+            }
             }
         )
     }
 
     /// `Equatable` is only here because `MainMenuState` stores a configurator and `StateType`
     /// requires it. The profile is deliberately left out: this is a stateless helper, not state.
-    static func == (lhs: MainMenuConfigurationUtility, rhs: MainMenuConfigurationUtility) -> Bool {
-        return true
-    }
 }

@@ -8,7 +8,7 @@ import Redux
 import Shared
 
 @MainActor
-final class TabSwipeGestureHandler: NSObject, UIGestureRecognizerDelegate, StoreSubscriber {
+final class TabSwipeGestureHandler: NSObject, UIGestureRecognizerDelegate {
     /// Delegate protocol for handling address bar pan gesture events.
     /// Allows external objects to respond to swipe gesture state changes during tab switching.
     protocol Delegate: AnyObject {
@@ -23,7 +23,6 @@ final class TabSwipeGestureHandler: NSObject, UIGestureRecognizerDelegate, Store
         func swipeGestureDidEnd()
     }
 
-    typealias SubscriberStateType = ToolbarState
     // MARK: - UX Constants
     private struct UX {
         // Offset used to ensure the skeleton address bar animates in alignment with the address bar.
@@ -87,7 +86,7 @@ final class TabSwipeGestureHandler: NSObject, UIGestureRecognizerDelegate, Store
         self.prefs = prefs
         self.swipeGestureFeatureFlagProvider = swipeGestureFeatureFlagProvider
         super.init()
-        subscribeToRedux()
+        observeToolbarState()
         setupGesture()
     }
 
@@ -99,7 +98,7 @@ final class TabSwipeGestureHandler: NSObject, UIGestureRecognizerDelegate, Store
         }
 
         MainActor.assumeIsolated {
-            unsubscribeFromRedux()
+            stopObservingToolbarState()
         }
     }
 
@@ -115,21 +114,20 @@ final class TabSwipeGestureHandler: NSObject, UIGestureRecognizerDelegate, Store
         panGestureRecognizer = panGesture
     }
 
-    // MARK: - Redux
-    func subscribeToRedux() {
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            $0.select({ appState in
-                return ToolbarState(appState: appState, uuid: uuid)
-            })
-        })
+    // MARK: - Toolbar state
+    func observeToolbarState() {
+        let viewModel = ToolbarViewModel.instance(for: windowUUID)
+        viewModel.addObserver(self) { [weak self] state in
+            self?.applyToolbarState(state)
+        }
+        applyToolbarState(viewModel.state)
     }
 
-    private func unsubscribeFromRedux() {
-        store.unsubscribe(self)
+    private func stopObservingToolbarState() {
+        ToolbarViewModel.instance(for: windowUUID).removeObserver(self)
     }
 
-    func newState(state: ToolbarState) {
+    private func applyToolbarState(_ state: ToolbarState) {
         toolbarState = state
         disablePanGestureIfTopAddressBar()
 
@@ -277,7 +275,7 @@ final class TabSwipeGestureHandler: NSObject, UIGestureRecognizerDelegate, Store
             if shouldCompleteTransition {
                 webPagePreview.isHidden = true
                 webPagePreview.alpha = 1
-                store.dispatch(
+                browserEventBus.dispatch(
                     ToolbarAction(
                         shouldAnimate: false,
                         windowUUID: windowUUID,
@@ -290,8 +288,8 @@ final class TabSwipeGestureHandler: NSObject, UIGestureRecognizerDelegate, Store
                 if let nextTab {
                     tabManager.selectTab(nextTab)
                 } else {
-                    store.dispatch(GeneralBrowserAction(windowUUID: windowUUID,
-                                                        actionType: GeneralBrowserActionType.addNewTab))
+                    browserEventBus.dispatch(GeneralBrowserAction(windowUUID: windowUUID,
+                                                                  actionType: GeneralBrowserActionType.addNewTab))
                 }
             } else {
                 webPagePreview.isHidden = true

@@ -165,7 +165,7 @@ class LoginsHelper: @unchecked Sendable, TabContentScript {
                     windowUUID: tab.windowUUID,
                     actionType: GeneralBrowserActionType.showPasswordGenerator)
 
-                store.dispatch(newAction)
+                browserEventBus.dispatch(newAction)
             }
             if userDefaults.value(forKey: PrefsKeys.PasswordGeneratorShown) == nil {
                 userDefaults.set(true, forKey: PrefsKeys.PasswordGeneratorShown)
@@ -392,12 +392,7 @@ class LoginsHelper: @unchecked Sendable, TabContentScript {
 
     @MainActor
     private func clearStoredPasswordAfterGeneration(origin: String) {
-        if let windowUUID = self.tab?.windowUUID {
-            let action = PasswordGeneratorAction(windowUUID: windowUUID,
-                                                 actionType: PasswordGeneratorActionType.clearGeneratedPasswordForSite,
-                                                 loginEntryOrigin: origin)
-            store.dispatch(action)
-        }
+        GeneratedPasswordStorage.shared.deletePasswordForOrigin(origin: origin)
     }
 
     @MainActor

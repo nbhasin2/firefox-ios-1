@@ -1,13 +1,12 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
-import Redux
 import Common
 import ModifiedCopy
+import UIKit
 
 @Copyable
-struct WallpaperState: ScreenState, Equatable {
-    var windowUUID: WindowUUID
+struct WallpaperState: Equatable {
     let wallpaperConfiguration: WallpaperConfiguration
 
     /// `availableContentHeight` represents the height available for the homepage content to occupy when the address is not
@@ -20,75 +19,23 @@ struct WallpaperState: ScreenState, Equatable {
     /// the top of the window while still extending to the same visual bottom as the homepage content.
     let availableWallpaperHeight: CGFloat
 
-    init(windowUUID: WindowUUID) {
+    init(wallpaperConfiguration: WallpaperConfiguration = WallpaperConfiguration()) {
         self.init(
-            windowUUID: windowUUID,
-            wallpaperConfiguration: WallpaperConfiguration(),
+            wallpaperConfiguration: wallpaperConfiguration,
             availableContentHeight: 0,
             availableWallpaperHeight: 0
         )
     }
 
     private init(
-        windowUUID: WindowUUID,
         wallpaperConfiguration: WallpaperConfiguration,
         availableContentHeight: CGFloat,
         availableWallpaperHeight: CGFloat
     ) {
-        self.windowUUID = windowUUID
         self.wallpaperConfiguration = wallpaperConfiguration
         self.availableContentHeight = availableContentHeight
         self.availableWallpaperHeight = availableWallpaperHeight
     }
-
-    static let reducer: Reducer<Self> = (legacyReducer, modernReducer)
-
-    static let modernReducer: ReducerMethod<Self> = { state, action, actionWindowUUID in
-        // Does not handle any modern actions
-        return defaultState(from: state)
-    }
-
-    static let legacyReducer: LegacyReducerMethod<Self> = { state, action in
-        guard action.windowUUID == .unavailable || action.windowUUID == state.windowUUID else {
-            return defaultState(from: state)
-        }
-
-        switch action.actionType {
-        case WallpaperMiddlewareActionType.wallpaperDidInitialize,
-                WallpaperMiddlewareActionType.wallpaperDidChange:
-            return handleWallpaperAction(action: action, state: state)
-        case HomepageActionType.availableContentHeightDidChange:
-            return handleAvailableContentHeightChangeAction(action: action, state: state)
-        default:
-            return defaultState(from: state)
-        }
-    }
-
-    private static func handleWallpaperAction(action: Action, state: WallpaperState) -> WallpaperState {
-        guard let wallpaperAction = action as? WallpaperAction else { return defaultState(from: state) }
-        return state.copy(
-            wallpaperConfiguration: wallpaperAction.wallpaperConfiguration
-        )
-    }
-
-    private static func handleAvailableContentHeightChangeAction(action: Action,
-                                                                 state: WallpaperState) -> WallpaperState {
-        guard let homepageAction = action as? HomepageAction else { return defaultState(from: state) }
-
-        // Height updates can arrive with only one field populated; keep the other value stable.
-        return state
-            .copy(availableContentHeight: homepageAction.availableContentHeight ?? state.availableContentHeight)
-            .copy(availableWallpaperHeight: homepageAction.availableWallpaperHeight ?? state.availableWallpaperHeight)
-    }
-
-   static func defaultState(from state: WallpaperState) -> WallpaperState {
-        return WallpaperState(
-            windowUUID: state.windowUUID,
-            wallpaperConfiguration: state.wallpaperConfiguration,
-            availableContentHeight: state.availableContentHeight,
-            availableWallpaperHeight: state.availableWallpaperHeight
-        )
-   }
 }
 
 struct WallpaperConfiguration: Equatable {

@@ -26,8 +26,8 @@ extension BrowserViewController: TabScrollHandler.Delegate,
     func dispatchScrollAlphaChange(alpha: CGFloat) {
         if shouldSendAlphaChangeAction {
             let shouldBeMinimized = alpha.isZero
-            store.dispatch(ToolbarModernAction.userDidScroll(minimizeAddressBar: shouldBeMinimized),
-                           forWindowUUID: windowUUID)
+            browserEventBus.dispatch(ToolbarModernAction.userDidScroll(minimizeAddressBar: shouldBeMinimized),
+                                     forWindowUUID: windowUUID)
         }
     }
 

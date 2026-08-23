@@ -45,6 +45,8 @@ final class TabDisplayView: UIView,
     /// UUID of the tab currently minimizing into the tray during the open animation
     var minimizingTabUUID: TabUUID?
     weak var dragAndDropDelegate: TabDisplayViewDragAndDropInteraction?
+    /// Set by `TabDisplayPanelViewController`, which owns both.
+    weak var viewModel: TabsPanelViewModel?
     private var tabTrayUtils: TabTrayUtils
 
     lazy var dataSource =
@@ -171,10 +173,7 @@ final class TabDisplayView: UIView,
         }
 
         if state.didTapAddTab {
-            let action = TabPanelViewAction(panelType: self.panelType,
-                                            windowUUID: self.windowUUID,
-                                            actionType: TabPanelViewActionType.addNewTab)
-            store.dispatch(action)
+            viewModel?.addNewTab(with: nil)
         }
     }
 
@@ -270,12 +269,7 @@ final class TabDisplayView: UIView,
             switch selectedItem {
             case .tab(let tabModel):
                 let tabUUID = tabModel.tabUUID
-                let action = TabPanelViewAction(panelType: panelType,
-                                                tabUUID: tabUUID,
-                                                selectedTabIndex: indexPath.item,
-                                                windowUUID: windowUUID,
-                                                actionType: TabPanelViewActionType.selectTab)
-                store.dispatch(action)
+                viewModel?.selectTab(tabUUID, at: indexPath.item)
             }
         }
     }
@@ -293,7 +287,15 @@ final class TabDisplayView: UIView,
         guard getSection(for: indexPath.section) == .tabs
         else { return nil }
 
-        let tabVC = TabPeekViewController(tab: tabsState.tabs[indexPath.row], windowUUID: windowUUID)
+        let tab = tabsState.tabs[indexPath.row]
+        let tabVC = TabPeekViewController(
+            tab: tab,
+            windowUUID: windowUUID,
+            viewModel: TabPeekViewModel(tabUUID: tab.tabUUID,
+                                        windowUUID: windowUUID,
+                                        tabsService: viewModel?.service,
+                                        isPrivate: tabsState.isPrivateMode)
+        )
         return UIContextMenuConfiguration(identifier: nil,
                                           previewProvider: { return tabVC },
                                           actionProvider: tabVC.contextActions)
@@ -302,11 +304,7 @@ final class TabDisplayView: UIView,
     // MARK: - TabCellDelegate
     func tabCellDidClose(for tabUUID: TabUUID) {
         if !isDragging {
-            let action = TabPanelViewAction(panelType: panelType,
-                                            tabUUID: tabUUID,
-                                            windowUUID: windowUUID,
-                                            actionType: TabPanelViewActionType.closeTab)
-            store.dispatch(action)
+            viewModel?.closeTab(tabUUID)
         }
     }
 
@@ -316,11 +314,7 @@ final class TabDisplayView: UIView,
               let indexPath = collectionView.indexPath(for: tabCell) else { return }
 
         let tab = tabsState.tabs[indexPath.item]
-        let action = TabPanelViewAction(panelType: panelType,
-                                        tabUUID: tab.tabUUID,
-                                        windowUUID: windowUUID,
-                                        actionType: TabPanelViewActionType.closeTab)
-        store.dispatch(action)
+        viewModel?.closeTab(tab.tabUUID)
         UIAccessibility.post(notification: UIAccessibility.Notification.announcement,
                              argument: String.TabsTray.TabTrayClosingTabAccessibilityMessage)
     }
@@ -346,11 +340,7 @@ final class TabDisplayView: UIView,
     }
 
     private func dispatchPrefetchScreenshot(for tabUUID: TabUUID) {
-        let action = TabPanelViewAction(panelType: panelType,
-                                        tabUUID: tabUUID,
-                                        windowUUID: windowUUID,
-                                        actionType: TabPanelViewActionType.prefetchScreenshots)
-        store.dispatch(action)
+        viewModel?.prefetchScreenshot(for: tabUUID)
     }
 }
 
@@ -391,14 +381,7 @@ extension TabDisplayView: UICollectionViewDragDelegate, UICollectionViewDropDele
         let moveTabData = MoveTabData(originIndex: start.row,
                                       destinationIndex: end.row,
                                       isPrivate: tabsState.isPrivateMode)
-        let action = TabPanelViewAction(
-            panelType: panelType,
-            moveTabData: moveTabData,
-            windowUUID: windowUUID,
-            actionType: TabPanelViewActionType.moveTab
-        )
-
-        store.dispatch(action)
+        viewModel?.moveTab(moveTabData)
     }
 
     func collectionView(_ collectionView: UICollectionView, dragSessionWillBegin session: UIDragSession) {

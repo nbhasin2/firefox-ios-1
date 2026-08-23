@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
+import Common
 import XCTest
 import Storage
 import MozillaAppServices
@@ -14,11 +15,13 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     var diffableDataSource: HomepageDiffableDataSource?
     private var profile: MockProfile!
     private var mockNimbusLayer: MockNimbusFeatureFlagLayer!
+    private var privacyNoticeHelper: MockPrivacyNoticeHelper!
 
     override func setUp() async throws {
         try await super.setUp()
         profile = MockProfile()
         mockNimbusLayer = MockNimbusFeatureFlagLayer()
+        privacyNoticeHelper = MockPrivacyNoticeHelper()
         let featureFlagProvider = FeatureFlagsProvider(prefs: profile.prefs, backendLayer: mockNimbusLayer)
         let userFeaturePreferences = UserFeaturePreferenceManager(prefs: profile.prefs, backendLayer: mockNimbusLayer)
 
@@ -51,7 +54,7 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
         dataSource.updateSnapshot(
-            state: HomepageState(windowUUID: .XCTestDefaultUUID),
+            viewModel: makeViewModel(),
             jumpBackInDisplayConfig: mockSectionConfig
         )
 
@@ -73,33 +76,19 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             logoTextColor: .blue
         )
 
-        let state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            MerinoAction(
-                merinoStoryResponse: MerinoStoryResponse(stories: createStories()),
-                windowUUID: .XCTestDefaultUUID,
-                actionType: MerinoMiddlewareActionType.retrievedUpdatedHomepageStories
-            )
+        let viewModel = makeViewModel(
+            merinoResponse: MerinoStoryResponse(stories: createStories()),
+            wallpaperConfiguration: wallpaperConfig
         )
-
-        let updatedState = HomepageState.reducer.legacyReducer(
-            state,
-            WallpaperAction(
-                wallpaperConfiguration: wallpaperConfig,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: WallpaperMiddlewareActionType.wallpaperDidInitialize
-            )
-        )
-
         dataSource.updateSnapshot(
-            state: updatedState,
+            viewModel: viewModel,
             jumpBackInDisplayConfig: mockSectionConfig
         )
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(
             snapshot.itemIdentifiers(inSection: .header).first,
-            HomepageItem.header(updatedState.headerState, .blue, false)
+            HomepageItem.header(viewModel.header.state, .blue, false)
         )
         XCTAssertEqual(snapshot.numberOfItems(inSection: .pocket(.systemCyan)), 20)
         let expectedSections: [HomepageSection] = [
@@ -113,30 +102,17 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     @MainActor
     func test_updateSnapshot_withOverflowingTopSites_returnTopSitesWithHeader() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
+        let numberOfTilesPerRow = TopSitesSectionLayoutProvider.UX.minCards
 
-        let state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            TopSitesAction(
-                topSites: createSites(),
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesMiddlewareActionType.retrievedUpdatedSites
-            )
-        )
-
-        let updatedState = HomepageState.reducer.legacyReducer(
-            state,
-            TopSitesAction(
-                numberOfRows: 2,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesActionType.updatedNumberOfRows
-            )
-        )
-
-        dataSource.updateSnapshot(state: updatedState, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(viewModel: makeViewModel(topSites: topSitesState(
+                                      sites: createSites(),
+                                      numberOfRows: 2,
+                                      shouldShowSectionHeader: true
+                                  )),
+                                  jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
-        let numberOfTilesPerRow = updatedState.topSitesState.numberOfTilesPerRow
-        let displayedTopSitesCount = updatedState.topSitesState.numberOfRows * numberOfTilesPerRow
+        let displayedTopSitesCount = 2 * numberOfTilesPerRow
         XCTAssertEqual(snapshot.numberOfItems(inSection: .topSites(nil, numberOfTilesPerRow, true)), displayedTopSitesCount)
         let expectedSections: [HomepageSection] = [
             .header,
@@ -150,30 +126,16 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withTopSitesWithinVisibleCount_returnTopSitesWithoutHeader() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
         let numberOfRows = 2
+        let numberOfTilesPerRow = TopSitesSectionLayoutProvider.UX.minCards
+        let topSitesCount = numberOfRows * numberOfTilesPerRow
 
-        let stateWithRows = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            TopSitesAction(
-                numberOfRows: numberOfRows,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesActionType.updatedNumberOfRows
-            )
-        )
-        let topSitesCount = numberOfRows * stateWithRows.topSitesState.numberOfTilesPerRow
-
-        let updatedState = HomepageState.reducer.legacyReducer(
-            stateWithRows,
-            TopSitesAction(
-                topSites: createSites(count: topSitesCount),
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesMiddlewareActionType.retrievedUpdatedSites
-            )
-        )
-
-        dataSource.updateSnapshot(state: updatedState, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(viewModel: makeViewModel(topSites: topSitesState(
+                                      sites: createSites(count: topSitesCount),
+                                      numberOfRows: numberOfRows
+                                  )),
+                                  jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
-        let numberOfTilesPerRow = updatedState.topSitesState.numberOfTilesPerRow
         XCTAssertEqual(snapshot.numberOfItems(inSection: .topSites(nil, numberOfTilesPerRow, false)), topSitesCount)
         let expectedSections: [HomepageSection] = [
             .header,
@@ -186,28 +148,14 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     @MainActor
     func test_updateSnapshot_withAddShortcutTileFlagEnabled_appendsTileWhenThereIsRoom() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
+        let numberOfTilesPerRow = TopSitesSectionLayoutProvider.UX.minCards
 
-        let stateWithRows = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            TopSitesAction(
-                numberOfRows: 1,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesActionType.updatedNumberOfRows
-            )
-        )
-        let numberOfTilesPerRow = stateWithRows.topSitesState.numberOfTilesPerRow
-
-        let updatedState = HomepageState.reducer.legacyReducer(
-            stateWithRows,
-            TopSitesAction(
-                topSites: createSites(count: numberOfTilesPerRow - 1),
-                shouldShowAddShortcutTile: true,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesMiddlewareActionType.retrievedUpdatedSites
-            )
-        )
-
-        dataSource.updateSnapshot(state: updatedState, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(viewModel: makeViewModel(topSites: topSitesState(
+                                      sites: createSites(count: numberOfTilesPerRow - 1),
+                                      numberOfRows: 1,
+                                      shouldShowAddShortcutTile: true
+                                  )),
+                                  jumpBackInDisplayConfig: mockSectionConfig)
 
         let section = HomepageSection.topSites(nil, numberOfTilesPerRow, false)
         let items = dataSource.snapshot().itemIdentifiers(inSection: section)
@@ -222,28 +170,15 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     @MainActor
     func test_updateSnapshot_withAddShortcutTileFlagEnabled_displacesTileWhenShortcutsFillVisibleSlots() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
+        let numberOfTilesPerRow = TopSitesSectionLayoutProvider.UX.minCards
 
-        let stateWithRows = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            TopSitesAction(
-                numberOfRows: 1,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesActionType.updatedNumberOfRows
-            )
-        )
-        let numberOfTilesPerRow = stateWithRows.topSitesState.numberOfTilesPerRow
-
-        let updatedState = HomepageState.reducer.legacyReducer(
-            stateWithRows,
-            TopSitesAction(
-                topSites: createSites(count: numberOfTilesPerRow),
-                shouldShowAddShortcutTile: true,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesMiddlewareActionType.retrievedUpdatedSites
-            )
-        )
-
-        dataSource.updateSnapshot(state: updatedState, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(viewModel: makeViewModel(topSites: topSitesState(
+                                      sites: createSites(count: numberOfTilesPerRow),
+                                      numberOfRows: 1,
+                                      shouldShowSectionHeader: true,
+                                      shouldShowAddShortcutTile: true
+                                  )),
+                                  jumpBackInDisplayConfig: mockSectionConfig)
 
         let section = HomepageSection.topSites(nil, numberOfTilesPerRow, true)
         let items = dataSource.snapshot().itemIdentifiers(inSection: section)
@@ -259,27 +194,14 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withAddShortcutTileFlagEnabledAndNoTopSites_showsAddShortcutTile() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        var state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            TopSitesAction(
-                topSites: [],
-                shouldShowAddShortcutTile: true,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesMiddlewareActionType.retrievedUpdatedSites
-            )
-        )
-        state = HomepageState.reducer.legacyReducer(
-            state,
-            TopSitesAction(
-                numberOfRows: 1,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesActionType.updatedNumberOfRows
-            )
-        )
+        dataSource.updateSnapshot(viewModel: makeViewModel(topSites: topSitesState(
+                                      sites: [],
+                                      numberOfRows: 1,
+                                      shouldShowAddShortcutTile: true
+                                  )),
+                                  jumpBackInDisplayConfig: mockSectionConfig)
 
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
-
-        let section = HomepageSection.topSites(nil, state.topSitesState.numberOfTilesPerRow, false)
+        let section = HomepageSection.topSites(nil, TopSitesSectionLayoutProvider.UX.minCards, false)
         let items = dataSource.snapshot().itemIdentifiers(inSection: section)
         XCTAssertEqual(items.count, 1)
         guard case .addShortcutTile = items.first else {
@@ -291,16 +213,10 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withValidState_returnPocketStories() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        let state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            MerinoAction(
-                merinoStoryResponse: MerinoStoryResponse(stories: createStories()),
-                windowUUID: .XCTestDefaultUUID,
-                actionType: MerinoMiddlewareActionType.retrievedUpdatedHomepageStories
-            )
+        dataSource.updateSnapshot(
+            viewModel: makeViewModel(merinoResponse: MerinoStoryResponse(stories: createStories())),
+            jumpBackInDisplayConfig: mockSectionConfig
         )
-
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfItems(inSection: .pocket(nil)), 20)
@@ -316,16 +232,10 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withCategorizedStoriesAndNoSelection_returnsFlattenedStories() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        let state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            MerinoAction(
-                merinoStoryResponse: MerinoStoryResponse(categories: createCategories()),
-                windowUUID: .XCTestDefaultUUID,
-                actionType: MerinoMiddlewareActionType.retrievedUpdatedHomepageStories
-            )
+        dataSource.updateSnapshot(
+            viewModel: makeViewModel(merinoResponse: MerinoStoryResponse(categories: createCategories())),
+            jumpBackInDisplayConfig: mockSectionConfig
         )
-
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
         let items = snapshot.itemIdentifiers(inSection: .pocket(nil))
@@ -338,17 +248,8 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withCategorizedStoriesAndSelectedCategory_returnsSelectedCategoryStories() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        let categorizedState = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            MerinoAction(
-                merinoStoryResponse: MerinoStoryResponse(categories: createCategories()),
-                windowUUID: .XCTestDefaultUUID,
-                actionType: MerinoMiddlewareActionType.retrievedUpdatedHomepageStories
-            )
-        )
-
         dataSource.updateSnapshot(
-            state: categorizedState,
+            viewModel: makeViewModel(merinoResponse: MerinoStoryResponse(categories: createCategories())),
             selectedNewsfeedCategoryID: "technology",
             jumpBackInDisplayConfig: mockSectionConfig
         )
@@ -364,17 +265,8 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withCategorizedStoriesAndMissingSelectedCategory_omitsPocketSection() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        let categorizedState = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            MerinoAction(
-                merinoStoryResponse: MerinoStoryResponse(categories: createCategories()),
-                windowUUID: .XCTestDefaultUUID,
-                actionType: MerinoMiddlewareActionType.retrievedUpdatedHomepageStories
-            )
-        )
-
         dataSource.updateSnapshot(
-            state: categorizedState,
+            viewModel: makeViewModel(merinoResponse: MerinoStoryResponse(categories: createCategories())),
             selectedNewsfeedCategoryID: "missing-category",
             jumpBackInDisplayConfig: mockSectionConfig
         )
@@ -393,16 +285,9 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
             buttonLabel: "Example Button"
         )
 
-        let state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            MessageCardAction(
-                messageCardConfiguration: configuration,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: MessageCardMiddlewareActionType.initialize
-            )
-        )
-
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
+        let viewModel = makeViewModel(messageCardConfiguration: configuration)
+        dataSource.updateSnapshot(viewModel: viewModel,
+                                  jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfItems(inSection: .messageCard), 1)
@@ -419,30 +304,13 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withValidState_returnBookmarks() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        var state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            BookmarksAction(
-                bookmarks: [BookmarkConfiguration(
-                    site: Site.createBasicSite(
-                        url: "www.mozilla.org",
-                        title: "Title 1",
-                        isBookmarked: true
-                    )
-                )],
-                windowUUID: .XCTestDefaultUUID,
-                actionType: BookmarksMiddlewareActionType.initialize
-            )
+        let bookmark = BookmarkConfiguration(
+            site: Site.createBasicSite(url: "www.mozilla.org", title: "Title 1", isBookmarked: true)
         )
-
-        // Enable the bookmarks section of the homepage since it's off by default
-        state = HomepageState.reducer.legacyReducer(
-            state,
-            BookmarksAction(isEnabled: true,
-                            windowUUID: .XCTestDefaultUUID,
-                            actionType: BookmarksActionType.toggleShowSectionSetting)
+        dataSource.updateSnapshot(
+            viewModel: makeViewModel(bookmarks: [bookmark]),
+            jumpBackInDisplayConfig: mockSectionConfig
         )
-
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfItems(inSection: .bookmarks(nil)), 1)
@@ -458,24 +326,10 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withValidState_returnJumpBackInSection() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        var state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            TabManagerAction(
-                recentTabs: [createTab(urlString: "www.mozilla.org")],
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TabManagerMiddlewareActionType.fetchedRecentTabs
-            )
+        dataSource.updateSnapshot(
+            viewModel: makeViewModel(jumpBackInTabs: [createTab(urlString: "www.mozilla.org")]),
+            jumpBackInDisplayConfig: mockSectionConfig
         )
-
-        // Enable the bookmarks section of the homepage since it's off by default
-        state = HomepageState.reducer.legacyReducer(
-            state,
-            JumpBackInAction(isEnabled: true,
-                             windowUUID: .XCTestDefaultUUID,
-                             actionType: JumpBackInActionType.toggleShowSectionSetting)
-        )
-
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfItems(inSection: .jumpBackIn(nil, mockSectionConfig)), 1)
@@ -492,16 +346,8 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
         setFeatureFlag(.homepageTrackerBlockerModule, isEnabled: true)
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        let state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            TrackerBlockerModuleAction(
-                isEnabled: true,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TrackerBlockerModuleActionType.toggleShowSectionSetting
-            )
-        )
-
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(viewModel: makeViewModel(trackerBlockerEnabled: true),
+                                  jumpBackInDisplayConfig: mockSectionConfig)
 
         let snapshot = dataSource.snapshot()
         XCTAssertEqual(snapshot.numberOfItems(inSection: .trackerBlockerModule), 1)
@@ -519,43 +365,18 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
         setFeatureFlag(.homepageTrackerBlockerModule, isEnabled: true)
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        var state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            TopSitesAction(
-                topSites: createSites(),
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TopSitesMiddlewareActionType.retrievedUpdatedSites
-            )
-        )
-        state = HomepageState.reducer.legacyReducer(
-            state,
-            TrackerBlockerModuleAction(
-                isEnabled: true,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TrackerBlockerModuleActionType.toggleShowSectionSetting
-            )
-        )
-        state = HomepageState.reducer.legacyReducer(
-            state,
-            TabManagerAction(
-                recentTabs: [createTab(urlString: "www.mozilla.org")],
-                windowUUID: .XCTestDefaultUUID,
-                actionType: TabManagerMiddlewareActionType.fetchedRecentTabs
-            )
-        )
-        state = HomepageState.reducer.legacyReducer(
-            state,
-            JumpBackInAction(
-                isEnabled: true,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: JumpBackInActionType.toggleShowSectionSetting
-            )
-        )
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(viewModel: makeViewModel(
+                                      trackerBlockerEnabled: true,
+                                      topSites: topSitesState(sites: createSites(),
+                                                              numberOfRows: 2,
+                                                              shouldShowSectionHeader: true),
+                                      jumpBackInTabs: [createTab(urlString: "www.mozilla.org")]
+                                  ),
+                                  jumpBackInDisplayConfig: mockSectionConfig)
 
         let expectedSections: [HomepageSection] = [
             .header,
-            .topSites(nil, state.topSitesState.numberOfTilesPerRow, true),
+            .topSites(nil, TopSitesSectionLayoutProvider.UX.minCards, true),
             .trackerBlockerModule,
             .jumpBackIn(nil, mockSectionConfig),
             .spacer
@@ -567,15 +388,11 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
     func test_updateSnapshot_withValidState_returnsPrivacyNoticeSection() throws {
         let dataSource = try XCTUnwrap(diffableDataSource)
 
-        let state = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            HomepageAction(
-                windowUUID: .XCTestDefaultUUID,
-                actionType: HomepageMiddlewareActionType.configuredPrivacyNotice
-            )
-        )
+        let viewModel = makeViewModel()
+        privacyNoticeHelper.shouldShowResult = true
+        viewModel.configurePrivacyNoticeIfNeeded()
 
-        dataSource.updateSnapshot(state: state, jumpBackInDisplayConfig: mockSectionConfig)
+        dataSource.updateSnapshot(viewModel: viewModel, jumpBackInDisplayConfig: mockSectionConfig)
         let snapshot = dataSource.snapshot()
         let expectedSections: [HomepageSection] = [
             .header,
@@ -602,6 +419,90 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
         let quickAnswersStore = MockQuickAnswersStore()
         quickAnswersStore.isQuickAnswersEnabled = showQuickAnswersButton
         return HeaderState(windowUUID: .XCTestDefaultUUID, quickAnswersStore: quickAnswersStore)
+    }
+
+    /// Sections that have migrated read from the view model; a seeded message card lets the data
+    /// source render one without going through the store.
+    private func makeViewModel(messageCardConfiguration: MessageCardConfiguration? = nil,
+                               trackerBlockerEnabled: Bool = false,
+                               merinoResponse: MerinoStoryResponse? = nil,
+                               bookmarks: [BookmarkConfiguration] = [],
+                               wallpaperConfiguration: WallpaperConfiguration? = nil,
+                               topSites: TopSitesSectionState? = nil,
+                               jumpBackInTabs: [Tab] = []) -> HomepageViewModel {
+        let messageCard = MessageCardViewModel(
+            windowUUID: .XCTestDefaultUUID,
+            messagingManager: MockGleanPlumbMessageManagerProtocol(),
+            initialConfiguration: messageCardConfiguration
+        )
+        let viewModel = HomepageViewModel(
+            windowUUID: .XCTestDefaultUUID,
+            messageCard: messageCard,
+            bookmarks: BookmarksSectionViewModel(bookmarksHandler: MockBookmarksHandler(),
+                                                 initialBookmarks: bookmarks),
+            merino: MerinoSectionViewModel(merinoManager: MockMerinoManager(),
+                                           initialResponse: merinoResponse),
+            // Defaults to an empty configuration rather than whatever the mock manager reports,
+            // so the section colours stay nil unless a test asks for a wallpaper.
+            wallpaper: WallpaperViewModel(
+                wallpaperManager: WallpaperManagerMock(),
+                initialState: WallpaperState(
+                    wallpaperConfiguration: wallpaperConfiguration ?? WallpaperConfiguration()
+                )
+            ),
+            topSites: TopSitesSectionViewModel(
+                windowUUID: .XCTestDefaultUUID,
+                profile: MockProfile(),
+                topSitesService: TopSitesService(topSitesManager: MockTopSitesManager()),
+                featureFlagsProvider: MockNimbusFeatureFlags(),
+                initialState: topSites ?? TopSitesSectionState(
+                    topSitesData: [],
+                    numberOfRows: 0,
+                    numberOfTilesPerRow: TopSitesSectionLayoutProvider.UX.minCards,
+                    shouldShowSection: false,
+                    shouldShowSectionHeader: false,
+                    shouldShowAddShortcutTile: false
+                )
+            ),
+            jumpBackIn: JumpBackInSectionViewModel(
+                windowUUID: .XCTestDefaultUUID,
+                recentTabsProvider: StubRecentTabsProvider(tabs: jumpBackInTabs),
+                syncedTabProvider: StubSyncedTabProvider(),
+                bus: nil,
+                initialState: JumpBackInSectionState(
+                    jumpBackInTabs: [],
+                    mostRecentSyncedTab: nil,
+                    shouldShowSection: !jumpBackInTabs.isEmpty
+                )
+            ),
+            privacyNoticeHelper: privacyNoticeHelper,
+            bus: nil
+        )
+        if !jumpBackInTabs.isEmpty {
+            viewModel.jumpBackIn.refreshLocalTabs()
+        }
+        if trackerBlockerEnabled {
+            viewModel.trackerBlockerModule.setSectionEnabled(true)
+        }
+        // The bookmarks section is off by default; seeding bookmarks means the test wants it shown.
+        if !bookmarks.isEmpty {
+            viewModel.bookmarks.setSectionEnabled(true)
+        }
+        return viewModel
+    }
+
+    private func topSitesState(sites: [TopSiteConfiguration],
+                               numberOfRows: Int,
+                               shouldShowSectionHeader: Bool = false,
+                               shouldShowAddShortcutTile: Bool = false) -> TopSitesSectionState {
+        return TopSitesSectionState(
+            topSitesData: sites,
+            numberOfRows: numberOfRows,
+            numberOfTilesPerRow: TopSitesSectionLayoutProvider.UX.minCards,
+            shouldShowSection: true,
+            shouldShowSectionHeader: shouldShowSectionHeader,
+            shouldShowAddShortcutTile: shouldShowAddShortcutTile
+        )
     }
 
     private func createSites(count: Int = 30) -> [TopSiteConfiguration] {
@@ -696,5 +597,25 @@ final class HomepageDiffableDataSourceTests: XCTestCase {
         let tab = Tab(profile: MockProfile(), windowUUID: .XCTestDefaultUUID)
         tab.url = URL(string: urlString)!
         return tab
+    }
+}
+
+@MainActor
+private final class StubRecentTabsProvider: RecentTabsProviding {
+    private let tabs: [Tab]
+
+    init(tabs: [Tab]) {
+        self.tabs = tabs
+    }
+
+    func recentTabs(for windowUUID: WindowUUID) -> [Tab] {
+        return tabs
+    }
+}
+
+@MainActor
+private final class StubSyncedTabProvider: SyncedTabProviding {
+    func mostRecentSyncedTab() async -> RemoteTabConfiguration? {
+        return nil
     }
 }

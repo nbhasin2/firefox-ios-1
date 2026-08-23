@@ -39,12 +39,10 @@ final class TopSitesSettingsViewController: SettingsTableViewController, UserFea
                     defaultValue: true,
                     titleText: .Settings.Homepage.Shortcuts.ShortcutsToggle
                 ) { isOn in
-                    store.dispatch(
-                        TopSitesAction(
-                            isEnabled: isOn,
-                            windowUUID: self.windowUUID,
-                            actionType: TopSitesActionType.toggleShowSectionSetting
-                        )
+                    HomepageSectionSettingsNotification.post(
+                        section: .topSites,
+                        isEnabled: isOn,
+                        windowUUID: self.windowUUID
                     )
                 },
                 BoolSetting(
@@ -54,12 +52,8 @@ final class TopSitesSettingsViewController: SettingsTableViewController, UserFea
                     defaultValue: userPreferences.getPreferenceFor(.hntSponsoredShortcuts),
                     titleText: .Settings.Homepage.Shortcuts.SponsoredShortcutsToggle
                 ) { _ in
-                    store.dispatch(
-                        TopSitesAction(
-                            windowUUID: self.windowUUID,
-                            actionType: TopSitesActionType.toggleShowSponsoredSettings
-                        )
-                    )
+                    // Explicit user action, so it bypasses the launch/foreground coalescing.
+                    TopSitesService.shared.refresh(for: self.windowUUID, coalesce: false)
 
                     // If sponsored shortcuts are turned off, request to delete the user data
                     let isSponsoredShortcutsEnabled = profile.prefs.boolForKey(
@@ -100,13 +94,9 @@ extension TopSitesSettingsViewController {
         override var status: NSAttributedString {
             let defaultValue = TopSitesRowCountSettingsController.defaultNumberOfRows
             let numberOfRows = profile?.prefs.intForKey(PrefsKeys.NumberOfTopSiteRows) ?? defaultValue
-            store.dispatch(
-                TopSitesAction(
-                    numberOfRows: Int(numberOfRows),
-                    windowUUID: self.windowUUID,
-                    actionType: TopSitesActionType.updatedNumberOfRows
-                )
-            )
+            // This getter used to dispatch the row count as a side effect of being drawn. The row
+            // picker posts the change itself and the pref is the source of truth, so it only
+            // re-announced a value nothing had changed.
             return NSAttributedString(string: String(format: "%d", numberOfRows))
         }
 

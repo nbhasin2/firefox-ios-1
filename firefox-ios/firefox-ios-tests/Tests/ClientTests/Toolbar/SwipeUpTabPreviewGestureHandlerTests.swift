@@ -3,19 +3,20 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
 import Glean
+import ToolbarKit
 import XCTest
 
 @testable import Client
 
 @MainActor
-final class SwipeUpTabPreviewGestureHandlerTests: XCTestCase, StoreTestUtility {
+final class SwipeUpTabPreviewGestureHandlerTests: XCTestCase, BusTestUtility {
     private var profile: MockProfile!
     private var tabManager: MockTabManager!
     private var mockVC: MockBrowserViewController!
     private var themeManager: MockThemeManager!
     private var mockFlags: MockNimbusFeatureFlags!
     private var tabPreview: SwipeUpTabWebViewPreview!
-    private var mockStore: MockStoreForMiddleware<AppState>!
+    private var mockBus: MockBrowserEventBus!
     private var mockGleanWrapper: MockGleanWrapper!
 
     // releaseOutcome thresholds against a 600pt tall preview: close (1/3) y = 200, tabTray (2/3) y = 400.
@@ -30,7 +31,7 @@ final class SwipeUpTabPreviewGestureHandlerTests: XCTestCase, StoreTestUtility {
         themeManager = MockThemeManager()
         mockFlags = MockNimbusFeatureFlags()
         mockGleanWrapper = MockGleanWrapper()
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
@@ -42,8 +43,8 @@ final class SwipeUpTabPreviewGestureHandlerTests: XCTestCase, StoreTestUtility {
         mockFlags = nil
         tabPreview = nil
         mockGleanWrapper = nil
-        resetStore()
-        mockStore = nil
+        resetBus()
+        mockBus = nil
         DependencyHelperMock().reset()
         try await super.tearDown()
     }
@@ -144,10 +145,13 @@ final class SwipeUpTabPreviewGestureHandlerTests: XCTestCase, StoreTestUtility {
         let gesture = MockSwipeUpPanGestureRecognizer()
         gesture.state = .ended
         gesture.gestureLocation = CGPoint(x: 150, y: 300)
+        // A previous test's close-tab animation completes asynchronously and dispatches into
+        // whichever store is current, so only what this gesture dispatches is asserted on.
+        mockBus.dispatchedActions.removeAll()
 
         subject.handlePanGestureForTesting(gesture)
 
-        XCTAssertTrue(mockStore.dispatchedActions.isEmpty)
+        XCTAssertTrue(mockBus.dispatchedActions.isEmpty)
     }
 
     func testHandlePanGesture_whenNoSelectedTab_doesNothing() {
@@ -159,7 +163,7 @@ final class SwipeUpTabPreviewGestureHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handlePanGestureForTesting(gesture)
 
-        XCTAssertTrue(mockStore.dispatchedActions.isEmpty)
+        XCTAssertTrue(mockBus.dispatchedActions.isEmpty)
     }
 
     func testHandlePanGesture_whenBegan_doesNotDispatch() {
@@ -171,7 +175,7 @@ final class SwipeUpTabPreviewGestureHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handlePanGestureForTesting(gesture)
 
-        XCTAssertTrue(mockStore.dispatchedActions.isEmpty)
+        XCTAssertTrue(mockBus.dispatchedActions.isEmpty)
         XCTAssertEqual(mockGleanWrapper.recordEventCalled, 0)
         XCTAssertEqual(mockGleanWrapper.recordEventNoExtraCalled, 0)
     }
@@ -187,7 +191,7 @@ final class SwipeUpTabPreviewGestureHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handlePanGestureForTesting(gesture)
 
-        XCTAssertTrue(mockStore.dispatchedActions.isEmpty)
+        XCTAssertTrue(mockBus.dispatchedActions.isEmpty)
     }
 
     func testHandlePanGesture_whenEndedInBottomThird_cancelsWithoutDispatch() {
@@ -200,7 +204,7 @@ final class SwipeUpTabPreviewGestureHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handlePanGestureForTesting(gesture)
 
-        XCTAssertTrue(mockStore.dispatchedActions.isEmpty)
+        XCTAssertTrue(mockBus.dispatchedActions.isEmpty)
         assertRecordedEvent(outcome: .cancelled)
     }
 
@@ -214,7 +218,7 @@ final class SwipeUpTabPreviewGestureHandlerTests: XCTestCase, StoreTestUtility {
 
         subject.handlePanGestureForTesting(gesture)
 
-        let action = mockStore.dispatchedActions.first { $0 is GeneralBrowserAction } as? GeneralBrowserAction
+        let action = mockBus.dispatchedActions.first { $0 is GeneralBrowserAction } as? GeneralBrowserAction
         XCTAssertEqual(action?.actionType as? GeneralBrowserActionType, .showTabTray)
         assertRecordedEvent(outcome: .tabTrayOpened)
 
@@ -242,18 +246,62 @@ final class SwipeUpTabPreviewGestureHandlerTests: XCTestCase, StoreTestUtility {
 
     // MARK: - handleSwipeGesture
 
-    func testHandleSwipeGesture_whenNoToolbarState_dispatchesToolbarMiddlewareAction() {
+    func testHandleSwipeGesture_whenSwipingUpWithBottomToolbar_dispatchesToolbarMiddlewareAction() {
+        seedToolbarPosition(.bottom)
         let subject = createSubject()
         let gesture = UISwipeGestureRecognizer()
         gesture.direction = .up
 
         subject.handleSwipeGestureForTesting(gesture)
 
-        let action = mockStore.dispatchedActions.first { $0 is ToolbarMiddlewareAction } as? ToolbarMiddlewareAction
+        let action = mockBus.dispatchedActions.first { $0 is ToolbarMiddlewareAction } as? ToolbarMiddlewareAction
         XCTAssertEqual(action?.actionType as? ToolbarMiddlewareActionType, .didSwipeToOpenTabTray)
     }
 
+    func testHandleSwipeGesture_whenSwipingUpWithTopToolbar_doesNotDispatch() {
+        seedToolbarPosition(.top)
+        let subject = createSubject()
+        let gesture = UISwipeGestureRecognizer()
+        gesture.direction = .up
+
+        subject.handleSwipeGestureForTesting(gesture)
+
+        XCTAssertTrue(mockBus.dispatchedActions.isEmpty)
+    }
+
+    func testHandleSwipeGesture_whenSwipingDownWithTopToolbar_dispatchesToolbarMiddlewareAction() {
+        seedToolbarPosition(.top)
+        let subject = createSubject()
+        let gesture = UISwipeGestureRecognizer()
+        gesture.direction = .down
+
+        subject.handleSwipeGestureForTesting(gesture)
+
+        let action = mockBus.dispatchedActions.first { $0 is ToolbarMiddlewareAction } as? ToolbarMiddlewareAction
+        XCTAssertEqual(action?.actionType as? ToolbarMiddlewareActionType, .didSwipeToOpenTabTray)
+    }
+
+    func testHandleSwipeGesture_whenSwipingDownWithBottomToolbar_doesNotDispatch() {
+        seedToolbarPosition(.bottom)
+        let subject = createSubject()
+        let gesture = UISwipeGestureRecognizer()
+        gesture.direction = .down
+
+        subject.handleSwipeGestureForTesting(gesture)
+
+        XCTAssertTrue(mockBus.dispatchedActions.isEmpty)
+    }
+
     // MARK: - Helpers
+
+    /// The handler reads the toolbar position from `ToolbarViewModel`, which every window has.
+    private func seedToolbarPosition(_ position: AddressToolbarPosition) {
+        let state = ToolbarState(windowUUID: .XCTestDefaultUUID).copy(toolbarPosition: position)
+        ToolbarViewModel.register(
+            ToolbarViewModel(windowUUID: .XCTestDefaultUUID, bus: nil, initialState: state),
+            for: .XCTestDefaultUUID
+        )
+    }
 
     private func createSubject(file: StaticString = #filePath,
                                line: UInt = #line) -> SwipeUpTabPreviewGestureHandler {
@@ -300,17 +348,13 @@ final class SwipeUpTabPreviewGestureHandlerTests: XCTestCase, StoreTestUtility {
         wait(for: [expectation], timeout: 1.0)
     }
 
-    func setupAppState() -> AppState {
-        return AppState()
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
-        StoreTestUtilityHelper.setupStore(with: mockStore)
-    }
-
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }
 

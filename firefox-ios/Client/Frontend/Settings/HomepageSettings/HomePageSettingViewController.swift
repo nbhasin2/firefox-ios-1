@@ -137,13 +137,11 @@ class HomePageSettingViewController: SettingsTableViewController,
                 defaultValue: userPreferences.getPreferenceFor(.homepageJumpBackinSectionDefault),
                 titleText: .Settings.Homepage.CustomizeFirefoxHome.JumpBackIn
             ) { value in
-                store.dispatch(
-                    JumpBackInAction(
+                HomepageSectionSettingsNotification.post(
+                        section: .jumpBackIn,
                         isEnabled: value,
-                        windowUUID: self.windowUUID,
-                        actionType: JumpBackInActionType.toggleShowSectionSetting
+                        windowUUID: self.windowUUID
                     )
-                )
             }
             sectionItems.append(jumpBackInSetting)
 
@@ -155,13 +153,9 @@ class HomePageSettingViewController: SettingsTableViewController,
                     defaultValue: userPreferences.getPreferenceFor(.homepageTrackerBlockerModule),
                     titleText: .Settings.Homepage.CustomizeFirefoxHome.PrivacyReport
                 ) { value in
-                    store.dispatch(
-                        TrackerBlockerModuleAction(
-                            isEnabled: value,
-                            windowUUID: self.windowUUID,
-                            actionType: TrackerBlockerModuleActionType.toggleShowSectionSetting
-                        )
-                    )
+                    HomepageSectionSettingsNotification.post(section: .trackerBlockerModule,
+                                                             isEnabled: value,
+                                                             windowUUID: self.windowUUID)
                 }
                 sectionItems.append(trackerBlockerModuleSetting)
             }
@@ -173,7 +167,7 @@ class HomePageSettingViewController: SettingsTableViewController,
                 defaultValue: userPreferences.getPreferenceFor(.homepageBookmarksSectionDefault),
                 titleText: .Settings.Homepage.CustomizeFirefoxHome.Bookmarks
             ) { value in
-                store.dispatch(
+                browserEventBus.dispatch(
                     BookmarksAction(
                         isEnabled: value,
                         windowUUID: self.windowUUID,
@@ -193,7 +187,7 @@ class HomePageSettingViewController: SettingsTableViewController,
                 defaultValue: true,
                 titleText: .Settings.Homepage.CustomizeFirefoxHome.Stories
             ) { value in
-                store.dispatch(
+                browserEventBus.dispatch(
                     MerinoAction(
                         isEnabled: value,
                         windowUUID: self.windowUUID,

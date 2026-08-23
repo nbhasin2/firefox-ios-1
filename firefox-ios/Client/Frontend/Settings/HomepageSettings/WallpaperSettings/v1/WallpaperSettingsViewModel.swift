@@ -246,19 +246,6 @@ private extension WallpaperSettingsViewModel {
                                          value: .wallpaperSelected,
                                          extras: self.telemetryMetadata(for: wallpaper, in: collection))
 
-            // TODO: FXIOS-11486 Move interface for setting wallpaper into Wallpaper middleware
-            let wallpaperConfig = WallpaperConfiguration(wallpaper: wallpaper)
-            // We are passing the wallpaperConfiguration here even though right now it is not being used
-            // by the middleware that is responding to this action. It will be as soon as we move the wallpaper
-            // manager logic to the middleware.
-            ensureMainThread {
-                let action = WallpaperAction(
-                    wallpaperConfiguration: wallpaperConfig,
-                    windowUUID: self.windowUUID,
-                    actionType: WallpaperActionType.wallpaperSelected
-                )
-                store.dispatch(action)
-            }
             completion(result)
         }
     }

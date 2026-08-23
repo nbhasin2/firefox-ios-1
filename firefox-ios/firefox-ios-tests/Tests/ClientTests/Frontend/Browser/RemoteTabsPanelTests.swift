@@ -8,115 +8,60 @@ import TestKit
 
 @testable import Client
 
-final class RemoteTabsPanelTests: XCTestCase, StoreTestUtility {
+final class RemoteTabsPanelTests: XCTestCase, BusTestUtility {
     private enum Constants {
         static let testUrlString = "https://mozilla.org"
         static let testDeviceId = "testDeviceId"
     }
 
     private let windowUUID: WindowUUID = .XCTestDefaultUUID
-    private var mockStore: MockStoreForMiddleware<AppState>!
+    private var mockBus: MockBrowserEventBus!
 
     override func setUp() async throws {
         try await super.setUp()
         DependencyHelperMock().bootstrapDependencies()
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await  super.tearDown()
     }
 
-    func testViewDidLoad_dispachesDisplayRelatedActionsToStore() throws {
-        let subject = createSubject()
-        subject.loadViewIfNeeded()
+    /// Refreshing is state on the view model now rather than a round trip through the store; the
+    /// transitions themselves are covered in RemoteTabsPanelViewModelTests.
+    @MainActor
+    func testViewModelStateChange_reachesTheTableViewController() {
+        let viewModel = RemoteTabsPanelViewModel(windowUUID: windowUUID, profile: MockProfile())
+        let subject = createSubject(viewModel: viewModel)
 
-        let action1 = try XCTUnwrap(mockStore.dispatchedActions[0])
-        let action1Type = try XCTUnwrap(action1.actionType as? ComponentActionType)
-        let action2 = try XCTUnwrap(mockStore.dispatchedActions[1])
-        let action2Type = try XCTUnwrap(action2.actionType as? RemoteTabsPanelActionType)
+        viewModel.syncDidBegin()
 
-        XCTAssertEqual(action1Type, ComponentActionType.addComponent)
-        XCTAssertEqual(action2Type, RemoteTabsPanelActionType.panelDidAppear)
-        XCTAssertEqual(mockStore.subscribeCallCount, 1)
-    }
-
-    func testUnsubscribeFromRedux_dispatchesCloseScreenActionToStore() throws {
-        let subject = createSubject()
-        subject.unsubscribeFromRedux()
-
-        let action = try XCTUnwrap(mockStore.dispatchedActions.last)
-        let actionType = try XCTUnwrap(action.actionType as? ComponentActionType)
-
-        XCTAssertEqual(actionType, ComponentActionType.removeComponent)
+        XCTAssertEqual(subject.state.refreshState, .syncingTabs)
+        XCTAssertEqual(subject.tabsDisplayViewController.state.refreshState, .syncingTabs)
     }
 
     // MARK: - Actions
-    func testTableViewControllerDidPullToRefresh_dispatchesRefreshTabsAction() throws {
+
+    /// Refreshing, opening, closing and flushing all run through the view model and its
+    /// TabsPanelService now; nothing about the synced-tabs panel goes through the store.
+    func testPanelActions_dispatchNothing() {
         let subject = createSubject()
+
         subject.tableViewControllerDidPullToRefresh()
-
-        let action = try XCTUnwrap(mockStore.dispatchedActions.last)
-        let actionType = try XCTUnwrap(action.actionType as? RemoteTabsPanelActionType)
-
-        XCTAssertEqual(actionType, RemoteTabsPanelActionType.refreshTabs)
-    }
-
-    @MainActor
-    func testNewState_setsNewStateInTableViewController() {
-        let subject = createSubject()
-        let newState = RemoteTabsPanelState(
-            windowUUID: windowUUID,
-            refreshState: .refreshing,
-            allowsRefresh: false,
-            clientAndTabs: [],
-            showingEmptyState: nil,
-            devices: []
-        )
-        subject.newState(state: newState)
-
-        XCTAssertEqual(subject.state.refreshState, .refreshing)
-        XCTAssertEqual(subject.tabsDisplayViewController.state.refreshState, .refreshing)
-    }
-
-    // MARK: - RemoteTabsClientAndTabsDataSourceDelegate
-    @MainActor
-    func testRemoteTabsClientAndTabsDataSourceDidSelectURL_dispatchesCloseSelectedRemoteURLAction() throws {
-        let subject = createSubject()
         subject.remoteTabsClientAndTabsDataSourceDidSelectURL(
             URL(string: Constants.testUrlString)!,
             visitType: .link
         )
-
-        let action = try XCTUnwrap(mockStore.dispatchedActions.last)
-        let actionType = try XCTUnwrap(action.actionType as? RemoteTabsPanelActionType)
-
-        XCTAssertEqual(actionType, RemoteTabsPanelActionType.openSelectedURL)
-    }
-
-    func testRemoteTabsClientAndTabsDataSourceDidCloseURL_dispatchesCloseSelectedRemoteURL() throws {
-        let subject = createSubject()
         subject.remoteTabsClientAndTabsDataSourceDidCloseURL(
             deviceId: Constants.testDeviceId,
             url: URL(string: Constants.testUrlString)!
         )
-
-        let action = try XCTUnwrap(mockStore.dispatchedActions.first)
-        let actionType = try XCTUnwrap(action.actionType as? RemoteTabsPanelActionType)
-
-        XCTAssertEqual(actionType, RemoteTabsPanelActionType.closeSelectedRemoteURL)
-    }
-
-    func testRemoteTabsClientAndTabsDataSourceDidTabCommandsFlush_dispatchesFlushTabCommands() throws {
-        let subject = createSubject()
         subject.remoteTabsClientAndTabsDataSourceDidTabCommandsFlush(deviceId: Constants.testDeviceId)
 
-        let action = try XCTUnwrap(mockStore.dispatchedActions.first)
-        let actionType = try XCTUnwrap(action.actionType as? RemoteTabsPanelActionType)
-
-        XCTAssertEqual(actionType, RemoteTabsPanelActionType.flushTabCommands)
+        // Only the tray dismissal from opening a tab reaches the store.
+        XCTAssertTrue(mockBus.dispatchedActions.allSatisfy { $0 is TabTrayAction })
     }
 
     // MARK: - RemotePanelDelegate
@@ -143,37 +88,35 @@ final class RemoteTabsPanelTests: XCTestCase, StoreTestUtility {
     }
 
     // MARK: - RemoteTabsEmptyViewDelegate
+    /// Opening a synced tab adds one through TabsPanelService, which dismisses the tray.
     @MainActor
-    func testRemotePanelDidRequestToOpenInNewTab_dispatchesCloseSelectedRemoteURLAction() throws {
+    func testRemotePanelDidRequestToOpenInNewTab_dismissesTheTray() throws {
         let subject = createSubject()
+
         subject.remotePanelDidRequestToOpenInNewTab(
             URL(string: Constants.testUrlString)!,
             isPrivate: false
         )
 
-        let action = try XCTUnwrap(mockStore.dispatchedActions.last)
-        let actionType = try XCTUnwrap(action.actionType as? RemoteTabsPanelActionType)
-
-        XCTAssertEqual(actionType, RemoteTabsPanelActionType.openSelectedURL)
+        let action = try XCTUnwrap(mockBus.dispatchedActions.last as? TabTrayAction)
+        let actionType = try XCTUnwrap(action.actionType as? TabTrayActionType)
+        XCTAssertEqual(actionType, TabTrayActionType.dismissTabTray)
     }
 
-    // MARK: - StoreTestUtility
-    func setupAppState() -> Client.AppState {
-        return AppState()
+    // MARK: - BusTestUtility
+
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
-        StoreTestUtilityHelper.setupStore(with: mockStore)
-    }
-
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 
     // MARK: - Helpers
-    private func createSubject() -> RemoteTabsPanel {
-        let subject = RemoteTabsPanel(windowUUID: windowUUID)
+    private func createSubject(viewModel: RemoteTabsPanelViewModel? = nil) -> RemoteTabsPanel {
+        let subject = RemoteTabsPanel(windowUUID: windowUUID, viewModel: viewModel)
         trackForMemoryLeaks(subject)
         return subject
     }
