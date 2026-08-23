@@ -197,6 +197,46 @@ final class MainMenuViewModelTests: XCTestCase {
 
     // MARK: - Private Helpers
 
+    // MARK: - Generated menu elements
+
+    /// The menu renders from closures the configuration utility generates, and those call back into
+    /// the view model. Nothing else covers that hand-off: every other test calls the tap methods
+    /// directly, so the menu can render correctly and still be completely inert.
+    func test_generatedMenuElement_reachesTheViewModel() async throws {
+        provider.tabInfoToReturn = makeTabInfo()
+        let subject = createSubject()
+        subject.viewDidLoad()
+        await waitForTabInfo(subject)
+
+        let settings = try XCTUnwrap(
+            menuElement(titled: .MainMenu.OtherToolsSection.Settings, in: subject.state)
+        )
+        try XCTUnwrap(settings.action)()
+
+        XCTAssertEqual(delegate.navigatedTo.map { $0.destination }, [.settings])
+    }
+
+    func test_generatedMenuElement_forADirectIntent_reachesTheViewModel() async throws {
+        provider.tabInfoToReturn = makeTabInfo()
+        let subject = createSubject()
+        subject.viewDidLoad()
+        await waitForTabInfo(subject)
+
+        let bookmarkPage = try XCTUnwrap(
+            menuElement(titled: .MainMenu.Submenus.Save.BookmarkPage, in: subject.state)
+        )
+        try XCTUnwrap(bookmarkPage.action)()
+
+        XCTAssertEqual(provider.addToBookmarksTabIDs, ["tab-1"])
+    }
+
+    /// Matched on title because MenuKit keeps `a11yId` internal to the package.
+    private func menuElement(titled title: String, in state: MainMenuState) -> MenuElement? {
+        return state.menuElements
+            .flatMap { $0.options }
+            .first { $0.title == title }
+    }
+
     private func makeTabInfo() -> MainMenuTabInfo {
         return MainMenuTabInfo(
             tabID: "tab-1",
@@ -218,9 +258,7 @@ final class MainMenuViewModelTests: XCTestCase {
     }
 
     private func waitForTabInfo(_ subject: MainMenuViewModel) async {
-        for _ in 0..<20 where subject.state.currentTabInfo == nil {
-            await Task.yield()
-        }
+        await waitUntil { subject.state.currentTabInfo != nil }
     }
 
     private func createSubject(isBrowserDefault: Bool = false,

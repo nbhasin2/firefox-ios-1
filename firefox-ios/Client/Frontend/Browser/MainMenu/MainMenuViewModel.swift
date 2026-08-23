@@ -22,7 +22,7 @@ protocol MainMenuViewModelDelegate: AnyObject {
 /// calls here. The tab data the menu renders comes from `MainMenuTabInfoProvider`, which
 /// `TabManagerActionHandler` used to push in through six `MainMenuAction` cases.
 @MainActor
-final class MainMenuViewModel {
+final class MainMenuViewModel: MainMenuActionHandling {
     /// Glean option strings, moved verbatim from `MainMenuMiddleware`.
     private enum TelemetryAction {
         static let addToShortcuts = "add_to_shortcuts"
@@ -93,6 +93,9 @@ final class MainMenuViewModel {
         self.isPhoneLandscape = isPhoneLandscape
         self.toggleNightMode = toggleNightMode
         self.state = MainMenuState()
+        // The generated MenuElement closures call back through this; without it every row in the
+        // menu is inert.
+        menuConfigurator.actionHandler = self
     }
 
     deinit {
