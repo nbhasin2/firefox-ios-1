@@ -215,3 +215,19 @@ Counters at the start of the homepage and now:
   collaborator as a parameter, and the helpers must pass them. Falling through to an
   `AppContainer.shared.resolve()` default crashes the test *process* rather than failing an
   assertion, because the mock helper resets the container between tests.
+
+## Checkpoint after Tabs
+
+Full `ClientTests`: 2212 tests, 2 skipped, 1 failure — `BrowserCoordinatorTests`
+`testShowGoogleLensCamera_whenCameraUnavailable_*`, the known host artifact (the Mac camera
+passthrough makes the simulator report a camera).
+
+One flake seen once and not reproducible:
+`SwipeUpTabPreviewGestureHandlerTests.testHandlePanGesture_whenInteractiveGestureDisabled_doesNotDispatch`
+asserts the mock store is empty. Probing it printed an empty array, and it passes on repeat runs
+in isolation. Looks like cross-test contamination of the shared store rather than anything this
+migration introduced, but worth re-checking in the final sweep.
+
+Counters: middlewares 6 (from 28), StoreSubscriber screens 5 (from 12), AppComponent cases 2
+(from 10 — `browserViewController` and `toolbar`), `import Redux` 106 (from 138), dispatch sites
+205 (from 316).
