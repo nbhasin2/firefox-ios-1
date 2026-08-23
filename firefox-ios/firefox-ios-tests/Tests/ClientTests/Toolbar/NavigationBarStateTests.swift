@@ -275,11 +275,6 @@ final class NavigationBarStateTests: XCTestCase, StoreTestUtility {
                         BrowserViewControllerState(
                             windowUUID: windowUUID
                         )
-                    ),
-                    .toolbar(
-                        ToolbarState(
-                            windowUUID: windowUUID
-                        )
                     )
                 ]
             )

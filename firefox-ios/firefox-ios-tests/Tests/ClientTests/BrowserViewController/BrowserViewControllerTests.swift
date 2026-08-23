@@ -758,7 +758,6 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
 
         let state = AppState(presentedComponents: PresentedComponentsState(components: [
             .browserViewController(BrowserViewControllerState(windowUUID: toolbarWindow)),
-            .toolbar(ToolbarState(windowUUID: toolbarWindow)),
         ]))
         mockStore = MockStoreForMiddleware(state: state)
         StoreTestUtilityHelper.setupStore(with: mockStore)
@@ -775,7 +774,6 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
 
         let state = AppState(presentedComponents: PresentedComponentsState(components: [
             .browserViewController(BrowserViewControllerState(windowUUID: window)),
-            .toolbar(ToolbarState(windowUUID: window)),
         ]))
         mockStore = MockStoreForMiddleware(state: state)
         StoreTestUtilityHelper.setupStore(with: mockStore)

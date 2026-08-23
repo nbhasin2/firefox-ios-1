@@ -46,6 +46,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         profile = nil
         windowManager = nil
         summarizerConfigFactory = nil
+        ToolbarViewModel.removeInstance(for: windowUUID)
         DependencyHelperMock().reset()
         resetStore()
         try await super.tearDown()
@@ -1360,6 +1361,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
     func setupPrivateModeAppState() -> AppState {
         var toolbarState = ToolbarState(windowUUID: windowUUID)
         toolbarState.isPrivateMode = true
+        registerToolbarState(toolbarState)
 
         return AppState(
             presentedComponents: PresentedComponentsState(
@@ -1368,16 +1370,21 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
                         BrowserViewControllerState(
                             windowUUID: windowUUID
                         )
-                    ),
-                    .toolbar(toolbarState)
+                    )
                 ]
             )
         )
     }
 
+    /// The toolbar state lives on ToolbarViewModel now, so the bottom-position fixture seeds the
+    /// view model rather than the store.
     func setupToolbarBottomPositionAppState() -> AppState {
         var toolbarState = ToolbarState(windowUUID: windowUUID)
         toolbarState.toolbarPosition = .bottom
+        ToolbarViewModel.register(
+            ToolbarViewModel(windowUUID: windowUUID, bus: nil, initialState: toolbarState),
+            for: windowUUID
+        )
 
         return AppState(
             presentedComponents: PresentedComponentsState(
@@ -1386,25 +1393,28 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
                         BrowserViewControllerState(
                             windowUUID: windowUUID
                         )
-                    ),
-                    .toolbar(toolbarState)
+                    )
                 ]
             )
         )
     }
 
     // MARK: StoreTestUtility
+    /// The toolbar state the middleware reads lives on ToolbarViewModel now, not in the store.
+    private func registerToolbarState(_ toolbarState: ToolbarState) {
+        ToolbarViewModel.register(
+            ToolbarViewModel(windowUUID: windowUUID, bus: nil, initialState: toolbarState),
+            for: windowUUID
+        )
+    }
+
     func setupAppState() -> AppState {
+        registerToolbarState(ToolbarState(windowUUID: windowUUID))
         return AppState(
             presentedComponents: PresentedComponentsState(
                 components: [
                     .browserViewController(
                         BrowserViewControllerState(
-                            windowUUID: windowUUID
-                        )
-                    ),
-                    .toolbar(
-                        ToolbarState(
                             windowUUID: windowUUID
                         )
                     )
@@ -1418,6 +1428,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         addressBarState.editingAccessoryAction = isGoogleLensAccessoryShowing ? makeGoogleLensAccessoryAction() : nil
         var toolbarState = ToolbarState(windowUUID: windowUUID)
         toolbarState.addressToolbar = addressBarState
+        registerToolbarState(toolbarState)
 
         return AppState(
             presentedComponents: PresentedComponentsState(
@@ -1426,8 +1437,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
                         BrowserViewControllerState(
                             windowUUID: windowUUID
                         )
-                    ),
-                    .toolbar(toolbarState)
+                    )
                 ]
             )
         )

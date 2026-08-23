@@ -955,12 +955,9 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     func test_userDidScrollAction_returnsExpectedState() {
         setupStore()
         let initialState = ToolbarState(windowUUID: windowUUID)
-        let reducer = ToolbarState.reducer
-
-        let newState = reducer.modernReducer(
+        let newState = ToolbarState.reduceModern(
             initialState,
-            ToolbarModernAction.userDidScroll(minimizeAddressBar: true),
-            windowUUID
+            with: ToolbarModernAction.userDidScroll(minimizeAddressBar: true)
         )
 
         XCTAssertEqual(newState.windowUUID, windowUUID)
@@ -971,20 +968,17 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     func test_keyboardDidHideAction_returnsExpectedState() {
         setupStore()
         var initialState = ToolbarState(windowUUID: windowUUID)
-        let reducer = ToolbarState.reducer
 
         // Minimize toolbar first
-        initialState = reducer.modernReducer(
+        initialState = ToolbarState.reduceModern(
             initialState,
-            ToolbarModernAction.userDidScroll(minimizeAddressBar: true),
-            windowUUID
+            with: ToolbarModernAction.userDidScroll(minimizeAddressBar: true)
         )
         XCTAssertEqual(initialState.isAddressBarMinimized, true)
 
-        let newState = reducer.modernReducer(
+        let newState = ToolbarState.reduceModern(
             initialState,
-            ToolbarModernAction.keyboardDidHide,
-            windowUUID
+            with: ToolbarModernAction.keyboardDidHide
         )
 
         XCTAssertEqual(newState.windowUUID, windowUUID)
@@ -995,12 +989,9 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
     func test_accessoryViewDidShowAction_returnsExpectedState() {
         setupStore()
         let initialState = ToolbarState(windowUUID: windowUUID)
-        let reducer = ToolbarState.reducer
-
-        let newState = reducer.modernReducer(
+        let newState = ToolbarState.reduceModern(
             initialState,
-            ToolbarModernAction.accessoryViewDidShow,
-            windowUUID
+            with: ToolbarModernAction.accessoryViewDidShow
         )
 
         XCTAssertEqual(newState.windowUUID, windowUUID)
@@ -1286,8 +1277,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
                         BrowserViewControllerState(
                             windowUUID: windowUUID
                         )
-                    ),
-                    .toolbar(initialToolbarState)
+                    )
                 ]
             )
         )
@@ -1332,11 +1322,6 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
                 components: [
                     .browserViewController(
                         BrowserViewControllerState(
-                            windowUUID: windowUUID
-                        )
-                    ),
-                    .toolbar(
-                        ToolbarState(
                             windowUUID: windowUUID
                         )
                     )

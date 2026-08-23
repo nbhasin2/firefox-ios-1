@@ -1514,36 +1514,23 @@ final class TranslationsMiddlewareIntegrationTests: XCTestCase, StoreTestUtility
             alternativeSearchEngine: nil,
             isNovaDesignEnabled: false
         )
+        // The toolbar state the middleware reads lives on ToolbarViewModel now, not in the store.
+        ToolbarViewModel.register(
+            ToolbarViewModel(
+                windowUUID: .XCTestDefaultUUID,
+                bus: nil,
+                initialState: ToolbarState(windowUUID: .XCTestDefaultUUID)
+                    .copy(addressToolbar: addressToolbar)
+            ),
+            for: .XCTestDefaultUUID
+        )
+
         return AppState(
             presentedComponents: PresentedComponentsState(
                 components: [
                     .browserViewController(
                         BrowserViewControllerState(
                             windowUUID: .XCTestDefaultUUID
-                        )
-                    ),
-                    .toolbar(
-                        ToolbarState(
-                            windowUUID: .XCTestDefaultUUID,
-                            toolbarPosition: .top,
-                            toolbarLayout: .version1,
-                            tabTrayButtonStyle: .number,
-                            isPrivateMode: false,
-                            addressToolbar: addressToolbar,
-                            navigationToolbar: NavigationBarState(windowUUID: .XCTestDefaultUUID),
-                            isShowingNavigationToolbar: true,
-                            isShowingTopTabs: false,
-                            canGoBack: false,
-                            canGoForward: false,
-                            numberOfTabs: 1,
-                            showMenuWarningBadge: false,
-                            canShowNavigationHint: false,
-                            shouldAnimate: true,
-                            isTranslucent: false,
-                            isTranslationsEnabled: true,
-                            previousTabScreenshot: nil,
-                            nextTabScreenshot: nil,
-                            isAddressBarMinimized: false
                         )
                     )
                 ]

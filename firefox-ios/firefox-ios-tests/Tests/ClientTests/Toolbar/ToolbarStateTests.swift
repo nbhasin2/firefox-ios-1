@@ -50,11 +50,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_didLoadToolbarsAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 toolbarPosition: .top,
                 addressBorderPosition: .bottom,
                 displayNavBorder: true,
@@ -78,11 +77,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_borderPositionChangedAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 addressBorderPosition: .top,
                 displayNavBorder: false,
                 windowUUID: windowUUID,
@@ -96,9 +94,8 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_urlDidChangeAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = loadWebsiteAction(state: initialState, reducer: reducer)
+        let newState = loadWebsiteAction(state: initialState)
 
         XCTAssertEqual(newState.windowUUID, windowUUID)
         XCTAssertFalse(newState.isPrivateMode)
@@ -110,11 +107,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_urlDidChangeAction_withTranslationConfiguration_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 translationConfiguration: TranslationConfiguration(prefs: mockProfile.prefs),
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.urlDidChange
@@ -127,11 +123,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_didSetTextInLocationViewAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 searchTerm: "text",
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.didSetTextInLocationView)
@@ -143,11 +138,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_didPasteSearchTermAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 searchTerm: "text",
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.didPasteSearchTerm)
@@ -159,11 +153,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_didStartEditingUrlAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.didStartEditingUrl)
         )
@@ -174,11 +167,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_cancelEditAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.cancelEdit)
         )
@@ -189,11 +181,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_cancelEditOnHomepageAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.cancelEditOnHomepage)
         )
@@ -204,11 +195,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_keyboardStateDidChangeAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 shouldShowKeyboard: true,
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.keyboardStateDidChange)
@@ -220,11 +210,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_websiteLoadingStateDidChangeAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 isLoading: true,
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.websiteLoadingStateDidChange)
@@ -236,11 +225,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_searchEngineDidChangeAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.searchEngineDidChange)
         )
@@ -251,11 +239,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_googleLensAvailabilityDidChangeAction_updatesAddressToolbarGoogleLensAvailability() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarMiddlewareAction(
+            with: ToolbarMiddlewareAction(
                 isGoogleLensEnabled: true,
                 windowUUID: windowUUID,
                 actionType: ToolbarMiddlewareActionType.googleLensAvailabilityDidChange)
@@ -267,11 +254,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_clearSearchAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.clearSearch)
         )
@@ -282,11 +268,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_didDeleteSearchTermAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.didDeleteSearchTerm)
         )
@@ -297,11 +282,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_didEnterSearchTermAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.didEnterSearchTerm)
         )
@@ -312,11 +296,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_didSetSearchTermAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 searchTerm: "text",
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.didSetSearchTerm)
@@ -328,11 +311,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_didStartTypingAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.didStartTyping)
         )
@@ -343,11 +325,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_animationStateChanged_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 shouldAnimate: false,
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.animationStateChanged)
@@ -359,11 +340,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_showMenuWarningBadgeAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 showMenuWarningBadge: true,
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.showMenuWarningBadge
@@ -376,11 +356,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_numberOfTabsChangedAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 numberOfTabs: 2,
                 isShowingTopTabs: false,
                 windowUUID: windowUUID,
@@ -394,11 +373,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_toolbarPositionChangedAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 toolbarPosition: .top,
                 addressBorderPosition: .bottom,
                 displayNavBorder: true,
@@ -413,11 +391,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_readerModeStateChangedAction_onHomepage_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 readerModeState: .available,
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.readerModeStateChanged
@@ -430,11 +407,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_navigationMiddleButtonDidChangeAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 middleButton: .home,
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.navigationMiddleButtonDidChange
@@ -447,12 +423,11 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_backForwardButtonStateChangedAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let urlDidChangeState = loadWebsiteAction(state: initialState, reducer: reducer)
-        let newState = reducer.legacyReducer(
+        let urlDidChangeState = loadWebsiteAction(state: initialState)
+        let newState = ToolbarState.reduce(
             urlDidChangeState,
-            ToolbarAction(
+            with: ToolbarAction(
                 canGoBack: true,
                 canGoForward: false,
                 windowUUID: windowUUID,
@@ -467,11 +442,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_traitCollectionDidChangeAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 isShowingNavigationToolbar: false,
                 isShowingTopTabs: true,
                 windowUUID: windowUUID,
@@ -486,11 +460,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_navigationButtonDoubleTappedAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.navigationButtonDoubleTapped
             )
@@ -502,11 +475,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_navigationHintFinishedPresentingAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            ToolbarAction(
+            with: ToolbarAction(
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.navigationHintFinishedPresenting
             )
@@ -518,14 +490,13 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_didTapSearchEngineAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
-        let searchEngineModel = SearchEngineModel(
+                let searchEngineModel = SearchEngineModel(
             name: "Google",
             image: UIImage(named: StandardImageIdentifiers.ExtraSmall.chevronDown)!)
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            SearchEngineSelectionAction(
+            with: SearchEngineSelectionAction(
                 windowUUID: self.windowUUID,
                 actionType: SearchEngineSelectionActionType.didTapSearchEngine,
                 selectedSearchEngine: searchEngineModel
@@ -538,12 +509,11 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_urlDidChangeStateAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let urlDidChangeState = loadWebsiteAction(state: initialState, reducer: reducer)
-        let newState = reducer.legacyReducer(
+        let urlDidChangeState = loadWebsiteAction(state: initialState)
+        let newState = ToolbarState.reduce(
             urlDidChangeState,
-            ToolbarAction(
+            with: ToolbarAction(
                 canGoBack: true,
                 canGoForward: false,
                 windowUUID: windowUUID,
@@ -556,11 +526,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_didClearAlternativeSearchEngineAction_returnsExpectedState() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             initialState,
-            SearchEngineSelectionAction(
+            with: SearchEngineSelectionAction(
                 windowUUID: self.windowUUID,
                 actionType: SearchEngineSelectionMiddlewareActionType.didClearAlternativeSearchEngine
             )
@@ -572,18 +541,16 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
 
     func test_showToastAction_forShakeToSummarizeNotAvailable_restoresMinimizedAddressBar() {
         let initialState = createSubject()
-        let reducer = toolbarReducer()
 
-        let minimizedState = reducer.modernReducer(
+        let minimizedState = ToolbarState.reduceModern(
             initialState,
-            ToolbarModernAction.userDidScroll(minimizeAddressBar: true),
-            windowUUID
+            with: ToolbarModernAction.userDidScroll(minimizeAddressBar: true)
         )
         XCTAssertTrue(minimizedState.isAddressBarMinimized)
 
-        let newState = reducer.legacyReducer(
+        let newState = ToolbarState.reduce(
             minimizedState,
-            GeneralBrowserAction(
+            with: GeneralBrowserAction(
                 toastType: .shakeToSummarizeNotAvailable,
                 windowUUID: windowUUID,
                 actionType: GeneralBrowserActionType.showToast
@@ -598,14 +565,10 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
         return ToolbarState(windowUUID: windowUUID)
     }
 
-    private func toolbarReducer() -> Reducer<ToolbarState> {
-        return ToolbarState.reducer
-    }
-
-    private func loadWebsiteAction(state: ToolbarState, reducer: Reducer<ToolbarState>) -> ToolbarState {
-        return reducer.legacyReducer(
+    private func loadWebsiteAction(state: ToolbarState) -> ToolbarState {
+        return ToolbarState.reduce(
             state,
-            ToolbarAction(
+            with: ToolbarAction(
                 url: URL(string: "http://mozilla.com"),
                 isPrivate: false,
                 isShowingNavigationToolbar: true,
@@ -626,11 +589,6 @@ final class ToolbarStateTests: XCTestCase, StoreTestUtility {
                 components: [
                     .browserViewController(
                         BrowserViewControllerState(
-                            windowUUID: windowUUID
-                        )
-                    ),
-                    .toolbar(
-                        ToolbarState(
                             windowUUID: windowUUID
                         )
                     )
