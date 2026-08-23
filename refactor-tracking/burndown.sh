@@ -12,12 +12,16 @@ CLIENT=firefox-ios/Client
 BUS='GeneralBrowserAction|NavigationBrowserAction|GeneralBrowserMiddlewareAction'
 
 # `|| true` on every grep: a metric reaching zero must not abort the script.
-files() { { grep -rlE "$1" "${SWIFT[@]}" firefox-ios BrowserKit 2>/dev/null || true; } | grep -v '\.build' | wc -l | tr -d ' '; }
+# Every stage needs `|| true`: under pipefail an empty grep result fails the whole pipeline, so a
+# metric reaching zero would abort the script instead of printing the zero.
+files() { { { grep -rlE "$1" "${SWIFT[@]}" firefox-ios BrowserKit 2>/dev/null || true; } | grep -v '\.build' || true; } | wc -l | tr -d ' '; }
 sites() { { grep -rnE "$1" "${SWIFT[@]}" "$CLIENT" 2>/dev/null || true; } | wc -l | tr -d ' '; }
 
 row() { printf '  %-42s %6s   target %s\n' "$1" "$2" "$3"; }
 
-middlewares=$(sites 'class .*Middleware\b.*\{')
+# The middleware type itself, not the *MiddlewareAction families, which are retained bus
+# vocabulary (D-042). Counted across the whole repo because the machinery lived in BrowserKit.
+middlewares=$(files 'Middleware<|MiddlewareClosure|middlewares:')
 # Renamed once screens stopped subscribing; both spellings counted so the metric stays honest.
 subscribers=$(sites 'func subscribeToRedux|store\.subscribe\(')
 # AppComponent.swift is deleted once the screen-state tree is gone.
@@ -25,12 +29,12 @@ components=$({ grep -cE '^\s+case ' "$CLIENT/Redux/GlobalState/AppComponent.swif
 all_actions=$(sites 'class .*: Action\b|struct .*: Action\b|: ModernAction\b')
 bus_actions=$({ grep -rnE "(class|struct|enum) ($BUS)" "${SWIFT[@]}" "$CLIENT" 2>/dev/null || true; } | wc -l | tr -d ' ')
 screen_actions=$(( all_actions - bus_actions ))
+ACTION_BUDGET=21
 
 echo "Screen state — must reach zero"
-row "registered middlewares"            "$middlewares"     0
+row "files with middleware plumbing"     "$middlewares"     0
 row "StoreSubscriber screens"           "$subscribers"     0
 row "AppComponent cases"                "$components"      0
-row "screen Action types (non-browser)" "$screen_actions"  0
 
 imports=$(files 'import Redux')
 dispatches=$(sites 'store\.dispatch|\.dispatch\(')
@@ -43,6 +47,10 @@ row "files with import Redux"           "$imports"    "~31"
 row "dispatch call sites"               "$dispatches" "~18"
 row "files touching browser actions"    "$bus_files"  "~31"
 row "browser-level dispatch sites"      "$bus_sites"  "~18"
+# Was "screen Action types", targeting zero, back when an action existed to feed a screen state.
+# No screen state is left, so every remaining family is the vocabulary the bus is addressed in
+# (D-016). It is a budget now: it must not grow.
+row "action families on the bus"        "$screen_actions" "<= $ACTION_BUDGET"
 
 # D-017 guardrail. Convention: a notification introduced by this migration is declared as a
 # Notification.Name inside a *ViewModel.swift file (as TrackingProtectionViewModel does).
@@ -64,6 +72,12 @@ echo "Guardrails (D-017) — must not grow"
 row "migration-introduced notification names" "$notifs" "<= $NOTIF_BUDGET"
 
 status=0
+if [ "$screen_actions" -gt "$ACTION_BUDGET" ]; then
+  echo
+  echo "FAIL: $screen_actions action families exceeds the budget of $ACTION_BUDGET."
+  echo "      A new family means something is being modelled as a screen again; give it an owner."
+  status=1
+fi
 if [ "$notifs" -gt "$NOTIF_BUDGET" ]; then
   echo
   echo "FAIL: $notifs migration-introduced notifications exceeds the budget of $NOTIF_BUDGET."
@@ -72,7 +86,7 @@ if [ "$notifs" -gt "$NOTIF_BUDGET" ]; then
 fi
 if [ "$middlewares" -eq 0 ] && [ "$components" -gt 0 ]; then
   echo
-  echo "FAIL: no middlewares remain but AppComponent still has $components cases — screen state leaked."
+  echo "FAIL: the middleware layer is gone but AppComponent still has $components cases — screen state leaked."
   status=1
 fi
 exit $status

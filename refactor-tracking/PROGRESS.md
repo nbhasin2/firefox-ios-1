@@ -231,3 +231,50 @@ migration introduced, but worth re-checking in the final sweep.
 Counters: middlewares 6 (from 28), StoreSubscriber screens 5 (from 12), AppComponent cases 2
 (from 10 — `browserViewController` and `toolbar`), `import Redux` 106 (from 138), dispatch sites
 205 (from 316).
+
+## Phase 3 complete — the middleware layer is gone
+
+The six remaining middlewares are bus-observing services (D-040), so the store is constructed with
+no middlewares at all and `Middleware.swift` is deleted. What is left of Redux is exactly what
+D-016 said would be left: `Action`, `ActionType`, a window-keyed dispatch, and the observer list.
+
+### The part that was not mechanical
+
+Converting a middleware into an observer looks like a rename — the body does not change — and that
+is the trap. The middleware chain guaranteed two things that nothing in the code named, so nothing
+failed loudly when they were dropped (D-041):
+
+1. **Every reducer ran before any middleware.** `ToolbarActionHandler` reads the toolbar state that
+   `ToolbarViewModel` owns. The handler registers at launch, the view model when its window opens,
+   so on one flat list the handler read state one action behind — silently, and only in production,
+   because every test seeds the view model directly. Observers now have a `.state`/`.effects` tier.
+2. **Middlewares saw modern actions.** Observers only received legacy ones, so the four
+   `ToolbarModernAction` dispatch sites reached nothing: the address bar would have stopped
+   minimising on scroll and stopped reacting to the keyboard hiding.
+
+Neither was caught by a test. Both were found by asking what the chain did that a list does not.
+
+### Two test-isolation bugs fixed on the way
+
+- `ToolbarViewModel.instances` is a static registry, so a state one test seeded was read by the
+  next. `StoreTestUtilityHelper.resetStore` clears it now.
+- `SwipeUpTabPreviewGestureHandlerTests`' close-tab animation completes asynchronously and
+  dispatches into whichever store is current — the *next* test's. That is the flake recorded in the
+  Tabs checkpoint above; it asserts on actions dispatched after its own gesture now. Its
+  "no toolbar state" test is gone: every window has a `ToolbarViewModel`, so the handler's
+  `toolbarState` is non-optional and the four real position/direction cases replace it.
+
+### Names
+
+The six classes are `*ActionHandler` now, and `MockStoreForMiddleware` — which mocks the bus — is
+`MockStore`. The `*MiddlewareAction` families keep their names; they are retained bus vocabulary and
+renaming them is 230 references in files this branch does not otherwise touch (D-042).
+
+### Counters
+
+middlewares 0 (from 28), StoreSubscriber screens 0 (from 12), AppComponent cases 0 (from 10),
+`import Redux` 106 (from 138), dispatch sites 201 (from 316), action families on the bus 21.
+
+The last three are the D-016 budget rather than a burn-down: `import Redux` and the dispatch count
+stay high because the bus is retained and every observer imports it. `burndown.sh` now groups them
+that way and fails if the action families or the migration-introduced notifications grow.

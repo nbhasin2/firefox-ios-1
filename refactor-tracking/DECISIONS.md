@@ -831,3 +831,62 @@ Six middlewares and the bus. The middlewares that remain are the ones with no sc
 commands), `ToolbarMiddleware`, `MicrosurveyPromptMiddleware`, `StartAtHomeMiddleware`,
 `SummarizerMiddleware`, `TranslationsMiddleware`. They are bus consumers that happen to be
 registered as middlewares; converting them is Phase 4 work, not screen-state work.
+
+## D-040 — The last six middlewares become bus observers; the middleware layer is deleted
+
+`MicrosurveyPromptMiddleware`, `TabManagerMiddleware`, `ToolbarMiddleware`, `StartAtHomeMiddleware`,
+`SummarizerMiddleware` and `TranslationsMiddleware` never had a screen. Each one reads a browser
+event and does work or announces another event, which is what the bus is for. Converting them was
+mechanical: the `lazy var legacyProvider: LegacyMiddlewareClosure<AppState> = { [self] state, action in`
+became `func handle(_ action: Action)`, and the bodies did not change. The `state` parameter went
+unused, because `AppState` is empty (D-039) — everything they read already lives on a view model.
+
+`BrowserActionHandlers.shared.register()` in `AppDelegate` registers all six, in the order the
+`middlewares` array had them. With nothing left to register, `Middleware.swift`, the store's
+`middlewares` array and `emptyMiddlewareProviderFactory` are deleted.
+
+Two side effects worth recording:
+
+- `SummarizerActionHandlerTests` no longer needs `releaseMiddlewareProvidersFromMemory`. The retain
+  cycle it worked around was the provider closure capturing `self`; a method does not.
+- The `TranslationsActionHandler` suite seeded state by running the reducer over `AppState`. It
+  seeds `ToolbarViewModel` instead — same state, new owner.
+
+## D-041 — The bus owes the observers the two guarantees the middleware chain gave
+
+Converting middlewares into observers is not a rename. The chain provided two things a flat
+observer list does not, and both had to be rebuilt:
+
+**Order.** Every reducer ran before any middleware, so a middleware always read post-action state.
+`ToolbarActionHandler` reads the toolbar state, which `ToolbarViewModel` now owns and updates from
+its own observer — and the handler registers at launch while the view model registers when its
+window opens, so on a flat list the handler would read state one action behind. Observers now
+declare a tier: `.state` observers (a view model reducing into state it owns) are delivered to
+before `.effects` observers (the six handlers). Within a tier, registration order holds.
+`notifyActionObservers` also moved after the state assignment, so an observer reading `store.state`
+sees what a middleware was handed.
+
+**Modern actions.** `notifyActionObservers` only forwarded legacy actions, so the four
+`ToolbarModernAction` dispatch sites — keyboard hide, user scroll, accessory view, scroll handler —
+reached nothing at all once the toolbar's subscription was gone. `addModernActionObserver` carries
+them, as a separate registration rather than a cast inside the legacy handler, because a
+`ModernAction` carries its window separately.
+
+The general lesson: a delivery mechanism has a contract beyond "the handler runs". Ordering and
+coverage were implicit in Redux's shape, so nothing named them, and nothing failed loudly when they
+were dropped — the toolbar would simply have stopped responding to scrolls.
+
+## D-042 — Rename the six to `*ActionHandler`; leave the `*MiddlewareAction` families alone
+
+Nothing is a middleware any more, so the classes are `MicrosurveyPromptActionHandler`,
+`TabManagerActionHandler`, `ToolbarActionHandler`, `StartAtHomeActionHandler`,
+`SummarizerActionHandler`, `TranslationsActionHandler`, and `MockStoreForMiddleware` — which mocks
+the bus, not a middleware — is `MockStore`.
+
+The action families keep their names. `ToolbarMiddlewareAction`, `GeneralBrowserMiddlewareAction`,
+`TabPanelMiddlewareAction` and the rest are the bus's vocabulary and are retained under D-016; the
+convention they encode (a `*ViewAction` is dispatched by a view, a `*MiddlewareAction` is dispatched
+back out by the thing that handled it) still holds, with the handler in the middleware's place.
+Renaming them is 230-odd mechanical references across files this branch does not otherwise touch,
+which buys accuracy in a name at the cost of a reviewable diff and a merge conflict in every one of
+those files. Recorded as follow-up work, not done here.
