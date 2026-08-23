@@ -373,7 +373,7 @@ class AIControlsModelTests: XCTestCase, StoreTestUtility {
     func setupAppState() -> Client.AppState {
         // Translation settings no longer live in the store; AI Controls still dispatches
         // QuickAnswersAction, which is why the mock store stays.
-        return AppState(presentedComponents: PresentedComponentsState(components: []))
+        return AppState()
     }
 
     func setupStore() {

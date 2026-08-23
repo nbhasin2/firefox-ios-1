@@ -1270,17 +1270,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 
     // MARK: Helper
     func setupAppState(with initialToolbarState: ToolbarState) -> AppState {
-        return AppState(
-            presentedComponents: PresentedComponentsState(
-                components: [
-                    .browserViewController(
-                        BrowserViewControllerState(
-                            windowUUID: windowUUID
-                        )
-                    )
-                ]
-            )
-        )
+        return AppState()
     }
 
     func setupStore(with initialToolbarState: ToolbarState) {
@@ -1317,17 +1307,7 @@ final class AddressBarStateTests: XCTestCase, StoreTestUtility {
 
     // MARK: StoreTestUtility
     func setupAppState() -> AppState {
-        return AppState(
-            presentedComponents: PresentedComponentsState(
-                components: [
-                    .browserViewController(
-                        BrowserViewControllerState(
-                            windowUUID: windowUUID
-                        )
-                    )
-                ]
-            )
-        )
+        return AppState()
     }
 
     func setupStore() {

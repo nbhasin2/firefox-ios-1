@@ -104,7 +104,7 @@ final class MicrosurveyPromptMiddlewareTests: XCTestCase {
     func setupAppState() -> AppState {
         // The prompt middleware reads no screen state of its own; the prompt's state lives in
         // `BrowserViewControllerState`. The survey component this used to seed was vestigial.
-        return AppState(presentedComponents: PresentedComponentsState(components: []))
+        return AppState()
     }
 
     func setupStore() {

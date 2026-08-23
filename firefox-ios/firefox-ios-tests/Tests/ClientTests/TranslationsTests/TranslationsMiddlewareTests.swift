@@ -1525,17 +1525,7 @@ final class TranslationsMiddlewareIntegrationTests: XCTestCase, StoreTestUtility
             for: .XCTestDefaultUUID
         )
 
-        return AppState(
-            presentedComponents: PresentedComponentsState(
-                components: [
-                    .browserViewController(
-                        BrowserViewControllerState(
-                            windowUUID: .XCTestDefaultUUID
-                        )
-                    )
-                ]
-            )
-        )
+        return AppState()
     }
 
     func setupStore() {

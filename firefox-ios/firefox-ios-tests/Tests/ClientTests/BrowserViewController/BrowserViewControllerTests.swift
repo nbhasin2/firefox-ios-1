@@ -364,15 +364,14 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     func test_tapOnHomepageSearchBarAction_withBVCState_triggersGeneralBrowserAction() throws {
         let subject = createSubject()
 
-        let newState = BrowserViewControllerState.reducer.legacyReducer(
-            BrowserViewControllerState(windowUUID: .XCTestDefaultUUID),
+        subject.subscribeToRedux()
+        mockStore.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.homepageZeroSearch),
                 windowUUID: .XCTestDefaultUUID,
                 actionType: NavigationBrowserActionType.tapOnHomepageSearchBar
             )
         )
-        subject.newState(state: newState)
 
         let actionCalled = try XCTUnwrap(
             mockStore.dispatchedActions.first(where: { $0 is GeneralBrowserAction }) as? GeneralBrowserAction
@@ -386,15 +385,14 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
         setupStoreForSearchBar()
         let subject = createSubject()
 
-        let newState = BrowserViewControllerState.reducer.legacyReducer(
-            BrowserViewControllerState(windowUUID: .XCTestDefaultUUID),
+        subject.subscribeToRedux()
+        mockStore.dispatch(
             ToolbarMiddlewareAction(
                 buttonType: .search,
                 windowUUID: .XCTestDefaultUUID,
                 actionType: ToolbarMiddlewareActionType.didTapButton
             )
         )
-        subject.newState(state: newState)
 
         let actionCalled = try XCTUnwrap(
             mockStore.dispatchedActions.first(where: { $0 is GeneralBrowserAction }) as? GeneralBrowserAction
@@ -408,14 +406,13 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
         setupStoreForSearchBar()
         let subject = createSubject()
 
-        let newState = BrowserViewControllerState.reducer.legacyReducer(
-            BrowserViewControllerState(windowUUID: .XCTestDefaultUUID),
+        subject.subscribeToRedux()
+        mockStore.dispatch(
             ToolbarMiddlewareAction(
                 windowUUID: .XCTestDefaultUUID,
                 actionType: ToolbarMiddlewareActionType.didTapButton
             )
         )
-        subject.newState(state: newState)
 
         let didEnteredZeroSearchScreenDispatched = mockStore.dispatchedActions.contains { action in
             guard let action = action as? GeneralBrowserAction,
@@ -432,15 +429,14 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     func test_didTapButtonToolbarAction_withoutHomepageSearch_andSearchButtonType_doesNotTriggersGeneralBrowserAction() {
         let subject = createSubject()
 
-        let newState = BrowserViewControllerState.reducer.legacyReducer(
-            BrowserViewControllerState(windowUUID: .XCTestDefaultUUID),
+        subject.subscribeToRedux()
+        mockStore.dispatch(
             ToolbarMiddlewareAction(
                 buttonType: .search,
                 windowUUID: .XCTestDefaultUUID,
                 actionType: ToolbarMiddlewareActionType.didTapButton
             )
         )
-        subject.newState(state: newState)
 
         let didEnteredZeroSearchScreenDispatched = mockStore.dispatchedActions.contains { action in
             guard let action = action as? GeneralBrowserAction,
@@ -457,14 +453,13 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     func test_didTapButtonToolbarAction_withoutHomepageSearch_andNoSearchButtonType_doesNotTriggersGeneralBrowserAction() {
         let subject = createSubject()
 
-        let newState = BrowserViewControllerState.reducer.legacyReducer(
-            BrowserViewControllerState(windowUUID: .XCTestDefaultUUID),
+        subject.subscribeToRedux()
+        mockStore.dispatch(
             ToolbarMiddlewareAction(
                 windowUUID: .XCTestDefaultUUID,
                 actionType: ToolbarMiddlewareActionType.didTapButton
             )
         )
-        subject.newState(state: newState)
 
         let didEnteredZeroSearchScreenDispatched = mockStore.dispatchedActions.contains { action in
             guard let action = action as? GeneralBrowserAction,
@@ -481,15 +476,14 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     func testNewState_whenSummarizeDisplayRequested() {
         let subject = createSubject()
 
-        let newState = BrowserViewControllerState.reducer.legacyReducer(
-            BrowserViewControllerState(windowUUID: .XCTestDefaultUUID),
+        subject.subscribeToRedux()
+        mockStore.dispatch(
             GeneralBrowserAction(
                 summarizerConfig: .defaultConfig,
                 windowUUID: .XCTestDefaultUUID,
                 actionType: GeneralBrowserActionType.showSummarizer
             )
         )
-        subject.newState(state: newState)
 
         XCTAssertEqual(browserCoordinator.showSummarizePanelCalled, 1)
     }
@@ -581,11 +575,11 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
     func testResetObservationIsCalledForAddNewTabAction() throws {
         let subject = createSubject()
 
-        let action = GeneralBrowserAction(windowUUID: .XCTestDefaultUUID,
-                                          actionType: GeneralBrowserActionType.addNewTab)
-        let newState = BrowserViewControllerState.reducer.legacyReducer(
-            BrowserViewControllerState(windowUUID: .XCTestDefaultUUID), action)
-        subject.newState(state: newState)
+        subject.subscribeToRedux()
+        mockStore.dispatch(
+            GeneralBrowserAction(windowUUID: .XCTestDefaultUUID,
+                                 actionType: GeneralBrowserActionType.addNewTab)
+        )
 
         XCTAssertEqual(recordVisitManager.resetVisitCalled, 1)
         XCTAssertNil(recordVisitManager.lastVisitObservation)
@@ -756,9 +750,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
         let toolbarWindow = WindowUUID.XCTestDefaultUUID
         let mismatchedWindow = WindowUUID.DefaultUITestingUUID
 
-        let state = AppState(presentedComponents: PresentedComponentsState(components: [
-            .browserViewController(BrowserViewControllerState(windowUUID: toolbarWindow)),
-        ]))
+        let state = AppState()
         mockStore = MockStoreForMiddleware(state: state)
         StoreTestUtilityHelper.setupStore(with: mockStore)
 
@@ -772,9 +764,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
         StoreTestUtilityHelper.setupStore(with: mockStore)
         createSubject().dismissToolbarCFRs(with: window)
 
-        let state = AppState(presentedComponents: PresentedComponentsState(components: [
-            .browserViewController(BrowserViewControllerState(windowUUID: window)),
-        ]))
+        let state = AppState()
         mockStore = MockStoreForMiddleware(state: state)
         StoreTestUtilityHelper.setupStore(with: mockStore)
         createSubject().dismissToolbarCFRs(with: window)
@@ -894,17 +884,7 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
 
     // MARK: - StoreTestUtility
     func setupAppState() -> Client.AppState {
-        let appState = AppState(
-            presentedComponents: PresentedComponentsState(
-                components: [
-                    .browserViewController(
-                        BrowserViewControllerState(
-                            windowUUID: .XCTestDefaultUUID
-                        )
-                    )
-                ]
-            )
-        )
+        let appState = AppState()
         self.appState = appState
         return appState
     }

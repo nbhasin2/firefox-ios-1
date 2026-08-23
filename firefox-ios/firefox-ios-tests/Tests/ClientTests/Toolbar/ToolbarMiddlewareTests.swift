@@ -1363,17 +1363,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         toolbarState.isPrivateMode = true
         registerToolbarState(toolbarState)
 
-        return AppState(
-            presentedComponents: PresentedComponentsState(
-                components: [
-                    .browserViewController(
-                        BrowserViewControllerState(
-                            windowUUID: windowUUID
-                        )
-                    )
-                ]
-            )
-        )
+        return AppState()
     }
 
     /// The toolbar state lives on ToolbarViewModel now, so the bottom-position fixture seeds the
@@ -1386,17 +1376,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
             for: windowUUID
         )
 
-        return AppState(
-            presentedComponents: PresentedComponentsState(
-                components: [
-                    .browserViewController(
-                        BrowserViewControllerState(
-                            windowUUID: windowUUID
-                        )
-                    )
-                ]
-            )
-        )
+        return AppState()
     }
 
     // MARK: StoreTestUtility
@@ -1410,17 +1390,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
 
     func setupAppState() -> AppState {
         registerToolbarState(ToolbarState(windowUUID: windowUUID))
-        return AppState(
-            presentedComponents: PresentedComponentsState(
-                components: [
-                    .browserViewController(
-                        BrowserViewControllerState(
-                            windowUUID: windowUUID
-                        )
-                    )
-                ]
-            )
-        )
+        return AppState()
     }
 
     private func setupAppState(isGoogleLensAccessoryShowing: Bool) -> AppState {
@@ -1430,17 +1400,7 @@ final class ToolbarMiddlewareTests: XCTestCase, StoreTestUtility {
         toolbarState.addressToolbar = addressBarState
         registerToolbarState(toolbarState)
 
-        return AppState(
-            presentedComponents: PresentedComponentsState(
-                components: [
-                    .browserViewController(
-                        BrowserViewControllerState(
-                            windowUUID: windowUUID
-                        )
-                    )
-                ]
-            )
-        )
+        return AppState()
     }
 
     private func makeGoogleLensAccessoryAction() -> ToolbarActionConfiguration {
