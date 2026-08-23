@@ -106,17 +106,21 @@ final class TabPeekViewModelTests: XCTestCase, StoreTestUtility {
         XCTAssertEqual(UIPasteboard.general.url, tab.canonicalURL)
     }
 
-    /// Closing still goes through the store; the middleware needs `TabsPanelState.isPrivateMode`.
-    func test_closeTab_dispatchesToTheMiddleware() throws {
+    /// Closing goes through the tab tray's service, which is what makes the panel refresh.
+    func test_closeTab_removesTheTab() {
         let tab = makeTab()
         tabManager.tabForUUID = tab
-        let subject = createSubject(tabUUID: tab.tabUUID)
+        let service = TabsPanelService(windowUUID: .XCTestDefaultUUID,
+                                       windowManager: windowManager,
+                                       telemetry: TabsPanelTelemetry(gleanWrapper: MockGleanWrapper()),
+                                       featureFlagsProvider: MockNimbusFeatureFlags())
+        let subject = createSubject(tabUUID: tab.tabUUID, tabsService: service)
+        var notifiedPrivate: Bool?
+        service.addObserver(self) { notifiedPrivate = $0 }
 
         subject.closeTab()
 
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? TabPeekAction)
-        let actionType = try XCTUnwrap(actionCalled.actionType as? TabPeekActionType)
-        XCTAssertEqual(actionType, TabPeekActionType.closeTab)
+        XCTAssertEqual(notifiedPrivate, false)
     }
 
     func test_loadingActions_dispatchNothing() async {
@@ -146,14 +150,16 @@ final class TabPeekViewModelTests: XCTestCase, StoreTestUtility {
         }
     }
 
-    private func createSubject(tabUUID: TabUUID) -> TabPeekViewModel {
+    private func createSubject(tabUUID: TabUUID,
+                               tabsService: TabsPanelService? = nil) -> TabPeekViewModel {
         let subject = TabPeekViewModel(
             tabUUID: tabUUID,
             windowUUID: .XCTestDefaultUUID,
             profile: profile,
             windowManager: windowManager,
             bookmarksSaver: MockBookmarksSaver(),
-            bookmarksHandler: bookmarksHandler
+            bookmarksHandler: bookmarksHandler,
+            tabsService: tabsService
         )
         trackForMemoryLeaks(subject)
         return subject

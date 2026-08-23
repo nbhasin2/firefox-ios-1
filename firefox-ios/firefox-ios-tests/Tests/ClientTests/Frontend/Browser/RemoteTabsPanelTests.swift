@@ -43,50 +43,25 @@ final class RemoteTabsPanelTests: XCTestCase, StoreTestUtility {
     }
 
     // MARK: - Actions
-    func testTableViewControllerDidPullToRefresh_dispatchesNothing() {
+
+    /// Refreshing, opening, closing and flushing all run through the view model and its
+    /// TabsPanelService now; nothing about the synced-tabs panel goes through the store.
+    func testPanelActions_dispatchNothing() {
         let subject = createSubject()
 
         subject.tableViewControllerDidPullToRefresh()
-
-        XCTAssertFalse(mockStore.dispatchedActions.contains { $0 is RemoteTabsPanelAction })
-    }
-
-    // MARK: - RemoteTabsClientAndTabsDataSourceDelegate
-    @MainActor
-    func testRemoteTabsClientAndTabsDataSourceDidSelectURL_dispatchesCloseSelectedRemoteURLAction() throws {
-        let subject = createSubject()
         subject.remoteTabsClientAndTabsDataSourceDidSelectURL(
             URL(string: Constants.testUrlString)!,
             visitType: .link
         )
-
-        let action = try XCTUnwrap(mockStore.dispatchedActions.last)
-        let actionType = try XCTUnwrap(action.actionType as? RemoteTabsPanelActionType)
-
-        XCTAssertEqual(actionType, RemoteTabsPanelActionType.openSelectedURL)
-    }
-
-    func testRemoteTabsClientAndTabsDataSourceDidCloseURL_dispatchesCloseSelectedRemoteURL() throws {
-        let subject = createSubject()
         subject.remoteTabsClientAndTabsDataSourceDidCloseURL(
             deviceId: Constants.testDeviceId,
             url: URL(string: Constants.testUrlString)!
         )
-
-        let action = try XCTUnwrap(mockStore.dispatchedActions.first)
-        let actionType = try XCTUnwrap(action.actionType as? RemoteTabsPanelActionType)
-
-        XCTAssertEqual(actionType, RemoteTabsPanelActionType.closeSelectedRemoteURL)
-    }
-
-    func testRemoteTabsClientAndTabsDataSourceDidTabCommandsFlush_dispatchesFlushTabCommands() throws {
-        let subject = createSubject()
         subject.remoteTabsClientAndTabsDataSourceDidTabCommandsFlush(deviceId: Constants.testDeviceId)
 
-        let action = try XCTUnwrap(mockStore.dispatchedActions.first)
-        let actionType = try XCTUnwrap(action.actionType as? RemoteTabsPanelActionType)
-
-        XCTAssertEqual(actionType, RemoteTabsPanelActionType.flushTabCommands)
+        // Only the tray dismissal from opening a tab reaches the store.
+        XCTAssertTrue(mockStore.dispatchedActions.allSatisfy { $0 is TabTrayAction })
     }
 
     // MARK: - RemotePanelDelegate
@@ -113,18 +88,19 @@ final class RemoteTabsPanelTests: XCTestCase, StoreTestUtility {
     }
 
     // MARK: - RemoteTabsEmptyViewDelegate
+    /// Opening a synced tab adds one through TabsPanelService, which dismisses the tray.
     @MainActor
-    func testRemotePanelDidRequestToOpenInNewTab_dispatchesCloseSelectedRemoteURLAction() throws {
+    func testRemotePanelDidRequestToOpenInNewTab_dismissesTheTray() throws {
         let subject = createSubject()
+
         subject.remotePanelDidRequestToOpenInNewTab(
             URL(string: Constants.testUrlString)!,
             isPrivate: false
         )
 
-        let action = try XCTUnwrap(mockStore.dispatchedActions.last)
-        let actionType = try XCTUnwrap(action.actionType as? RemoteTabsPanelActionType)
-
-        XCTAssertEqual(actionType, RemoteTabsPanelActionType.openSelectedURL)
+        let action = try XCTUnwrap(mockStore.dispatchedActions.last as? TabTrayAction)
+        let actionType = try XCTUnwrap(action.actionType as? TabTrayActionType)
+        XCTAssertEqual(actionType, TabTrayActionType.dismissTabTray)
     }
 
     // MARK: - StoreTestUtility

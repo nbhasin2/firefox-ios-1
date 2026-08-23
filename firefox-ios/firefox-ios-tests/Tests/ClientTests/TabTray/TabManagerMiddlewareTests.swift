@@ -45,29 +45,20 @@ final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility {
         try await super.tearDown()
     }
 
-    func test_screenshotAction_triggersRefresh() throws {
+    /// The middleware writes the screenshot to disk; the tray's refresh moved onto the bus, so
+    /// see TabsPanelViewModelTests for that half.
+    func test_screenshotTakenAction_savesTheScreenshot() {
         let subject = createSubject()
         let action = ScreenshotAction(
             windowUUID: .XCTestDefaultUUID,
             tab: Tab(profile: mockProfile, windowUUID: .XCTestDefaultUUID),
             actionType: ScreenshotActionType.screenshotTaken
         )
-
-        let expectation = XCTestExpectation(description: "Recent tabs should be returned")
-
-        mockStore.dispatchCalled = {
-            expectation.fulfill()
-        }
-
         mockWindowManager.overrideWindows = true
 
         subject.tabsPanelProvider.legacyMiddleware(appState, action)
-        wait(for: [expectation])
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? TabPanelMiddlewareAction)
-        let actionType = try XCTUnwrap(actionCalled.actionType as? TabPanelMiddlewareActionType)
 
-        XCTAssertEqual(mockStore.dispatchedActions.count, 1)
-        XCTAssertEqual(actionType, TabPanelMiddlewareActionType.refreshTabs)
+        XCTAssertEqual(mockTabManager.tabDidSetScreenshotCalls, 1)
     }
 
     func test_screenshotAction_returnsEarlyIfTabManagerDoesNotExistForWindow() {
@@ -78,41 +69,23 @@ final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility {
             actionType: ScreenshotActionType.screenshotTaken
         )
 
-        let expectation = XCTestExpectation(description: "Recent tabs should be returned")
-        expectation.isInverted = true
-
-        mockStore.dispatchCalled = {
-            expectation.fulfill()
-        }
-
         subject.tabsPanelProvider.legacyMiddleware(appState, action)
-        wait(for: [expectation], timeout: 0.1)
+
         XCTAssertTrue(mockWindowManager.windowsWereAccessed)
+        XCTAssertEqual(mockTabManager.tabDidSetScreenshotCalls, 0)
     }
 
-    func test_screenshotRestoredAction_triggersRefresh_withoutSavingToDisk() throws {
+    func test_screenshotRestoredAction_doesNotWriteBackToDisk() {
         let subject = createSubject()
-        let tab = Tab(profile: mockProfile, windowUUID: .XCTestDefaultUUID)
         let action = ScreenshotAction(
             windowUUID: .XCTestDefaultUUID,
-            tab: tab,
+            tab: Tab(profile: mockProfile, windowUUID: .XCTestDefaultUUID),
             actionType: ScreenshotActionType.screenshotRestored
         )
-
-        let expectation = XCTestExpectation(description: "Refresh dispatched")
-
-        mockStore.dispatchCalled = {
-            expectation.fulfill()
-        }
-
         mockWindowManager.overrideWindows = true
 
         subject.tabsPanelProvider.legacyMiddleware(appState, action)
-        wait(for: [expectation])
-        let actionCalled = try XCTUnwrap(mockStore.dispatchedActions.first as? TabPanelMiddlewareAction)
-        let actionType = try XCTUnwrap(actionCalled.actionType as? TabPanelMiddlewareActionType)
 
-        XCTAssertEqual(actionType, TabPanelMiddlewareActionType.refreshTabs)
         XCTAssertEqual(
             mockTabManager.tabDidSetScreenshotCalls,
             0,
@@ -120,41 +93,8 @@ final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility {
         )
     }
 
-    func test_prefetchScreenshotsAction_callsPreloadScreenshotForTab() {
-        let subject = createSubject()
-        let tabA = createTab(profile: mockProfile, urlString: "https://firefox.com")
-        mockTabManager.tabsByUUID = [tabA.tabUUID: tabA]
-
-        let action = TabPanelViewAction(
-            panelType: .tabs,
-            tabUUID: tabA.tabUUID,
-            windowUUID: .XCTestDefaultUUID,
-            actionType: TabPanelViewActionType.prefetchScreenshots
-        )
-
-        subject.tabsPanelProvider.legacyMiddleware(appState, action)
-
-        XCTAssertEqual(
-            mockTabManager.restoreScreenshotCalls.map { $0.tabUUID },
-            [tabA.tabUUID]
-        )
-    }
-
-    func test_prefetchScreenshotsAction_skipsUnknownUUID() {
-        let subject = createSubject()
-        mockTabManager.tabsByUUID = [:]
-
-        let action = TabPanelViewAction(
-            panelType: .tabs,
-            tabUUID: "not-a-real-uuid",
-            windowUUID: .XCTestDefaultUUID,
-            actionType: TabPanelViewActionType.prefetchScreenshots
-        )
-
-        subject.tabsPanelProvider.legacyMiddleware(appState, action)
-
-        XCTAssertTrue(mockTabManager.restoreScreenshotCalls.isEmpty)
-    }
+    // The two prefetch tests moved with the action: prefetching is a TabsPanelService call from
+    // the display view now - see TabsPanelViewModelTests.
 
     // MARK: - Recent Tabs
     // The seven recent-tabs tests that were here drove the middleware's homepage half through
@@ -249,17 +189,7 @@ final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility {
 
     // MARK: StoreTestUtility
     func setupAppState() -> Client.AppState {
-        let appState = AppState(
-            presentedComponents: PresentedComponentsState(
-                components: [
-                    .tabsPanel(
-                        TabsPanelState(
-                            windowUUID: .XCTestDefaultUUID
-                        )
-                    )
-                ]
-            )
-        )
+        let appState = AppState()
         self.appState = appState
         return appState
     }
