@@ -6,7 +6,8 @@ import Common
 import UIKit
 
 public struct AddressToolbarUXConfiguration {
-    private(set) var toolbarCornerRadius: CGFloat = if #available(iOS 26, *) { 22 } else { 12 }
+    let style: AddressToolbarStyle
+    private(set) var toolbarCornerRadius: CGFloat
     let browserActionsAddressBarDividerWidth: CGFloat
     let isLocationTextCentered: Bool
     let hasAlternativeLocationColor: Bool
@@ -15,35 +16,54 @@ public struct AddressToolbarUXConfiguration {
     let backgroundAlpha: CGFloat
     let isAddressBarMinimized: Bool
 
+    private init(style: AddressToolbarStyle,
+                 backgroundAlpha: CGFloat,
+                 isAddressBarMinimized: Bool,
+                 shouldBlur: Bool,
+                 hasAlternativeLocationColor: Bool) {
+        self.style = style
+        self.toolbarCornerRadius = style.toolbarCornerRadius
+        self.browserActionsAddressBarDividerWidth = style.browserActionsAddressBarDividerWidth
+        self.isLocationTextCentered = style.isLocationTextCentered
+        self.locationTextFieldTrailingPadding = style.locationTextFieldTrailingPadding
+        self.hasAlternativeLocationColor = hasAlternativeLocationColor
+        self.shouldBlur = shouldBlur
+        self.backgroundAlpha = backgroundAlpha
+        self.isAddressBarMinimized = isAddressBarMinimized
+    }
+
+    public static func make(style: AddressToolbarStyle,
+                            backgroundAlpha: CGFloat = 1.0,
+                            isAddressBarMinimized: Bool = false,
+                            shouldBlur: Bool = false,
+                            hasAlternativeLocationColor: Bool = false) -> AddressToolbarUXConfiguration {
+        AddressToolbarUXConfiguration(style: style,
+                                      backgroundAlpha: backgroundAlpha,
+                                      isAddressBarMinimized: isAddressBarMinimized,
+                                      shouldBlur: shouldBlur,
+                                      hasAlternativeLocationColor: hasAlternativeLocationColor)
+    }
+
     public static func experiment(backgroundAlpha: CGFloat = 1.0,
                                   isAddressBarMinimized: Bool = false,
                                   shouldBlur: Bool = false,
                                   hasAlternativeLocationColor: Bool = false) -> AddressToolbarUXConfiguration {
-        AddressToolbarUXConfiguration(
-            browserActionsAddressBarDividerWidth: 0.0,
-            isLocationTextCentered: true,
-            hasAlternativeLocationColor: hasAlternativeLocationColor,
-            locationTextFieldTrailingPadding: 0,
-            shouldBlur: shouldBlur,
-            backgroundAlpha: backgroundAlpha,
-            isAddressBarMinimized: isAddressBarMinimized
-        )
+        make(style: .standard,
+             backgroundAlpha: backgroundAlpha,
+             isAddressBarMinimized: isAddressBarMinimized,
+             shouldBlur: shouldBlur,
+             hasAlternativeLocationColor: hasAlternativeLocationColor)
     }
 
     public static func `default`(backgroundAlpha: CGFloat = 1.0,
                                  isAddressBarMinimized: Bool = false,
                                  shouldBlur: Bool = false,
                                  hasAlternativeLocationColor: Bool = false) -> AddressToolbarUXConfiguration {
-        AddressToolbarUXConfiguration(
-            toolbarCornerRadius: 8.0,
-            browserActionsAddressBarDividerWidth: 4.0,
-            isLocationTextCentered: false,
-            hasAlternativeLocationColor: hasAlternativeLocationColor,
-            locationTextFieldTrailingPadding: 8.0,
-            shouldBlur: shouldBlur,
-            backgroundAlpha: backgroundAlpha,
-            isAddressBarMinimized: isAddressBarMinimized
-        )
+        make(style: .legacy,
+             backgroundAlpha: backgroundAlpha,
+             isAddressBarMinimized: isAddressBarMinimized,
+             shouldBlur: shouldBlur,
+             hasAlternativeLocationColor: hasAlternativeLocationColor)
     }
 
     func addressToolbarBackgroundColor(theme: some Theme) -> UIColor {
