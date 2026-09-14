@@ -85,7 +85,7 @@ final class AddressToolbarContainer: UIView,
         }
     }
 
-    private var toolbar: BrowserAddressToolbar {
+    private var toolbar: any AddressToolbar {
         return regularToolbar
     }
 
@@ -103,9 +103,10 @@ final class AddressToolbarContainer: UIView,
 
     var parent: UIStackView?
     var onContainerTap: (() -> Void)?
-    private lazy var regularToolbar: RegularBrowserAddressToolbar = .build()
-    private lazy var leftSkeletonAddressBar: RegularBrowserAddressToolbar = .build()
-    private lazy var rightSkeletonAddressBar: RegularBrowserAddressToolbar = .build()
+    private lazy var toolbarFactory: AddressToolbarFactory = DefaultAddressToolbarFactory()
+    private lazy var regularToolbar: any AddressToolbar = toolbarFactory.makeAddressToolbar()
+    private lazy var leftSkeletonAddressBar: any AddressToolbar = toolbarFactory.makeAddressToolbar()
+    private lazy var rightSkeletonAddressBar: any AddressToolbar = toolbarFactory.makeAddressToolbar()
     private lazy var progressBar: GradientProgressBar = .build { bar in
         bar.clipsToBounds = false
     }
@@ -595,11 +596,11 @@ final class AddressToolbarContainer: UIView,
     }
 
     func configureContextualHint(
-        _ addressToolbar: BrowserAddressToolbar,
+        _ addressToolbar: any AddressToolbar,
         for button: UIButton,
         with contextualHintType: String
     ) {
-        guard addressToolbar == toolbar, let windowUUID else { return }
+        guard addressToolbar === toolbar, let windowUUID else { return }
         let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
 
         if contextualHintType == ContextualHintType.navigation.rawValue && !toolbarState.canShowNavigationHint { return }

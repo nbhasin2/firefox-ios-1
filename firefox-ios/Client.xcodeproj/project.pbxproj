@@ -2297,6 +2297,7 @@
 		EEB971C52FC48C5100D6C232 /* NewYorkMedium-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 23BEA765251A99E200A014BF /* NewYorkMedium-BoldItalic.otf */; };
 		EEB971C62FC48C5100D6C232 /* NewYorkMedium-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 23BEA763251A99E200A014BF /* NewYorkMedium-Regular.otf */; };
 		EEB971C72FC48C5100D6C232 /* NewYorkMedium-RegularItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 23BEA764251A99E200A014BF /* NewYorkMedium-RegularItalic.otf */; };
+		AB1F2C3D4E5F60718293A4B5 /* AddressToolbarFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1F2C3D4E5F60718293A4B6 /* AddressToolbarFactory.swift */; };
 		EECF6B61300682B5006FD44E /* SwipeGestureFeatureFlagProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = EECF6B60300682B5006FD44E /* SwipeGestureFeatureFlagProvider.swift */; };
 		EECF6B633006864D006FD44E /* SwipeGestureFeatureFlagProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EECF6B623006864D006FD44E /* SwipeGestureFeatureFlagProviderTests.swift */; };
 		EEDBD482C88AF91B9A01753C /* PasswordGeneratorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CECE8A9FB245976BC756B28D /* PasswordGeneratorViewModel.swift */; };
@@ -11968,6 +11969,7 @@
 		EEB965172FBCFD2B00D6C232 /* MockReaderModeCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockReaderModeCache.swift; sourceTree = "<group>"; };
 		EEB965182FBCFD2B00D6C232 /* PageRouteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageRouteTests.swift; sourceTree = "<group>"; };
 		EEB96A212FBF4B8300D6C232 /* ReaderFileRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderFileRoute.swift; sourceTree = "<group>"; };
+		AB1F2C3D4E5F60718293A4B6 /* AddressToolbarFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressToolbarFactory.swift; sourceTree = "<group>"; };
 		EECF6B60300682B5006FD44E /* SwipeGestureFeatureFlagProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeGestureFeatureFlagProvider.swift; sourceTree = "<group>"; };
 		EECF6B623006864D006FD44E /* SwipeGestureFeatureFlagProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeGestureFeatureFlagProviderTests.swift; sourceTree = "<group>"; };
 		EEE8476797612D908D23E6BC /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -16593,6 +16595,7 @@
 				EEEA7B4A2FFE969B0075F5B3 /* SwipeUpTabPreviewGestureHandler.swift */,
 				BD011FB72D89B0D400FE1A32 /* TabSwipeGestureHandler.swift */,
 				EECF6B60300682B5006FD44E /* SwipeGestureFeatureFlagProvider.swift */,
+				AB1F2C3D4E5F60718293A4B6 /* AddressToolbarFactory.swift */,
 				E17798972BD6B44B00F6F0EB /* AddressToolbarContainer.swift */,
 				680A00692E7BDA55B2868C43 /* ToolbarViewModel.swift */,
 				E16941B72C5119A200FF5F4E /* Autocompletable.swift */,
@@ -20517,6 +20520,7 @@
 				2140995F2DCBEC32004881E1 /* PageZoomSettingView.swift in Sources */,
 				213B7AF02D779D2400DF0123 /* Download.swift in Sources */,
 				EECF6B61300682B5006FD44E /* SwipeGestureFeatureFlagProvider.swift in Sources */,
+				AB1F2C3D4E5F60718293A4B5 /* AddressToolbarFactory.swift in Sources */,
 				BDD262562CE3AC8200DF2C62 /* PrivacyWindowHelper.swift in Sources */,
 				21EA466A2B04130500AAAB2D /* TabsPanelState.swift in Sources */,
 				C2B31EC92EDCE79100D53FF5 /* TranslationsVersionHelper.swift in Sources */,

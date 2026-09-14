@@ -239,7 +239,7 @@ class RootViewController: UIViewController,
         return []
     }
 
-    func configureContextualHint(_ addressToolbar: BrowserAddressToolbar,
+    func configureContextualHint(_ addressToolbar: any AddressToolbar,
                                  for button: UIButton,
                                  with contextualHintType: String) {
     }
