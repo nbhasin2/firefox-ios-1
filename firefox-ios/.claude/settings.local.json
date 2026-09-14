@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(gh pr:*)",
+      "Bash(gh repo:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh api:*)",
+      "Bash(git:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(swift:*)",
+      "Bash(swiftlint:*)",
+      "Bash(npm:*)",
+      "Bash(fxios:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Skill(update-config)",
+      "Edit",
+      "Write",
+      "Read"
+    ]
+  }
+}

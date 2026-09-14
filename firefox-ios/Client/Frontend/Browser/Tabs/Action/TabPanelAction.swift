@@ -64,34 +64,6 @@ enum TabPanelViewActionType: ActionType {
     case prefetchScreenshots
 }
 
-struct TabPanelMiddlewareAction: Action {
-    let windowUUID: WindowUUID
-    let actionType: ActionType
-    let tabDisplayModel: TabDisplayModel?
-    let toastType: ToastType??
-    let scrollBehavior: TabScrollBehavior?
-
-    init(tabDisplayModel: TabDisplayModel? = nil,
-         toastType: ToastType? = nil,
-         scrollBehavior: TabScrollBehavior? = nil,
-         windowUUID: WindowUUID,
-         actionType: ActionType) {
-        self.windowUUID = windowUUID
-        self.actionType = actionType
-        self.tabDisplayModel = tabDisplayModel
-        self.toastType = toastType
-        self.scrollBehavior = scrollBehavior
-    }
-}
-
-enum TabPanelMiddlewareActionType: ActionType {
-    case didLoadTabPanel
-    case willAppearTabPanel
-    case didChangeTabPanel
-    case refreshTabs
-    case scrollToTab
-}
-
 struct ScreenshotAction: Action {
     let windowUUID: WindowUUID
     let actionType: ActionType

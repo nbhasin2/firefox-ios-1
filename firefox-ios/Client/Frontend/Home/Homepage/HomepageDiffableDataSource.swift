@@ -109,7 +109,7 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
     }
 
     func updateSnapshot(
-        state: HomepageState,
+        viewModel: HomepageViewModel,
         selectedNewsfeedCategoryID: String? = nil,
         jumpBackInDisplayConfig: JumpBackInSectionLayoutConfiguration,
         showiPadSetup: ShowiPadSetup = false,
@@ -118,25 +118,25 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
     ) {
         var snapshot = NSDiffableDataSourceSnapshot<HomeSection, HomeItem>()
 
-        let textColor = state.wallpaperState.wallpaperConfiguration.textColor
-        let headerItem = HomeItem.header(state.headerState,
-                                         state.wallpaperState.wallpaperConfiguration.logoTextColor,
+        let textColor = viewModel.wallpaper.state.wallpaperConfiguration.textColor
+        let headerItem = HomeItem.header(viewModel.header.state,
+                                         viewModel.wallpaper.state.wallpaperConfiguration.logoTextColor,
                                          showiPadSetup)
 
         snapshot.appendSections([.header])
         snapshot.appendItems([headerItem], toSection: .header)
 
-        if state.shouldShowPrivacyNotice {
+        if viewModel.shouldShowPrivacyNotice {
             snapshot.appendSections([.privacyNotice])
             snapshot.appendItems([.privacyNotice], toSection: .privacyNotice)
         }
 
-        if let configuration = state.messageState.messageCardConfiguration {
+        if let configuration = viewModel.messageCard.configuration {
             snapshot.appendSections([.messageCard])
             snapshot.appendItems([.messageCard(configuration)], toSection: .messageCard)
         }
 
-        if let topSitesSnapshotData = getTopSites(with: state.topSitesState, and: textColor) {
+        if let topSitesSnapshotData = getTopSites(with: viewModel.topSites.state, and: textColor) {
             let topSitesSection = HomeSection.topSites(
                 textColor,
                 topSitesSnapshotData.numberOfTilesPerRow,
@@ -146,20 +146,21 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
             snapshot.appendItems(topSitesSnapshotData.items, toSection: topSitesSection)
         }
 
-        if state.trackerBlockerModuleState.shouldShowSection {
+        if viewModel.trackerBlockerModule.shouldShowSection {
             snapshot.appendSections([.trackerBlockerModule])
             snapshot.appendItems(
-                [.trackerBlockerModule(state.trackerBlockerModuleState.blockedTrackerCount)],
+                [.trackerBlockerModule(viewModel.trackerBlockerModule.blockedTrackerCount)],
                 toSection: .trackerBlockerModule
             )
         }
 
-        if let (tabs, configuration) = getJumpBackInTabs(with: state.jumpBackInState, and: jumpBackInDisplayConfig) {
+        let jumpBackIn = getJumpBackInTabs(with: viewModel.jumpBackIn.state, and: jumpBackInDisplayConfig)
+        if let (tabs, configuration) = jumpBackIn {
             snapshot.appendSections([.jumpBackIn(textColor, configuration)])
             snapshot.appendItems(tabs, toSection: .jumpBackIn(textColor, configuration))
         }
 
-        if let bookmarks = getBookmarks(with: state.bookmarkState) {
+        if let bookmarks = getBookmarks(with: viewModel.bookmarks) {
             snapshot.appendSections([.bookmarks(textColor)])
             snapshot.appendItems(bookmarks, toSection: .bookmarks(textColor))
         }
@@ -167,12 +168,13 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
         snapshot.appendSections([.spacer])
         snapshot.appendItems([.spacer], toSection: .spacer)
 
-        if state.searchState.shouldShowSearchBar {
+        if viewModel.searchBar.shouldShowSearchBar {
             snapshot.appendSections([.searchBar])
             snapshot.appendItems([.searchBar], toSection: .searchBar)
         }
 
-        if let stories = getMerinoStories(with: state.merinoState, selectedNewsfeedCategoryID: selectedNewsfeedCategoryID) {
+        if let stories = getMerinoStories(with: viewModel.merino,
+                                          selectedNewsfeedCategoryID: selectedNewsfeedCategoryID) {
             let pocketSection = HomeSection.pocket(textColor)
             snapshot.appendSections([pocketSection])
             snapshot.appendItems(stories, toSection: pocketSection)
@@ -237,14 +239,14 @@ final class HomepageDiffableDataSource: UICollectionViewDiffableDataSource<Homep
     }
 
     private func getBookmarks(
-        with state: BookmarksSectionState
+        with viewModel: BookmarksSectionViewModel
     ) -> [HomepageDiffableDataSource.HomeItem]? {
-        guard state.shouldShowSection, !state.bookmarks.isEmpty else { return nil }
-        return state.bookmarks.compactMap { .bookmark($0) }
+        guard viewModel.shouldShowSection, !viewModel.bookmarks.isEmpty else { return nil }
+        return viewModel.bookmarks.compactMap { .bookmark($0) }
     }
 
     private func getMerinoStories(
-        with merinoState: MerinoState,
+        with merinoState: MerinoSectionViewModel,
         selectedNewsfeedCategoryID: String?
     ) -> [HomepageDiffableDataSource.HomeItem]? {
         let stories: [HomeItem] = merinoState.visibleStories(selectedNewsfeedCategoryID: selectedNewsfeedCategoryID).map {

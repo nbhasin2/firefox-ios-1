@@ -79,8 +79,13 @@ final class RemoteTabPanelTests: XCTestCase {
     private func createSubject(state: RemoteTabsPanelState,
                                file: StaticString = #filePath,
                                line: UInt = #line) -> RemoteTabsPanel {
-        let subject = RemoteTabsPanel(windowUUID: .XCTestDefaultUUID)
-        subject.newState(state: state)
+        let subject = RemoteTabsPanel(
+            windowUUID: .XCTestDefaultUUID,
+            viewModel: RemoteTabsPanelViewModel(windowUUID: .XCTestDefaultUUID,
+                                                profile: MockProfile(),
+                                                initialState: state)
+        )
+        subject.loadViewIfNeeded()
 
         trackForMemoryLeaks(subject, file: file, line: line)
         return subject

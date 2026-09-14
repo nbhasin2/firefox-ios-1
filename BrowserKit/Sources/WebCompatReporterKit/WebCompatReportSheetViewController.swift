@@ -18,7 +18,7 @@ public protocol WebCompatReportSheetDelegate: AnyObject {
     func webCompatReportSheetDidEditText(id: String, text: String)
 }
 
-/// The "Report a Website Issue" sheet content. Store-agnostic: configured with a
+/// The "Report a Website Issue" sheet content. BrowserEventBus-agnostic: configured with a
 /// `WebCompatReportViewModel`, emits intents via `WebCompatReportSheetDelegate`.
 public final class WebCompatReportSheetViewController: UIViewController,
                                                        ThemeApplicable,

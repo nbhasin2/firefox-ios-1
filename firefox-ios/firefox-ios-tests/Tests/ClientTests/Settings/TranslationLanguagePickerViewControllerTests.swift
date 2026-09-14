@@ -8,18 +8,18 @@ import XCTest
 @testable import Client
 
 @MainActor
-final class TranslationLanguagePickerViewControllerTests: XCTestCase, StoreTestUtility {
-    var mockStore: MockStoreForMiddleware<AppState>!
+final class TranslationLanguagePickerViewControllerTests: XCTestCase {
+    private var selectedLanguages: [String] = []
 
     override func setUp() async throws {
         try await super.setUp()
         DependencyHelperMock().bootstrapDependencies()
-        setupStore()
+        selectedLanguages = []
     }
 
     override func tearDown() async throws {
+        selectedLanguages = []
         DependencyHelperMock().reset()
-        resetStore()
         try await super.tearDown()
     }
 
@@ -78,7 +78,7 @@ final class TranslationLanguagePickerViewControllerTests: XCTestCase, StoreTestU
 
     // MARK: - Selection
 
-    func test_didSelectRow_dispatchesAddLanguageAction() throws {
+    func test_didSelectRow_reportsTheSelectedLanguage() {
         let subject = createSubject(
             preferredLanguages: [],
             supportedLanguages: ["fr", "de"]
@@ -87,13 +87,10 @@ final class TranslationLanguagePickerViewControllerTests: XCTestCase, StoreTestU
 
         subject.tableView(UITableView(), didSelectRowAt: IndexPath(row: 0, section: 0))
 
-        let dispatchedAction = try XCTUnwrap(mockStore.dispatchedActions.first as? TranslationSettingsViewAction)
-        let dispatchedActionType = try XCTUnwrap(dispatchedAction.actionType as? TranslationSettingsViewActionType)
-        XCTAssertEqual(dispatchedActionType, TranslationSettingsViewActionType.addLanguage)
-        XCTAssertNotNil(dispatchedAction.languageCode)
+        XCTAssertEqual(selectedLanguages.count, 1)
     }
 
-    func test_didSelectRow_afterSearchFilter_dispatchesCorrectLanguageCode() throws {
+    func test_didSelectRow_afterSearchFilter_reportsTheCorrectLanguageCode() {
         let subject = createSubject(
             preferredLanguages: [],
             supportedLanguages: ["fr", "de", "es"]
@@ -106,8 +103,7 @@ final class TranslationLanguagePickerViewControllerTests: XCTestCase, StoreTestU
 
         subject.tableView(UITableView(), didSelectRowAt: IndexPath(row: 0, section: 0))
 
-        let dispatchedAction = try XCTUnwrap(mockStore.dispatchedActions.first as? TranslationSettingsViewAction)
-        XCTAssertEqual(dispatchedAction.languageCode, "fr")
+        XCTAssertEqual(selectedLanguages, ["fr"])
     }
 
     func test_didSelectRow_deactivatesPickerSearchController() {
@@ -119,29 +115,6 @@ final class TranslationLanguagePickerViewControllerTests: XCTestCase, StoreTestU
 
         subject.tableView(UITableView(), didSelectRowAt: IndexPath(row: 0, section: 0))
         XCTAssertEqual(subject.navigationItem.searchController?.isActive, false)
-    }
-
-    // MARK: - StoreTestUtility
-
-    func setupAppState() -> AppState {
-        return AppState(
-            presentedComponents: PresentedComponentsState(
-                components: [
-                    .translationSettings(
-                        TranslationSettingsState(windowUUID: .XCTestDefaultUUID)
-                    )
-                ]
-            )
-        )
-    }
-
-    func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
-        StoreTestUtilityHelper.setupStore(with: mockStore)
-    }
-
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
     }
 
     // MARK: - Helpers
@@ -156,7 +129,8 @@ final class TranslationLanguagePickerViewControllerTests: XCTestCase, StoreTestU
         let subject = TranslationLanguagePickerViewController(
             windowUUID: .XCTestDefaultUUID,
             languages: available,
-            localeProvider: MockLocaleProvider(current: Locale(identifier: localeCode))
+            localeProvider: MockLocaleProvider(current: Locale(identifier: localeCode)),
+            onSelectLanguage: { [weak self] code in self?.selectedLanguages.append(code) }
         )
         trackForMemoryLeaks(subject)
         return subject

@@ -52,7 +52,6 @@ final class AddressToolbarContainer: UIView,
                                      ThemeApplicable,
                                      TopBottomInterchangeable,
                                      AlphaDimmable,
-                                     StoreSubscriber,
                                      AddressToolbarDelegate,
                                      Autocompletable,
                                      URLBarViewProtocol,
@@ -70,8 +69,6 @@ final class AddressToolbarContainer: UIView,
         static let accessoryViewGradientOffset: CGFloat = 74
     }
 
-    typealias SubscriberStateType = ToolbarState
-
     private let toolbarHelper: ToolbarHelperInterface
     private var windowUUID: WindowUUID?
     private var profile: Profile?
@@ -88,7 +85,7 @@ final class AddressToolbarContainer: UIView,
         }
     }
 
-    private var toolbar: BrowserAddressToolbar {
+    private var toolbar: any AddressToolbar {
         return regularToolbar
     }
 
@@ -106,9 +103,10 @@ final class AddressToolbarContainer: UIView,
 
     var parent: UIStackView?
     var onContainerTap: (() -> Void)?
-    private lazy var regularToolbar: RegularBrowserAddressToolbar = .build()
-    private lazy var leftSkeletonAddressBar: RegularBrowserAddressToolbar = .build()
-    private lazy var rightSkeletonAddressBar: RegularBrowserAddressToolbar = .build()
+    private lazy var toolbarFactory: AddressToolbarFactory = DefaultAddressToolbarFactory()
+    private lazy var regularToolbar: any AddressToolbar = toolbarFactory.makeAddressToolbar()
+    private lazy var leftSkeletonAddressBar: any AddressToolbar = toolbarFactory.makeAddressToolbar()
+    private lazy var rightSkeletonAddressBar: any AddressToolbar = toolbarFactory.makeAddressToolbar()
     private lazy var progressBar: GradientProgressBar = .build { bar in
         bar.clipsToBounds = false
     }
@@ -175,7 +173,7 @@ final class AddressToolbarContainer: UIView,
         }
 
         MainActor.assumeIsolated {
-            unsubscribeFromRedux()
+            stopObservingToolbarState()
         }
     }
 
@@ -192,7 +190,7 @@ final class AddressToolbarContainer: UIView,
         self.delegate = delegate
         self.isUnifiedSearchEnabled = isUnifiedSearchEnabled
         setupLayout(isBottomSearchBar: isBottomSearchBar)
-        subscribeToRedux()
+        observeToolbarState()
     }
 
     func updateProgressBar(progress: Double) {
@@ -232,7 +230,7 @@ final class AddressToolbarContainer: UIView,
         /// We want to check here if the keyboard accessory view state has changed
         /// To avoid spamming redux actions.
         guard hasAccessoryView != shouldShowKeyboard else { return accessoryViewOffset }
-        store.dispatch(
+        browserEventBus.dispatch(
             ToolbarAction(
                 shouldShowKeyboard: hasAccessoryView,
                 windowUUID: windowUUID,
@@ -245,7 +243,7 @@ final class AddressToolbarContainer: UIView,
             accessoryViewGradient.frame = CGRect(width: bounds.width, height: height)
             accessoryViewGradient.opacity = 1
             // Dispatch action to change address bar to minimized state
-            store.dispatch(ToolbarModernAction.accessoryViewDidShow, forWindowUUID: windowUUID)
+            browserEventBus.dispatch(ToolbarModernAction.accessoryViewDidShow, forWindowUUID: windowUUID)
         }
         return accessoryViewOffset
     }
@@ -311,37 +309,23 @@ final class AddressToolbarContainer: UIView,
         return toolbar.resignFirstResponder()
     }
 
-    // MARK: - Redux
+    // MARK: - Toolbar state
 
-    func subscribeToRedux() {
+    func observeToolbarState() {
         guard let windowUUID else { return }
-
-        let action = ComponentAction(windowUUID: windowUUID,
-                                     actionType: ComponentActionType.addComponent,
-                                     component: .toolbar)
-        store.dispatch(action)
-
-        store.subscribe(self, transform: {
-            $0.select({ appState in
-                return ToolbarState(appState: appState, uuid: windowUUID)
-            })
-        })
-    }
-
-    func unsubscribeFromRedux() {
-        guard let windowUUID else {
-            store.unsubscribe(self)
-            return
+        let viewModel = ToolbarViewModel.instance(for: windowUUID)
+        viewModel.addObserver(self) { [weak self] state in
+            self?.applyToolbarState(state)
         }
-
-        let action = ComponentAction(windowUUID: windowUUID,
-                                     actionType: ComponentActionType.removeComponent,
-                                     component: .toolbar)
-        store.dispatch(action)
-        store.unsubscribe(self)
+        applyToolbarState(viewModel.state)
     }
 
-    func newState(state: ToolbarState) {
+    func stopObservingToolbarState() {
+        guard let windowUUID else { return }
+        ToolbarViewModel.instance(for: windowUUID).removeObserver(self)
+    }
+
+    private func applyToolbarState(_ state: ToolbarState) {
         self.state = state
         updateModel(toolbarState: state)
     }
@@ -554,17 +538,17 @@ final class AddressToolbarContainer: UIView,
 
     // MARK: - AddressToolbarDelegate
     func searchSuggestions(searchTerm: String) {
-        if let windowUUID,
-           let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID) {
+        if let windowUUID {
+            let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
             if searchTerm.isEmpty, !toolbarState.addressToolbar.isEmptySearch {
                 let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.didDeleteSearchTerm)
-                store.dispatch(action)
+                browserEventBus.dispatch(action)
             } else if !searchTerm.isEmpty, toolbarState.addressToolbar.isEmptySearch {
                 let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.didEnterSearchTerm)
-                store.dispatch(action)
+                browserEventBus.dispatch(action)
             } else if !toolbarState.addressToolbar.didStartTyping {
                 let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.didStartTyping)
-                store.dispatch(action)
+                browserEventBus.dispatch(action)
             }
         }
         self.searchTerm = searchTerm
@@ -579,7 +563,7 @@ final class AddressToolbarContainer: UIView,
 
         let action = ToolbarMiddlewareAction(windowUUID: windowUUID,
                                              actionType: ToolbarMiddlewareActionType.didClearSearch)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     func openBrowser(searchTerm: String) {
@@ -612,13 +596,12 @@ final class AddressToolbarContainer: UIView,
     }
 
     func configureContextualHint(
-        _ addressToolbar: BrowserAddressToolbar,
+        _ addressToolbar: any AddressToolbar,
         for button: UIButton,
         with contextualHintType: String
     ) {
-        guard addressToolbar == toolbar,
-              let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID)
-        else { return }
+        guard addressToolbar === toolbar, let windowUUID else { return }
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
 
         if contextualHintType == ContextualHintType.navigation.rawValue && !toolbarState.canShowNavigationHint { return }
 
@@ -630,7 +613,7 @@ final class AddressToolbarContainer: UIView,
 
         let action = ToolbarMiddlewareAction(windowUUID: windowUUID,
                                              actionType: ToolbarMiddlewareActionType.didStartDragInteraction)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     func addressToolbarDidBeginDragInteraction() {
@@ -658,7 +641,7 @@ final class AddressToolbarContainer: UIView,
                 windowUUID: windowUUID,
                 actionType: ToolbarActionType.didPasteSearchTerm
             )
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
 
             delegate?.openSuggestions(searchTerm: locationText ?? "")
         } else {
@@ -666,14 +649,13 @@ final class AddressToolbarContainer: UIView,
                                        shouldAnimate: true,
                                        windowUUID: windowUUID,
                                        actionType: ToolbarActionType.didStartEditingUrl)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         }
     }
 
     func leaveOverlayMode(reason: URLBarLeaveOverlayModeReason, shouldCancelLoading cancel: Bool) {
-        guard let windowUUID,
-              let toolbarState = store.state.componentState(ToolbarState.self, for: .toolbar, window: windowUUID)
-        else { return }
+        guard let windowUUID else { return }
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
 
         _ = toolbar.resignFirstResponder()
         inOverlayMode = false
@@ -681,7 +663,7 @@ final class AddressToolbarContainer: UIView,
 
         if toolbarState.addressToolbar.isEditing {
             let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.cancelEdit)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         }
     }
 
@@ -729,7 +711,7 @@ final class AddressToolbarContainer: UIView,
         guard let windowUUID else { return }
         guard state?.addressToolbar.isEditing ?? false else { return }
 
-        store.dispatch(ToolbarMiddlewareAction(
+        browserEventBus.dispatch(ToolbarMiddlewareAction(
             buttonType: .cancelEdit,
             gestureType: .tap,
             windowUUID: windowUUID,

@@ -7,28 +7,34 @@ import Common
 
 @testable import Client
 
-final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
+final class HomepageViewControllerTests: XCTestCase, BusTestUtility {
     let windowUUID: WindowUUID = .XCTestDefaultUUID
     var mockNotificationCenter: MockNotificationCenter?
     var mockThemeManager: MockThemeManager?
-    var mockStore: MockStoreForMiddleware<AppState>!
+    var mockBus: MockBrowserEventBus!
     var mockThrottler: MockThrottler!
     var homepageTabStateStore: HomepageTabStateStore!
+    var mockGleanWrapper: MockGleanWrapper!
+    var recentTabsProvider: MockRecentTabsProvider!
 
     override func setUp() async throws {
         try await super.setUp()
         DependencyHelperMock().bootstrapDependencies()
         homepageTabStateStore = HomepageTabStateStore()
-        setupStore()
+        mockGleanWrapper = MockGleanWrapper()
+        recentTabsProvider = MockRecentTabsProvider()
+        setupBus()
     }
 
     override func tearDown() async throws {
         homepageTabStateStore = nil
+        mockGleanWrapper = nil
+        recentTabsProvider = nil
         mockThrottler = nil
         mockNotificationCenter = nil
         mockThemeManager = nil
         DependencyHelperMock().reset()
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -60,17 +66,10 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
 
     func test_scrollViewDidScroll_updatesStatusBarScrollDelegate() {
         let mockStatusBarScrollDelegate = MockStatusBarScrollDelegate()
-        let homepageVC = createSubject(statusBarScrollDelegate: mockStatusBarScrollDelegate)
-        let wallpaperConfiguration = WallpaperConfiguration(hasImage: true)
-        let newState = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            WallpaperAction(
-                wallpaperConfiguration: wallpaperConfiguration,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: WallpaperMiddlewareActionType.wallpaperDidInitialize
-            )
+        let homepageVC = createSubject(
+            statusBarScrollDelegate: mockStatusBarScrollDelegate,
+            homepageViewModel: makeViewModelWithWallpaperImage()
         )
-        homepageVC.newState(state: newState)
         let scrollView = UIScrollView()
 
         mockStatusBarScrollDelegate.savedScrollView = nil
@@ -82,15 +81,9 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
 
     func test_scrollToTop_updatesStatusBarScrollDelegate_andSetsCollectionViewOffset() {
         let mockStatusBarScrollDelegate = MockStatusBarScrollDelegate()
-        let homepageVC = createSubject(statusBarScrollDelegate: mockStatusBarScrollDelegate)
-        let wallpaperConfiguration = WallpaperConfiguration(hasImage: true)
-        let newState = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            WallpaperAction(
-                wallpaperConfiguration: wallpaperConfiguration,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: WallpaperMiddlewareActionType.wallpaperDidInitialize
-            )
+        let homepageVC = createSubject(
+            statusBarScrollDelegate: mockStatusBarScrollDelegate,
+            homepageViewModel: makeViewModelWithWallpaperImage()
         )
 
         guard let collectionView = homepageVC.view.subviews.first(where: {
@@ -100,7 +93,6 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
             return
         }
 
-        homepageVC.newState(state: newState)
         homepageVC.scrollToTop()
 
         XCTAssertEqual(collectionView.contentOffset, CGPoint(x: 0, y: -collectionView.adjustedContentInset.top))
@@ -117,7 +109,7 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
 
         homepageVC.scrollViewDidScroll(scrollView)
 
-        let actionCalled = mockStore.dispatchedActions.first(where: {
+        let actionCalled = mockBus.dispatchedActions.first(where: {
             $0 is GeneralBrowserMiddlewareAction
         })
         XCTAssertNil(actionCalled)
@@ -134,7 +126,7 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
         homepageVC.scrollViewDidScroll(scrollView)
 
         let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.first(where: {
+            mockBus.dispatchedActions.first(where: {
                 $0 is GeneralBrowserMiddlewareAction
             }) as? GeneralBrowserMiddlewareAction
         )
@@ -151,7 +143,7 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
         homepageVC.scrollViewWillBeginDragging(scrollView)
 
         let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.first(where: {
+            mockBus.dispatchedActions.first(where: {
                 $0 is ToolbarAction
             }) as? ToolbarAction
         )
@@ -159,178 +151,84 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
         XCTAssertEqual(actionType, ToolbarActionType.cancelEditOnHomepage)
     }
 
-    func test_traitCollectionDidChange_triggersHomepageAction() throws {
-        let subject = createSubject()
-        subject.traitCollectionDidChange(nil)
-
-        let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.first(where: { $0 is HomepageAction }) as? HomepageAction
-        )
-        let actionType = try XCTUnwrap(actionCalled.actionType as? HomepageActionType)
-        XCTAssertEqual(actionType, HomepageActionType.traitCollectionDidChange)
-        XCTAssertEqual(actionCalled.windowUUID, .XCTestDefaultUUID)
-    }
-
-    func test_viewWillAppear_triggersHomepageAction() throws {
-        let subject = createSubject()
+    /// The lifecycle dispatches are gone; the controller drives the view model directly.
+    func test_viewWillAppear_refreshesTheJumpBackInSection() {
+        let viewModel = makeViewModel()
+        let subject = createSubject(homepageViewModel: viewModel)
 
         subject.viewWillAppear(false)
 
-        let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.first(where: { $0 is HomepageAction }) as? HomepageAction
-        )
-        let actionType = try XCTUnwrap(actionCalled.actionType as? HomepageActionType)
-        XCTAssertEqual(actionType, HomepageActionType.viewWillAppear)
-        XCTAssertEqual(actionCalled.windowUUID, .XCTestDefaultUUID)
+        XCTAssertFalse(recentTabsProvider.requestedWindowUUIDs.isEmpty)
     }
 
-    func test_viewDidAppear_triggersHomepageAction() throws {
+    func test_viewDidAppear_recordsTheHomepageImpression() {
         let subject = createSubject()
 
         subject.viewDidAppear(false)
 
-        let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.first(where: { $0 is HomepageAction }) as? HomepageAction
-        )
-        let actionType = try XCTUnwrap(actionCalled.actionType as? HomepageActionType)
-        XCTAssertEqual(actionType, HomepageActionType.viewDidAppear)
-        XCTAssertEqual(actionCalled.windowUUID, .XCTestDefaultUUID)
+        XCTAssertEqual(mockGleanWrapper.recordEventNoExtraCalled, 1)
     }
 
-    func test_viewDidLayoutSubviews_withTopSitesChange_triggersHomepageAction() throws {
-        let subject = createSubject()
-
-        let newState = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            HomepageAction(
-                numberOfTopSitesPerRow: 10,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: HomepageActionType.viewDidLayoutSubviews
-            )
-        )
-        subject.newState(state: newState)
-
-        subject.viewDidLayoutSubviews()
-        let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.last(where: { $0 is HomepageAction }) as? HomepageAction
-        )
-        let actionType = try XCTUnwrap(actionCalled.actionType as? HomepageActionType)
-        XCTAssertEqual(actionType, HomepageActionType.viewDidLayoutSubviews)
-        XCTAssertEqual(actionCalled.windowUUID, .XCTestDefaultUUID)
-    }
-
-    func test_viewDidLayoutSubviews_withoutTopSitesChange_triggersNothing() throws {
-        let subject = createSubject()
-
-        subject.viewDidLayoutSubviews()
-        let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.last(where: { $0 is HomepageAction }) as? HomepageAction
-        )
-        let actionType = try XCTUnwrap(actionCalled.actionType as? HomepageActionType)
-        XCTAssertNotEqual(actionType, HomepageActionType.viewDidLayoutSubviews)
-    }
-
-    func test_viewDidAppear_triggersHomepageAction() async throws {
-        let subject = createSubject()
-        let initialState = HomepageState(windowUUID: .XCTestDefaultUUID)
-
-        // Add some visible sections in the collection view to trigger impression telemetry
-        let populatedState = await getPopulatedCollectionViewState(from: initialState)
-
-        // Need to call loadViewIfNeeded to load the view, newState to populate the datasource, and layoutIfNeeded to
-        // reload the collectionView so that it's content is visible
+    /// The tiles-per-row recalculation is a direct call on the section view model now rather than
+    /// a HomepageActionType.viewDidLayoutSubviews dispatch, so the action type is gone.
+    func test_viewDidLayoutSubviews_updatesTheTilesPerRow() {
+        let viewModel = makeViewModel()
+        let subject = createSubject(homepageViewModel: viewModel)
         subject.loadViewIfNeeded()
-        subject.newState(state: populatedState)
+        viewModel.topSites.setNumberOfTilesPerRow(1)
+
+        subject.view.layoutIfNeeded()
+
+        XCTAssertGreaterThan(viewModel.topSites.state.numberOfTilesPerRow, 1)
+    }
+
+    func test_viewDidAppear_withPopulatedDataSource_recordsSectionImpressions() async {
+        let viewModel = makeViewModel()
+        let subject = createSubject(homepageViewModel: viewModel)
+
+        // Load the view, then populate the sections through the view model so the collection view
+        // has visible content, then lay out so impressions can be tracked.
+        subject.loadViewIfNeeded()
+        await populateSections(viewModel)
         subject.view.layoutIfNeeded()
 
         subject.viewDidAppear(false)
 
         XCTAssertTrue(mockThrottler.didCallThrottle)
-        let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.last(where: { $0 is HomepageAction }) as? HomepageAction
-        )
-        let actionType = try XCTUnwrap(actionCalled.actionType as? HomepageActionType)
-        XCTAssertEqual(actionType, HomepageActionType.sectionSeen)
-        XCTAssertEqual(actionCalled.windowUUID, .XCTestDefaultUUID)
+        XCTAssertGreaterThan(mockGleanWrapper.incrementLabeledCounterCalled, 0)
     }
 
-    func test_scrollViewDidEndDecelerating_triggersHomepageAction() async throws {
-        let subject = createSubject()
-        let initialState = HomepageState(windowUUID: .XCTestDefaultUUID)
+    func test_scrollViewDidEndDecelerating_recordsSectionImpressions() async {
+        let viewModel = makeViewModel()
+        let subject = createSubject(homepageViewModel: viewModel)
 
-        // Add some visible sections in the collection view to trigger impression telemetry
-        let populatedState = await getPopulatedCollectionViewState(from: initialState)
-
-        // Need to call loadViewIfNeeded to load the view, newState to populate the datasource, and layoutIfNeeded to
-        // reload the collectionView so that it's content is visible
+        // Load the view, then populate the sections through the view model so the collection view
+        // has visible content, then lay out so impressions can be tracked.
         subject.loadViewIfNeeded()
-        subject.newState(state: populatedState)
+        await populateSections(viewModel)
         subject.view.layoutIfNeeded()
 
         subject.scrollViewDidEndDecelerating(UIScrollView())
 
         XCTAssertTrue(mockThrottler.didCallThrottle)
-        let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.last(where: { $0 is HomepageAction }) as? HomepageAction
-        )
-        let actionType = try XCTUnwrap(actionCalled.actionType as? HomepageActionType)
-        XCTAssertEqual(actionType, HomepageActionType.sectionSeen)
-        XCTAssertEqual(actionCalled.windowUUID, .XCTestDefaultUUID)
+        XCTAssertGreaterThan(mockGleanWrapper.incrementLabeledCounterCalled, 0)
     }
 
-    func test_newState_forTriggeringImpression_withPopulatedDataSource_triggersHomepageAction() async throws {
-        let subject = createSubject()
-        let initialState = HomepageState(windowUUID: .XCTestDefaultUUID)
+    /// FXIOS-11523 - the impression reset arrives from the bus now rather than through a
+    /// `shouldTriggerImpression` flag on a screen state.
+    func test_tabChangedToHomepage_withPopulatedDataSource_retracksImpressions() async {
+        let viewModel = makeViewModel()
+        let subject = createSubject(homepageViewModel: viewModel)
 
-        // Add some visible sections in the collection view to trigger impression telemetry
-        let populatedState = await getPopulatedCollectionViewState(from: initialState)
-        let newState = HomepageState.reducer.legacyReducer(
-            populatedState,
-            GeneralBrowserAction(
-                windowUUID: .XCTestDefaultUUID,
-                actionType: GeneralBrowserActionType.didSelectedTabChangeToHomepage
-            )
-        )
-
-        // Need to call loadViewIfNeeded to load the view, newState to populate the datasource, and layoutIfNeeded to
-        // reload the collectionView so that it's content is visible
+        // Load the view, populate the sections through the view model, then lay out so the
+        // collection view has visible content.
         subject.loadViewIfNeeded()
-        subject.newState(state: newState)
+        await populateSections(viewModel)
         subject.view.layoutIfNeeded()
 
-        subject.newState(state: newState)
+        viewModel.didSelectTabChangeToHomepage()
 
-        XCTAssertTrue(newState.telemetryState.shouldTriggerImpression)
         XCTAssertTrue(mockThrottler.didCallThrottle)
-        let actionCalled = try XCTUnwrap(
-            mockStore.dispatchedActions.last(where: { $0 is HomepageAction }) as? HomepageAction
-        )
-        let actionType = try XCTUnwrap(actionCalled.actionType as? HomepageActionType)
-        XCTAssertEqual(actionType, HomepageActionType.sectionSeen)
-        XCTAssertEqual(actionCalled.windowUUID, .XCTestDefaultUUID)
-    }
-
-    func test_newState_didSelectedTabChangeToHomepageAction_forScrollToTop_setsCollectionViewOffsetToZero() {
-        let mockStatusBarScrollDelegate = MockStatusBarScrollDelegate()
-        let subject = createSubject(statusBarScrollDelegate: mockStatusBarScrollDelegate)
-        let newState = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            GeneralBrowserAction(
-                windowUUID: .XCTestDefaultUUID,
-                actionType: GeneralBrowserActionType.didSelectedTabChangeToHomepage
-            )
-        )
-
-        guard let collectionView = subject.view.subviews.first(where: {
-            $0 is UICollectionView
-        }) as? UICollectionView else {
-            XCTFail()
-            return
-        }
-
-        subject.newState(state: newState)
-
-        XCTAssertEqual(collectionView.contentOffset, CGPoint(x: 0, y: -collectionView.adjustedContentInset.top))
     }
 
     func test_restoreContentOffset_withStoredOffset_setsCollectionViewOffset() {
@@ -501,21 +399,12 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
         XCTAssertEqual(homepageTabStateStore.state(for: tab.tabUUID).scrollOffsetY, 140)
     }
 
-    func test_newState_updatesWallpaperHeightConstraint_withAvailableWallpaperHeight() throws {
+    /// BrowserViewController hands the geometry over directly now instead of dispatching.
+    func test_updateAvailableHeights_updatesWallpaperHeightConstraint() throws {
         let subject = createSubject()
         subject.loadViewIfNeeded()
 
-        let stateWithWallpaperHeight = HomepageState.reducer.legacyReducer(
-            HomepageState(windowUUID: .XCTestDefaultUUID),
-            HomepageAction(
-                availableContentHeight: 100,
-                availableWallpaperHeight: 300,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: HomepageActionType.availableContentHeightDidChange
-            )
-        )
-
-        subject.newState(state: stateWithWallpaperHeight)
+        subject.updateAvailableHeights(content: 100, wallpaper: 300)
 
         let wallpaperView = try XCTUnwrap(
             subject.view.subviews.first(where: { $0 is WallpaperBackgroundView }) as? WallpaperBackgroundView
@@ -526,9 +415,36 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
         XCTAssertEqual(wallpaperHeightConstraint.constant, 300)
     }
 
+    /// A homepage whose wallpaper reports an image, which is what gates the status-bar overlay.
+    private func makeViewModelWithWallpaperImage() -> HomepageViewModel {
+        return HomepageViewModel(
+            windowUUID: .XCTestDefaultUUID,
+            wallpaper: WallpaperViewModel(
+                wallpaperManager: WallpaperManagerMock(),
+                initialState: WallpaperState(
+                    wallpaperConfiguration: WallpaperConfiguration(hasImage: true)
+                )
+            ),
+            topSites: makeTopSitesViewModel(),
+            topSitesService: makeTopSitesService()
+        )
+    }
+
+    private func makeTopSitesService() -> TopSitesService {
+        return TopSitesService(topSitesManager: MockTopSitesManager())
+    }
+
+    private func makeTopSitesViewModel() -> TopSitesSectionViewModel {
+        return TopSitesSectionViewModel(windowUUID: .XCTestDefaultUUID,
+                                        profile: MockProfile(),
+                                        topSitesService: makeTopSitesService(),
+                                        featureFlagsProvider: MockNimbusFeatureFlags())
+    }
+
     private func createSubject(
         tabManager: TabManager = MockTabManager(),
-        statusBarScrollDelegate: StatusBarScrollDelegate? = nil
+        statusBarScrollDelegate: StatusBarScrollDelegate? = nil,
+        homepageViewModel: HomepageViewModel? = nil
     ) -> HomepageViewController {
         let notificationCenter = MockNotificationCenter()
         let themeManager = MockThemeManager()
@@ -546,23 +462,22 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
             statusBarScrollDelegate: statusBarScrollDelegate,
             toastContainer: UIView(),
             notificationCenter: notificationCenter,
-            throttler: mockThrottler
+            throttler: mockThrottler,
+            // Never the production default: it resolves the top-sites service and the feature
+            // flag provider out of AppContainer, which the mock helper tears down between tests.
+            homepageViewModel: homepageViewModel ?? makeViewModel()
         )
         trackForMemoryLeaks(homepageViewController)
         return homepageViewController
     }
 
-    func setupAppState() -> Client.AppState {
-        return AppState()
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
-        StoreTestUtilityHelper.setupStore(with: mockStore)
-    }
-
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 
     private func setupNimbusToolbarRefactorTesting(isEnabled: Bool) {
@@ -583,30 +498,36 @@ final class HomepageViewControllerTests: XCTestCase, StoreTestUtility {
         }))
     }
 
-    private func getPopulatedCollectionViewState(from currentState: HomepageState) async -> HomepageState {
-        let merinoManager = MockMerinoManager()
-        let merinoStories = await merinoManager.getMerinoItems(source: .homepage)
-        return HomepageState.reducer.legacyReducer(
-            currentState,
-            MerinoAction(
-                merinoStoryResponse: merinoStories,
-                windowUUID: windowUUID,
-                actionType: MerinoMiddlewareActionType.retrievedUpdatedHomepageStories
-            )
+    /// Merino moved off the store, so the stories that make sections visible come from the view
+    /// model. Fetching after the view controller has bound to it is what triggers the snapshot,
+    /// which `newState` used to do when the stories arrived in the state.
+    /// The header is owned by the view model now rather than read from the store, so it measures
+    /// for real here rather than collapsing to zero; the quick-answers store is stubbed off so
+    /// TipKit stays out of these tests.
+    private func makeViewModel() -> HomepageViewModel {
+        return HomepageViewModel(
+            windowUUID: .XCTestDefaultUUID,
+            merino: MerinoSectionViewModel(merinoManager: MockMerinoManager()),
+            header: HeaderViewModel(windowUUID: .XCTestDefaultUUID,
+                                    quickAnswersStore: MockQuickAnswersStore()),
+            wallpaper: WallpaperViewModel(wallpaperManager: WallpaperManagerMock(),
+                                          initialState: WallpaperState()),
+            topSites: makeTopSitesViewModel(),
+            jumpBackIn: JumpBackInSectionViewModel(windowUUID: .XCTestDefaultUUID,
+                                                   recentTabsProvider: recentTabsProvider,
+                                                   syncedTabProvider: MockSyncedTabProvider(),
+                                                   bus: nil),
+            topSitesService: makeTopSitesService(),
+            telemetry: HomepageTelemetry(gleanWrapper: mockGleanWrapper),
+            termsOfUseTelemetry: TermsOfUseTelemetry(gleanWrapper: mockGleanWrapper),
+            bus: nil
         )
     }
-}
 
-// FXIOS-13346 / FXIOS-13343 - needed to update tests since we added a bandaid fix to not call
-@MainActor
-private func changeInitialStateToTriggerUpdateInSnapshot() -> HomepageState {
-   return HomepageState.reducer.legacyReducer(
-        HomepageState(windowUUID: .XCTestDefaultUUID),
-        GeneralBrowserAction(
-            windowUUID: .XCTestDefaultUUID,
-            actionType: GeneralBrowserActionType.didSelectedTabChangeToHomepage
-        )
-    )
+    private func populateSections(_ viewModel: HomepageViewModel) async {
+        viewModel.merino.refreshStories()
+        await waitUntil { viewModel.merino.hasMerinoResponseContent }
+    }
 }
 
 private final class HomepageRestoreContentOffsetTabManager: MockTabManager {

@@ -16,27 +16,17 @@ protocol TabTrayThemeable {
 final class TabDisplayPanelViewController: UIViewController,
                                      Themeable,
                                      EmptyPrivateTabsViewDelegate,
-                                     StoreSubscriber,
                                      TabTrayThemeable {
-    typealias SubscriberStateType = TabsPanelState
-
     let panelType: TabTrayPanelType
     var notificationCenter: NotificationProtocol
     var themeManager: ThemeManager
     var themeListenerCancellable: Any?
     var tabsState: TabsPanelState
+    private let viewModel: TabsPanelViewModel
     private let windowUUID: WindowUUID
     var currentWindowUUID: UUID? { windowUUID }
     private var viewHasAppeared = false
     private var tabTrayUtils: TabTrayUtils
-
-    /// Latest subscription generation per window. The `.tabsPanel` component is shared by window, so
-    /// only the current owner should remove it: each `subscribeToRedux()` bumps the generation, and a
-    /// stale panel whose `subscriptionGeneration` no longer matches skips `removeComponent`.
-    /// Fixes FXIOS-15973: https://mozilla-hub.atlassian.net/browse/FXIOS-15973
-    @MainActor
-    private static var latestSubscriptionGeneration = [WindowUUID: Int]()
-    private var subscriptionGeneration = 0
 
     private lazy var layout: TabTrayLayoutType = {
         return shouldUseiPadSetup() ? .regular : .compact
@@ -83,31 +73,32 @@ final class TabDisplayPanelViewController: UIViewController,
          notificationCenter: NotificationProtocol = NotificationCenter.default,
          themeManager: ThemeManager = AppContainer.shared.resolve(),
          dragAndDropDelegate: TabDisplayViewDragAndDropInteraction,
-         tabTrayUtils: TabTrayUtils = DefaultTabTrayUtils()) {
-        self.panelType = isPrivateMode ? .privateTabs : .tabs
-        self.tabsState = TabsPanelState(windowUUID: windowUUID, isPrivateMode: isPrivateMode)
+         tabTrayUtils: TabTrayUtils = DefaultTabTrayUtils(),
+         service: TabsPanelService? = nil,
+         viewModel: TabsPanelViewModel? = nil) {
+        let panelType: TabTrayPanelType = isPrivateMode ? .privateTabs : .tabs
+        self.panelType = panelType
+        let viewModel = viewModel ?? TabsPanelViewModel(
+            windowUUID: windowUUID,
+            panelType: panelType,
+            service: service ?? TabsPanelService(windowUUID: windowUUID)
+        )
+        self.viewModel = viewModel
+        self.tabsState = viewModel.state
         self.notificationCenter = notificationCenter
         self.themeManager = themeManager
         self.windowUUID = windowUUID
         self.tabTrayUtils = tabTrayUtils
         super.init(nibName: nil, bundle: nil)
         tabDisplayView.dragAndDropDelegate = dragAndDropDelegate
+        tabDisplayView.viewModel = viewModel
+        viewModel.onChange = { [weak self] state in
+            self?.applyState(state)
+        }
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    deinit {
-        // TODO: FXIOS-13097 This is a work around until we can leverage isolated deinits
-        guard Thread.isMainThread else {
-            assertionFailure("TabDisplayPanelViewController was not deallocated on the main thread. Redux was not removed")
-            return
-        }
-
-        MainActor.assumeIsolated {
-            unsubscribeFromRedux()
-        }
     }
 
     // MARK: - Lifecycle methods
@@ -116,7 +107,7 @@ final class TabDisplayPanelViewController: UIViewController,
         super.viewDidLoad()
         view.accessibilityLabel = .TabsTray.TabTrayViewAccessibilityLabel
         setupView()
-        subscribeToRedux()
+        viewModel.didLoad()
 
         listenForThemeChanges(withNotificationCenter: notificationCenter)
         applyTheme()
@@ -126,9 +117,7 @@ final class TabDisplayPanelViewController: UIViewController,
         super.viewWillAppear(animated)
 
         if !viewHasAppeared {
-            store.dispatch(TabPanelViewAction(panelType: panelType,
-                                              windowUUID: windowUUID,
-                                              actionType: TabPanelViewActionType.tabPanelWillAppear))
+            viewModel.willAppear()
             viewHasAppeared = true
         }
         updateInsets()
@@ -219,8 +208,8 @@ final class TabDisplayPanelViewController: UIViewController,
     }
 
     var shouldBeInPrivateTheme: Bool {
-        let tabTrayState = store.state.componentState(TabTrayState.self, for: .tabsTray, window: windowUUID)
-        return tabTrayState?.isPrivateMode ?? false
+        // Read out of the store before; the panel knows its own mode.
+        return tabsState.isPrivateMode
     }
 
     // MARK: - Fade view & status bar view
@@ -318,44 +307,7 @@ final class TabDisplayPanelViewController: UIViewController,
         fadeView.isHidden = true
     }
 
-    // MARK: - Redux
-
-    func subscribeToRedux() {
-        let screenAction = ComponentAction(windowUUID: windowUUID,
-                                           actionType: ComponentActionType.addComponent,
-                                           component: .tabsPanel)
-        store.dispatch(screenAction)
-
-        let didLoadAction = TabPanelViewAction(panelType: panelType,
-                                               windowUUID: windowUUID,
-                                               actionType: TabPanelViewActionType.tabPanelDidLoad)
-        store.dispatch(didLoadAction)
-
-        let generation = (Self.latestSubscriptionGeneration[windowUUID] ?? 0) + 1
-        Self.latestSubscriptionGeneration[windowUUID] = generation
-        subscriptionGeneration = generation
-
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            return $0.select({ appState in
-                return TabsPanelState(appState: appState, uuid: uuid)
-            })
-        })
-    }
-
-    func unsubscribeFromRedux() {
-        // Skip if a newer panel has already re-subscribed for this window: removing the shared
-        // `.tabsPanel` component here would wipe the state the newly-opened tab tray depends on.
-        guard Self.latestSubscriptionGeneration[windowUUID] == subscriptionGeneration else { return }
-        Self.latestSubscriptionGeneration[windowUUID] = nil
-
-        let action = ComponentAction(windowUUID: windowUUID,
-                                     actionType: ComponentActionType.removeComponent,
-                                     component: .tabsPanel)
-        store.dispatch(action)
-    }
-
-    func newState(state: TabsPanelState) {
+    private func applyState(_ state: TabsPanelState) {
         guard state != tabsState else { return }
 
         tabsState = state
@@ -374,10 +326,6 @@ final class TabDisplayPanelViewController: UIViewController,
     // MARK: - EmptyPrivateTabsViewDelegate
 
     func didTapLearnMore(urlRequest: URLRequest) {
-        let action = TabPanelViewAction(panelType: panelType,
-                                        urlRequest: urlRequest,
-                                        windowUUID: windowUUID,
-                                        actionType: TabPanelViewActionType.learnMorePrivateMode)
-        store.dispatch(action)
+        viewModel.didTapLearnMoreAboutPrivate(with: urlRequest)
     }
 }

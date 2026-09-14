@@ -1,0 +1,18 @@
+# The configuration for the liquidGlassAddressBarFeature feature
+features:
+  liquid-glass-address-bar-feature:
+    description: >
+      Whether or not the Liquid Glass address bar UI is used for the address bar
+    variables:
+      enabled:
+        description: >
+          Whether or not this feature is enabled
+        type: Boolean
+        default: false
+    defaults:
+      - channel: beta
+        value:
+          enabled: false
+      - channel: developer
+        value:
+          enabled: true

@@ -7,6 +7,7 @@ import Common
 typealias ShortcutsLibrarySection = ShortcutsLibraryDiffableDataSource.Section
 typealias ShortcutsLibraryItem = ShortcutsLibraryDiffableDataSource.Item
 
+@MainActor
 final class ShortcutsLibraryDiffableDataSource:
     UICollectionViewDiffableDataSource<ShortcutsLibrarySection, ShortcutsLibraryItem> {
     // MARK: - Enums
@@ -37,10 +38,10 @@ final class ShortcutsLibraryDiffableDataSource:
     // MARK: - Private constants
     private let maxShortcutsToShow = 16
 
-    func updateSnapshot(state: ShortcutsLibraryState) {
+    func updateSnapshot(viewModel: ShortcutsLibraryViewModel) {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
 
-        if let shortcuts = getShortcuts(with: state) {
+        if let shortcuts = getShortcuts(with: viewModel) {
             snapshot.appendSections([.shortcuts])
             snapshot.appendItems(shortcuts, toSection: .shortcuts)
         }
@@ -48,10 +49,10 @@ final class ShortcutsLibraryDiffableDataSource:
         apply(snapshot, animatingDifferences: true)
     }
 
-    private func getShortcuts(with state: ShortcutsLibraryState) -> [ShortcutsLibraryDiffableDataSource.Item]? {
-        let shouldShowAddShortcutTile = state.shouldShowAddShortcutTile
+    private func getShortcuts(with viewModel: ShortcutsLibraryViewModel) -> [ShortcutsLibraryDiffableDataSource.Item]? {
+        let shouldShowAddShortcutTile = viewModel.shouldShowAddShortcutTile
         let numberOfShortcutsToShow = shouldShowAddShortcutTile ? max(maxShortcutsToShow - 1, 0) : maxShortcutsToShow
-        let visibleShortcuts: [Item] = state.shortcuts.prefix(numberOfShortcutsToShow).compactMap { .shortcut($0) }
+        let visibleShortcuts: [Item] = viewModel.shortcuts.prefix(numberOfShortcutsToShow).compactMap { .shortcut($0) }
         let visibleItems = shouldShowAddShortcutTile ? visibleShortcuts + [.addShortcutTile] : visibleShortcuts
         guard !visibleItems.isEmpty else { return nil }
         return visibleItems

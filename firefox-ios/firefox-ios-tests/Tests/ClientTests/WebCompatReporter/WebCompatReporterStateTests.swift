@@ -3,19 +3,19 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
 import Common
-import Redux
 import XCTest
 
 @testable import Client
 
+/// Covers the draft's own rules. The transitions that used to live in the reducer are
+/// now `WebCompatReporterViewModel` intents and are covered in `WebCompatReporterViewModelTests`.
 @MainActor
 final class WebCompatReporterStateTests: XCTestCase {
     // MARK: - Initialization
 
-    func test_initWithWindowUUID_returnsDefaultDraft() {
+    func test_init_returnsDefaultDraft() {
         let subject = createSubject()
 
-        XCTAssertEqual(subject.windowUUID, .XCTestDefaultUUID)
         XCTAssertEqual(subject.url, "")
         XCTAssertNil(subject.selectedCategory)
         XCTAssertNil(subject.selectedSubOptionID)
@@ -27,7 +27,7 @@ final class WebCompatReporterStateTests: XCTestCase {
     func test_canPreview_falseUntilCategorySelected() {
         XCTAssertFalse(createSubject().canPreview)
 
-        let withCategory = WebCompatReporterState(windowUUID: .XCTestDefaultUUID)
+        let withCategory = WebCompatReporterState()
             .copy(url: "https://example.com")
             .copy(selectedCategory: .siteNotUsable)
         XCTAssertTrue(withCategory.canPreview)
@@ -60,309 +60,28 @@ final class WebCompatReporterStateTests: XCTestCase {
         XCTAssertFalse(subject.canPreview)
     }
 
-    // MARK: - Reducer - didLoadInitialDraft
-
-    func test_didLoadInitialDraft_seedsURL() {
-        let initialState = createSubject()
-        let reducer = WebCompatReporterState.reducer
-
-        let action = WebCompatReporterMiddlewareAction(
-            url: "https://example.com",
-            windowUUID: .XCTestDefaultUUID,
-            actionType: WebCompatReporterMiddlewareActionType.didLoadInitialDraft
-        )
-
-        let newState = reducer.legacyReducer(initialState, action)
-
-        XCTAssertEqual(newState.url, "https://example.com")
+    func test_showsAdditionalDetails_onlyOnceACategoryIsPicked() {
+        XCTAssertFalse(createSubject().showsAdditionalDetails)
+        XCTAssertTrue(makeState(category: .other).showsAdditionalDetails)
     }
 
-    func test_didLoadInitialDraft_withNilURL_preservesExistingURL() {
-        let initialState = WebCompatReporterState(windowUUID: .XCTestDefaultUUID)
-            .copy(url: "https://existing.com")
-        let reducer = WebCompatReporterState.reducer
-
-        let action = WebCompatReporterMiddlewareAction(
-            windowUUID: .XCTestDefaultUUID,
-            actionType: WebCompatReporterMiddlewareActionType.didLoadInitialDraft
-        )
-
-        let newState = reducer.legacyReducer(initialState, action)
-
-        XCTAssertEqual(newState.url, "https://existing.com")
-    }
-
-    // MARK: - Reducer - editURL
-
-    func test_editURL_updatesURL() {
-        let initialState = createSubject()
-        let reducer = WebCompatReporterState.reducer
-
-        let action = WebCompatReporterViewAction(
-            url: "https://edited.com",
-            windowUUID: .XCTestDefaultUUID,
-            actionType: WebCompatReporterViewActionType.editURL
-        )
-
-        let newState = reducer.legacyReducer(initialState, action)
-
-        XCTAssertEqual(newState.url, "https://edited.com")
-    }
-
-    // MARK: - Reducer - selectCategory
-
-    func test_selectCategory_setsCategory() {
-        let initialState = createSubject()
-        let reducer = WebCompatReporterState.reducer
-
-        let action = WebCompatReporterViewAction(
-            category: .videoOrAudio,
-            windowUUID: .XCTestDefaultUUID,
-            actionType: WebCompatReporterViewActionType.selectCategory
-        )
-
-        let newState = reducer.legacyReducer(initialState, action)
-
-        XCTAssertEqual(newState.selectedCategory, .videoOrAudio)
-    }
-
-    func test_selectCategory_clearsPreviousSubOption() {
-        let initialState = WebCompatReporterState(windowUUID: .XCTestDefaultUUID)
-            .copy(selectedCategory: .siteNotUsable)
-            .copy(selectedSubOptionID: "page_not_loading")
-        let reducer = WebCompatReporterState.reducer
-
-        let action = WebCompatReporterViewAction(
-            category: .designBroken,
-            windowUUID: .XCTestDefaultUUID,
-            actionType: WebCompatReporterViewActionType.selectCategory
-        )
-
-        let newState = reducer.legacyReducer(initialState, action)
-
-        XCTAssertEqual(newState.selectedCategory, .designBroken)
-        XCTAssertNil(newState.selectedSubOptionID)
-    }
-
-    func test_selectCategory_sameCategory_keepsSubOption() {
-        let initialState = WebCompatReporterState(windowUUID: .XCTestDefaultUUID)
-            .copy(selectedCategory: .siteNotUsable)
-            .copy(selectedSubOptionID: "page_not_loading")
-        let reducer = WebCompatReporterState.reducer
-
-        let action = WebCompatReporterViewAction(
-            category: .siteNotUsable,
-            windowUUID: .XCTestDefaultUUID,
-            actionType: WebCompatReporterViewActionType.selectCategory
-        )
-
-        let newState = reducer.legacyReducer(initialState, action)
-
-        XCTAssertEqual(newState.selectedSubOptionID, "page_not_loading")
-    }
-
-    // MARK: - Reducer - selectSubOption
-
-    func test_selectSubOption_setsSubOption() {
-        let initialState = WebCompatReporterState(windowUUID: .XCTestDefaultUUID)
-            .copy(selectedCategory: .siteNotUsable)
-        let reducer = WebCompatReporterState.reducer
-
-        let action = WebCompatReporterViewAction(
-            subOptionID: "missing_items",
-            windowUUID: .XCTestDefaultUUID,
-            actionType: WebCompatReporterViewActionType.selectSubOption
-        )
-
-        let newState = reducer.legacyReducer(initialState, action)
-
-        XCTAssertEqual(newState.selectedSubOptionID, "missing_items")
-    }
-
-    // MARK: - Reducer - setAdditionalDetails
-
-    func test_setAdditionalDetails_updatesDetails() {
-        let initialState = createSubject()
-        let reducer = WebCompatReporterState.reducer
-
-        let action = WebCompatReporterViewAction(
-            additionalDetails: "Buttons are unresponsive",
-            windowUUID: .XCTestDefaultUUID,
-            actionType: WebCompatReporterViewActionType.setAdditionalDetails
-        )
-
-        let newState = reducer.legacyReducer(initialState, action)
-
-        XCTAssertEqual(newState.additionalDetails, "Buttons are unresponsive")
-    }
-
-    // MARK: - Reducer - toggles
-
-    func test_toggleScreenshot_withoutValue_flipsCurrent() {
-        let initialState = createSubject()
-        let reducer = WebCompatReporterState.reducer
-
-        let action = WebCompatReporterViewAction(
-            windowUUID: .XCTestDefaultUUID,
-            actionType: WebCompatReporterViewActionType.toggleScreenshot
-        )
-
-        let newState = reducer.legacyReducer(initialState, action)
-
-        XCTAssertFalse(newState.includeScreenshot)
-    }
-
-    func test_toggleScreenshot_withExplicitValue_setsValue() {
-        let initialState = createSubject()
-        let reducer = WebCompatReporterState.reducer
-
-        let action = WebCompatReporterViewAction(
-            includeScreenshot: false,
-            windowUUID: .XCTestDefaultUUID,
-            actionType: WebCompatReporterViewActionType.toggleScreenshot
-        )
-
-        let newState = reducer.legacyReducer(initialState, action)
-
-        XCTAssertFalse(newState.includeScreenshot)
-    }
-
-    func test_toggleBlockedList_withoutValue_flipsCurrent() {
-        let initialState = createSubject()
-        let reducer = WebCompatReporterState.reducer
-
-        let action = WebCompatReporterViewAction(
-            windowUUID: .XCTestDefaultUUID,
-            actionType: WebCompatReporterViewActionType.toggleBlockedList
-        )
-
-        let newState = reducer.legacyReducer(initialState, action)
-
-        XCTAssertFalse(newState.includeBlockedList)
-    }
-
-    // MARK: - didSubmit
-
-    func test_didSubmit_setsShouldDismiss() {
-        let initialState = createSubject()
-        let reducer = WebCompatReporterState.reducer
-
-        let action = WebCompatReporterMiddlewareAction(
-            windowUUID: .XCTestDefaultUUID,
-            actionType: WebCompatReporterMiddlewareActionType.didSubmit
-        )
-
-        let newState = reducer.legacyReducer(initialState, action)
-
-        XCTAssertTrue(newState.shouldDismiss)
-    }
-
-    func test_actionAfterDidSubmit_clearsShouldDismiss() {
-        let reducer = WebCompatReporterState.reducer
-        let submitted = reducer.legacyReducer(createSubject(), WebCompatReporterMiddlewareAction(
-            windowUUID: .XCTestDefaultUUID,
-            actionType: WebCompatReporterMiddlewareActionType.didSubmit
-        ))
-
-        let newState = reducer.legacyReducer(submitted, WebCompatReporterViewAction(
-            windowUUID: .XCTestDefaultUUID,
-            actionType: WebCompatReporterViewActionType.toggleBlockedList
-        ))
-
-        XCTAssertFalse(newState.shouldDismiss)
-    }
-
-    // MARK: - Edge Cases
-
-    func test_unknownAction_returnsDefaultState() {
-        let initialState = createSubject()
-        let reducer = WebCompatReporterState.reducer
-
-        struct UnknownAction: Action {
-            let windowUUID: WindowUUID
-            let actionType: ActionType
-        }
-
-        let action = UnknownAction(
-            windowUUID: .XCTestDefaultUUID,
-            actionType: WebCompatReporterMiddlewareActionType.didLoadInitialDraft
-        )
-
-        let newState = reducer.legacyReducer(initialState, action)
-
-        XCTAssertEqual(newState, initialState)
-    }
-
-    func test_actionWithDifferentWindowUUID_returnsDefaultState() {
-        let initialState = WebCompatReporterState(windowUUID: .XCTestDefaultUUID)
-            .copy(url: "https://example.com")
-        let reducer = WebCompatReporterState.reducer
-
-        let action = WebCompatReporterViewAction(
-            url: "https://other.com",
-            windowUUID: WindowUUID(),
-            actionType: WebCompatReporterViewActionType.editURL
-        )
-
-        let newState = reducer.legacyReducer(initialState, action)
-
-        XCTAssertEqual(newState, initialState)
-    }
-
-    // MARK: - previewPayload
-
-    func test_didBuildPreview_carriesThePayloadIntoState() {
-        var payload = WebCompatReportPayload()
-        payload.url = "https://example.com"
-        let reducer = WebCompatReporterState.reducer
-
-        let newState = reducer.legacyReducer(
-            WebCompatReporterState(windowUUID: .XCTestDefaultUUID),
-            WebCompatReporterMiddlewareAction(
-                previewPayload: payload,
-                windowUUID: .XCTestDefaultUUID,
-                actionType: WebCompatReporterMiddlewareActionType.didBuildPreview
-            )
-        )
-
-        XCTAssertEqual(newState.previewPayload, payload)
-    }
-
-    func test_previewPayload_doesNotSurviveTheNextAction() {
-        // Without the clear, previewing twice without editing leaves state unchanged and never reopens.
-        var payload = WebCompatReportPayload()
-        payload.url = "https://example.com"
-        let initialState = WebCompatReporterState(windowUUID: .XCTestDefaultUUID)
-            .copy(url: "https://example.com")
-            .copy(previewPayload: payload)
-        let reducer = WebCompatReporterState.reducer
-
-        let newState = reducer.legacyReducer(
-            initialState,
-            WebCompatReporterViewAction(
-                url: "https://changed.com",
-                windowUUID: .XCTestDefaultUUID,
-                actionType: WebCompatReporterViewActionType.editURL
-            )
-        )
-
-        XCTAssertNil(newState.previewPayload)
+    func test_showsURLError_onlyForNonEmptyUnreportableInput() {
+        XCTAssertFalse(makeState(category: .other, url: "").showsURLError)
+        XCTAssertFalse(makeState(category: .other, url: "https://example.com").showsURLError)
+        XCTAssertTrue(makeState(category: .other, url: ".com").showsURLError)
     }
 
     // MARK: - Equality
 
     func test_equality_sameValues_returnsTrue() {
-        let state1 = WebCompatReporterState(windowUUID: .XCTestDefaultUUID).copy(url: "https://example.com")
-        let state2 = WebCompatReporterState(windowUUID: .XCTestDefaultUUID).copy(url: "https://example.com")
-
-        XCTAssertEqual(state1, state2)
+        XCTAssertEqual(makeState(category: .other), makeState(category: .other))
     }
 
     func test_equality_differentURL_returnsFalse() {
-        let state1 = WebCompatReporterState(windowUUID: .XCTestDefaultUUID).copy(url: "https://a.com")
-        let state2 = WebCompatReporterState(windowUUID: .XCTestDefaultUUID).copy(url: "https://b.com")
-
-        XCTAssertNotEqual(state1, state2)
+        XCTAssertNotEqual(
+            makeState(category: .other, url: "https://example.com"),
+            makeState(category: .other, url: "https://mozilla.org")
+        )
     }
 
     // MARK: - WebCompatIssueCategory
@@ -399,13 +118,13 @@ final class WebCompatReporterStateTests: XCTestCase {
         subOption: WebCompatSubOption? = nil,
         url: String = "https://example.com"
     ) -> WebCompatReporterState {
-        return WebCompatReporterState(windowUUID: .XCTestDefaultUUID)
+        return WebCompatReporterState()
             .copy(url: url)
             .copy(selectedCategory: category)
             .copy(selectedSubOptionID: subOption?.rawValue)
     }
 
     private func createSubject() -> WebCompatReporterState {
-        return WebCompatReporterState(windowUUID: .XCTestDefaultUUID)
+        return WebCompatReporterState()
     }
 }

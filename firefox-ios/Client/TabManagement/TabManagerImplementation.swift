@@ -80,6 +80,7 @@ final class TabManagerImplementation: NSObject,
     private let windowManager: WindowManager
     private let windowIsNew: Bool
     private let profile: Profile
+    private let themeManager: ThemeManager
     private weak var navigationDelegate: WKNavigationDelegate?
     private var tabsTelemetry = TabsTelemetry()
     private var delegates = [WeakTabManagerDelegate]()
@@ -112,8 +113,10 @@ final class TabManagerImplementation: NSObject,
          tabSessionStore: TabSessionStore = DefaultTabSessionStore(),
          notificationCenter: NotificationProtocol = NotificationCenter.default,
          windowManager: WindowManager = AppContainer.shared.resolve(),
+         themeManager: ThemeManager = AppContainer.shared.resolve(),
          tabs: [Tab] = []
     ) {
+        self.themeManager = themeManager
         let dataStore =  tabDataStore ?? DefaultTabDataStore(logger: logger, fileManager: DefaultTabFileManager())
         self.tabDataStore = dataStore
         self.tabSessionStore = tabSessionStore
@@ -808,7 +811,7 @@ final class TabManagerImplementation: NSObject,
         let currentTabs = tab.isPrivate ? privateTabs : normalTabs
         guard let index = currentTabs.firstIndex(of: tab) else { return }
 
-        store.dispatch(
+        browserEventBus.dispatch(
             ToolbarAction(
                 previousTabScreenshot: currentTabs[safe: index-1]?.screenshot,
                 nextTabScreenshot: currentTabs[safe: index+1]?.screenshot,
@@ -823,7 +826,7 @@ final class TabManagerImplementation: NSObject,
     @MainActor
     private func dispatchScreenshotRestoredAction(for tab: Tab) {
         guard isDeeplinkOptimizationRefactorEnabled else { return }
-        store.dispatch(
+        browserEventBus.dispatch(
             ScreenshotAction(
                 windowUUID: windowUUID,
                 tab: tab,
@@ -978,10 +981,9 @@ final class TabManagerImplementation: NSObject,
         let sessionData = tabSessionStore.fetchTabSession(tabID: tabUUID)
         selectTabWithSession(tab: tab, sessionData: sessionData)
 
-        let action = PrivateModeAction(isPrivate: tab.isPrivate,
-                                       windowUUID: windowUUID,
-                                       actionType: PrivateModeActionType.setPrivateModeTo)
-        store.dispatch(action)
+        // Was a PrivateModeAction round trip through two middlewares that both made this exact
+        // call; the theme manager is an injected service, so it is called directly.
+        themeManager.setPrivateTheme(isOn: tab.isPrivate, for: windowUUID)
 
         tab.resumeDocumentDownload()
 
@@ -1056,7 +1058,7 @@ final class TabManagerImplementation: NSObject,
                                           isNativeErrorPage: isNativeErrorPage,
                                           windowUUID: windowUUID,
                                           actionType: GeneralBrowserActionType.updateSelectedTab)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     private func selectTabWithSession(tab: Tab, sessionData: Data?) {

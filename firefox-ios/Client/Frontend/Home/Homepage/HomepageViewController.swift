@@ -16,11 +16,7 @@ final class HomepageViewController: UIViewController,
                                     ContentContainable,
                                     Screenshotable,
                                     Themeable,
-                                    FeatureFlaggable,
-                                    StoreSubscriber {
-    // MARK: - Typealiases
-    typealias SubscriberStateType = HomepageState
-
+                                    FeatureFlaggable {
     // MARK: - ContentContainable variables
     var contentType: ContentType = .homepage
 
@@ -46,7 +42,28 @@ final class HomepageViewController: UIViewController,
     private typealias a11y = AccessibilityIdentifiers.FirefoxHomepage
     private var collectionView: UICollectionView?
     private var dataSource: HomepageDiffableDataSource?
-    private lazy var sectionProvider = HomepageSectionLayoutProvider(windowUUID: windowUUID)
+    private lazy var sectionProvider = HomepageSectionLayoutProvider(
+        windowUUID: windowUUID,
+        trackerBlockerModuleIsVisible: { [weak self] in
+            self?.homepageViewModel.trackerBlockerModule.shouldShowSection ?? false
+        },
+        merinoCategories: { [weak self] in
+            self?.homepageViewModel.merino.availableCategories ?? []
+        },
+        bookmarksSnapshot: { [weak self] in
+            guard let bookmarks = self?.homepageViewModel.bookmarks else { return ([], false) }
+            return (bookmarks.bookmarks, bookmarks.shouldShowSection)
+        },
+        searchBarIsVisible: { [weak self] in
+            self?.homepageViewModel.searchBar.shouldShowSearchBar ?? false
+        },
+        headerState: { [weak self] in
+            self?.homepageViewModel.header.state
+        },
+        availableContentHeight: { [weak self] in
+            self?.homepageViewModel.wallpaper.state.availableContentHeight ?? 0
+        }
+    )
     // Tracks which tab the shared homepage instance is currently representing.
     private var activeTabUUID: TabUUID?
 
@@ -54,7 +71,7 @@ final class HomepageViewController: UIViewController,
 
     private let jumpBackInContextualHintViewController: ContextualHintViewController
     private let syncTabContextualHintViewController: ContextualHintViewController
-    private var homepageState: HomepageState
+    private let homepageViewModel: HomepageViewModel
     private var lastContentOffsetY: CGFloat = 0
     private var didFinishFirstLayout = false
     private var wallpaperTopConstraint: NSLayoutConstraint?
@@ -79,6 +96,7 @@ final class HomepageViewController: UIViewController,
     private let tabManager: TabManager
     private let homepageTabStateStore: HomepageTabStateStoring
     private let overlayManager: OverlayModeManager
+    private let topSitesTelemetry: TopSitesTelemetryService
     private let logger: Logger
     private let toastContainer: UIView
 
@@ -98,7 +116,9 @@ final class HomepageViewController: UIViewController,
          toastContainer: UIView,
          notificationCenter: NotificationProtocol = NotificationCenter.default,
          logger: Logger = DefaultLogger.shared,
-         throttler: MainThreadThrottlerProtocol = MainThreadThrottler(seconds: 0.5)
+         throttler: MainThreadThrottlerProtocol = MainThreadThrottler(seconds: 0.5),
+         topSitesTelemetry: TopSitesTelemetryService = .shared,
+         homepageViewModel: HomepageViewModel? = nil
     ) {
         self.windowUUID = windowUUID
         self.themeManager = themeManager
@@ -109,6 +129,7 @@ final class HomepageViewController: UIViewController,
         self.overlayManager = overlayManager
         self.statusBarScrollDelegate = statusBarScrollDelegate
         self.toastContainer = toastContainer
+        self.topSitesTelemetry = topSitesTelemetry
         self.logger = logger
         self.trackingImpressionsThrottler = throttler
 
@@ -131,26 +152,24 @@ final class HomepageViewController: UIViewController,
             windowUUID: windowUUID
         )
 
-        homepageState = HomepageState(windowUUID: windowUUID)
+        self.homepageViewModel = homepageViewModel ?? HomepageViewModel(windowUUID: windowUUID)
         super.init(nibName: nil, bundle: nil)
 
-        subscribeToRedux()
+        self.homepageViewModel.onSectionChange = { [weak self] in
+            self?.refreshHomepageDataSourceSnapshot()
+        }
+        self.homepageViewModel.wallpaper.onChange = { [weak self] state, previous in
+            self?.applyWallpaper(state, previous: previous)
+        }
+        // FXIOS-11523 - Re-record impressions when a tab switches to the homepage.
+        self.homepageViewModel.onImpressionReset = { [weak self] in
+            self?.resetTrackedObjects()
+            self?.trackVisibleItemImpressions()
+        }
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    deinit {
-        // TODO: FXIOS-13097 This is a work around until we can leverage isolated deinits
-        guard Thread.isMainThread else {
-            assertionFailure("TabSwipeGestureHandler was not deallocated on the main thread. Observer was not removed")
-            return
-        }
-
-        MainActor.assumeIsolated {
-            unsubscribeFromRedux()
-        }
     }
 
     func stopCFRsTimer() {
@@ -182,35 +201,20 @@ final class HomepageViewController: UIViewController,
 
         /// Used as a trigger for showing a microsurvey based on viewing the homepage
         Experiments.events.recordEvent(BehavioralTargetingEvent.homepageViewed)
-        store.dispatch(
-            HomepageAction(
-                windowUUID: windowUUID,
-                actionType: HomepageActionType.viewWillAppear
-            )
-        )
+        homepageViewModel.viewWillAppear()
         termsOfUseDelegate?.showTermsOfUse(context: .homepageOpened)
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        store.dispatch(
-            HomepageAction(
-                windowUUID: windowUUID,
-                actionType: HomepageActionType.viewDidAppear
-            )
-        )
+        homepageViewModel.recordHomepageImpression()
+        homepageViewModel.refreshOnAppearance()
         trackVisibleItemImpressions()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
-        store.dispatch(
-            HomepageAction(
-                windowUUID: windowUUID,
-                actionType: HomepageActionType.viewWillDisappear
-            )
-        )
         stopCFRsTimer()
         saveVerticalScrollOffset()
     }
@@ -228,39 +232,18 @@ final class HomepageViewController: UIViewController,
         /// This issue seems to be resolved by the SDK on later iOS versions
         if !didFinishFirstLayout {
             didFinishFirstLayout = true
-            store.dispatch(
-                HomepageAction(
-                    numberOfTopSitesPerRow: numberOfTilesPerRow(for: availableWidth),
-                    windowUUID: windowUUID,
-                    actionType: HomepageActionType.initialize
-                )
-            )
+            homepageViewModel.topSites.setNumberOfTilesPerRow(numberOfTilesPerRow(for: availableWidth))
+            homepageViewModel.viewDidLoad()
         }
 
-        let numberOfTilesPerRow = numberOfTilesPerRow(for: availableWidth)
-        guard homepageState.topSitesState.numberOfTilesPerRow != numberOfTilesPerRow else {
-            return
-        }
-
-        store.dispatch(
-            HomepageAction(
-                numberOfTopSitesPerRow: numberOfTilesPerRow,
-                windowUUID: windowUUID,
-                actionType: HomepageActionType.viewDidLayoutSubviews
-            )
-        )
+        // The view model drops the update when the count is unchanged.
+        homepageViewModel.topSites.setNumberOfTilesPerRow(numberOfTilesPerRow(for: availableWidth))
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         wallpaperView.updateImageForOrientationChange()
-        store.dispatch(
-            HomepageAction(
-                numberOfTopSitesPerRow: numberOfTilesPerRow(for: size.width),
-                windowUUID: windowUUID,
-                actionType: HomepageActionType.viewWillTransition
-            )
-        )
+        homepageViewModel.topSites.setNumberOfTilesPerRow(numberOfTilesPerRow(for: size.width))
     }
 
     // Called when the homepage is displayed to make sure it's vertical scroll position is persisted.
@@ -354,7 +337,7 @@ final class HomepageViewController: UIViewController,
         updateNewsTransitionHeaderProgress()
 
         // We only handle status bar overlay alpha if there's a wallpaper applied on the homepage
-        if homepageState.wallpaperState.wallpaperConfiguration.hasImage {
+        if homepageViewModel.wallpaper.state.wallpaperConfiguration.hasImage {
             let theme = themeManager.getCurrentTheme(for: windowUUID)
             statusBarScrollDelegate?.scrollViewDidScroll(
                 scrollView,
@@ -374,7 +357,7 @@ final class HomepageViewController: UIViewController,
         if (lastContentOffsetY > 0 && scrollView.contentOffset.y <= 0) ||
             (lastContentOffsetY <= 0 && scrollView.contentOffset.y > 0) {
             lastContentOffsetY = scrollView.contentOffset.y
-            store.dispatch(
+            browserEventBus.dispatch(
                 GeneralBrowserMiddlewareAction(
                     scrollOffset: scrollView.contentOffset,
                     windowUUID: windowUUID,
@@ -385,7 +368,7 @@ final class HomepageViewController: UIViewController,
     private func handleToolbarStateOnScroll() {
         // When the user scrolls the homepage (not overlaid on a webpage when searching) we cancel edit mode
         let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.cancelEditOnHomepage)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     /// Calculates the number of tiles that can fit in a single row based on the available width.
@@ -410,59 +393,10 @@ final class HomepageViewController: UIViewController,
         )
     }
 
-    // MARK: - Redux
-    func subscribeToRedux() {
-        let action = ComponentAction(
-            windowUUID: windowUUID,
-            actionType: ComponentActionType.addComponent,
-            component: .homepage
-        )
-        store.dispatch(action)
-
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            return $0.select({ appState in
-                return HomepageState(
-                    appState: appState,
-                    uuid: uuid
-                )
-            })
-        })
-    }
-
-    func newState(state: HomepageState) {
-        wallpaperView.wallpaperState = state.wallpaperState
-
-        // TODO: - FXIOS-13346 / FXIOS-13343 - fix collection view being reloaded all the time also when data don't change
-        // this is a quick workaround to avoid blocking the main thread by calling apply snapshot many times.
-        if homepageState != state {
-            let animatingDifferences = state.wallpaperState.availableContentHeight
-                                        == homepageState.wallpaperState.availableContentHeight
-            self.homepageState = state
-
-            refreshHomepageDataSourceSnapshot(
-                animatingDifferences: animatingDifferences
-            ) { [weak self] in
-                self?.collectionView?.layoutIfNeeded()
-                self?.updateNewsTransitionHeaderProgress()
-            }
-            updateWallpaperConstraints(availableWallpaperHeight: state.wallpaperState.availableWallpaperHeight)
-        }
-
-        // FXIOS-11523 - Trigger impression when user opens homepage view new tab + scroll to top
-        if state.telemetryState.shouldTriggerImpression {
-            resetTrackedObjects()
-            trackVisibleItemImpressions()
-        }
-    }
-
-    func unsubscribeFromRedux() {
-        let action = ComponentAction(
-            windowUUID: windowUUID,
-            actionType: ComponentActionType.removeComponent,
-            component: .homepage
-        )
-        store.dispatch(action)
+    /// Whether the homepage is currently showing its own search bar. `BrowserViewController` reads
+    /// this to decide whether to hide the address toolbar; it used to read `HomepageState`.
+    var isSearchBarVisible: Bool {
+        return homepageViewModel.searchBar.shouldShowSearchBar
     }
 
     // MARK: - Theming
@@ -473,11 +407,36 @@ final class HomepageViewController: UIViewController,
 
     // MARK: - Layout
 
+    /// Called by `BrowserCoordinator`, which embeds the homepage and is the only thing that knows
+    /// whether this is a zero-search presentation.
+    func setZeroSearch(_ isZeroSearch: Bool) {
+        homepageViewModel.setZeroSearch(isZeroSearch)
+    }
+
+    /// Called by `BrowserViewController`, which owns the geometry.
+    func updateAvailableHeights(content: CGFloat, wallpaper: CGFloat) {
+        homepageViewModel.wallpaper.updateAvailableHeights(content: content, wallpaper: wallpaper)
+    }
+
+    /// The snapshot is applied without animation when the available height changed, because the
+    /// spacer resizes with it and animating that reads as a jump.
+    private func applyWallpaper(_ state: WallpaperState, previous: WallpaperState) {
+        wallpaperView.wallpaperState = state
+        refreshHomepageDataSourceSnapshot(
+            animatingDifferences: state.availableContentHeight == previous.availableContentHeight
+        ) { [weak self] in
+            self?.collectionView?.layoutIfNeeded()
+            self?.updateNewsTransitionHeaderProgress()
+        }
+        updateWallpaperConstraints(availableWallpaperHeight: state.availableWallpaperHeight)
+    }
+
     private func configureWallpaperView() {
+        wallpaperView.wallpaperState = homepageViewModel.wallpaper.state
         view.addSubview(wallpaperView)
 
         let heightConstraint = wallpaperView.heightAnchor.constraint(
-            equalToConstant: homepageState.wallpaperState.availableWallpaperHeight
+            equalToConstant: homepageViewModel.wallpaper.state.availableWallpaperHeight
         )
         let topConstraint = wallpaperView.topAnchor.constraint(equalTo: view.topAnchor)
 
@@ -640,6 +599,12 @@ final class HomepageViewController: UIViewController,
         case .messageCard(let config):
             return configuredCell(cellType: HomepageMessageCardCell.self, at: indexPath) { cell in
                 cell.configure(with: config, windowUUID: windowUUID, theme: currentTheme)
+                cell.onCloseButtonTapped = { [weak self] in
+                    self?.homepageViewModel.messageCard.tappedOnCloseButton()
+                }
+                cell.onActionButtonTapped = { [weak self] in
+                    self?.homepageViewModel.messageCard.tappedOnActionButton()
+                }
             }
         case .topSite(let site, let textColor):
             return configuredCell(cellType: TopSiteCell.self, at: indexPath) { cell in
@@ -725,7 +690,7 @@ final class HomepageViewController: UIViewController,
                 onOpenSyncedTabAction: { [weak self] url in
                     guard let self else { return }
                     self.navigateToNewTab(with: url)
-                    self.sendItemActionWithTelemetryExtras(item: item, actionType: .didSelectItem)
+                    self.recordItemTapped(item)
                 }
             )
             prepareSyncedTabContextualHint(onCell: cell)
@@ -762,7 +727,7 @@ final class HomepageViewController: UIViewController,
             }
 
             if case .pocket = section,
-               MerinoState.Constants.sectionHeaderConfiguration.style == .newsAffordance {
+               MerinoSectionViewModel.Constants.sectionHeaderConfiguration.style == .newsAffordance {
                 guard let newsTransitionHeaderCell = collectionView.dequeueSupplementary(
                     of: kind,
                     cellType: NewsTransitionHeaderCell.self,
@@ -798,18 +763,22 @@ final class HomepageViewController: UIViewController,
     ) -> NewsTransitionHeaderCell {
         let transitionEnabled = isNewsTransitionEnabled()
         newsTransitionHeaderCell.configure(
-            sectionHeaderConfiguration: MerinoState.Constants.sectionHeaderConfiguration,
-            textColor: homepageState.wallpaperState.wallpaperConfiguration.textColor,
+            sectionHeaderConfiguration: MerinoSectionViewModel.Constants.sectionHeaderConfiguration,
+            textColor: homepageViewModel.wallpaper.state.wallpaperConfiguration.textColor,
             theme: currentTheme,
             transitionEnabled: transitionEnabled,
-            categories: homepageState.merinoState.availableCategories,
+            categories: homepageViewModel.merino.availableCategories,
             selectedNewsfeedCategoryID: currentHomepageTabState.selectedNewsfeedCategoryID,
             newsfeedCategoryPickerOffsetX: currentHomepageTabState.newsfeedCategoryPickerOffsetX,
-            onCategoryPickerScroll: updateNewsfeedCategoryPickerOffsetX,
+            onCategoryPickerScroll: { [weak self] offsetX in
+                self?.updateNewsfeedCategoryPickerOffsetX(offsetX)
+            },
             onNewsAffordanceTap: { [weak self] in
                 self?.scrollNewsfeedToTop(onlyIfScrolledPastHeader: false, animated: true)
             },
-            onSelection: updatedSelectedNewsfeedCategory
+            onSelection: { [weak self] selectedNewsfeedCategoryID in
+                self?.updatedSelectedNewsfeedCategory(selectedNewsfeedCategoryID: selectedNewsfeedCategoryID)
+            }
         )
         newsTransitionHeaderCell.setTransitionProgress(newsTransitionProgress())
         return newsTransitionHeaderCell
@@ -843,7 +812,7 @@ final class HomepageViewController: UIViewController,
             return sectionLabelCell
         case .bookmarks(let textColor):
             sectionLabelCell.configure(
-                sectionHeaderConfiguration: BookmarksSectionState.Constants.sectionHeaderConfiguration,
+                sectionHeaderConfiguration: BookmarksSectionViewModel.Constants.sectionHeaderConfiguration,
                 moreButtonAction: { [weak self] _ in
                     self?.navigateToBookmarksPanel()
                 },
@@ -853,7 +822,7 @@ final class HomepageViewController: UIViewController,
             return sectionLabelCell
         case .pocket(let textColor):
             sectionLabelCell.configure(
-                sectionHeaderConfiguration: MerinoState.Constants.sectionHeaderConfiguration,
+                sectionHeaderConfiguration: MerinoSectionViewModel.Constants.sectionHeaderConfiguration,
                 textColor: textColor,
                 theme: currentTheme
             )
@@ -878,7 +847,7 @@ final class HomepageViewController: UIViewController,
     /// Returns whether there is enough room at the bottom of the unscrolled homepage for the header to transition.
     /// This is determined by the existence of the spacer with a meaningful height
     private func isNewsTransitionEnabled() -> Bool {
-        guard MerinoState.Constants.sectionHeaderConfiguration.style == .newsAffordance,
+        guard MerinoSectionViewModel.Constants.sectionHeaderConfiguration.style == .newsAffordance,
               let collectionView,
               let spacerSectionIndex = dataSource?.snapshot().sectionIdentifiers.firstIndex(where: {
                   if case .spacer = $0 {
@@ -965,13 +934,6 @@ final class HomepageViewController: UIViewController,
                 self?.updateNewsTransitionHeaderProgress()
             }
         }
-
-        store.dispatch(
-            HomepageAction(
-                windowUUID: windowUUID,
-                actionType: HomepageActionType.traitCollectionDidChange
-            )
-        )
     }
 
     // MARK: Tap Gesture Recognizer
@@ -986,7 +948,7 @@ final class HomepageViewController: UIViewController,
     @objc
     private func dismissKeyboard() {
         let action = ToolbarAction(windowUUID: windowUUID, actionType: ToolbarActionType.cancelEdit)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 
     // MARK: Long Press (Photon Action Sheet)
@@ -1016,11 +978,11 @@ final class HomepageViewController: UIViewController,
     }
 
     private func navigateToPocketLearnMore() {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(
                     .link,
-                    url: MerinoState.Constants.footerURL,
+                    url: MerinoSectionViewModel.Constants.footerURL,
                     visitType: .link
                 ),
                 windowUUID: self.windowUUID,
@@ -1036,7 +998,7 @@ final class HomepageViewController: UIViewController,
             sourceView: sourceView,
             toastContainer: toastContainer
         )
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.contextMenu, contextMenuConfiguration: configuration),
                 windowUUID: windowUUID,
@@ -1071,7 +1033,7 @@ final class HomepageViewController: UIViewController,
     }
 
     private func navigateToBookmarksPanel() {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.bookmarksPanel),
                 windowUUID: windowUUID,
@@ -1081,7 +1043,7 @@ final class HomepageViewController: UIViewController,
     }
 
     private func navigateToShortcutsLibrary() {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.shortcutsLibrary),
                 windowUUID: windowUUID,
@@ -1091,7 +1053,7 @@ final class HomepageViewController: UIViewController,
     }
 
     private func dispatchNavigationBrowserAction(with destination: NavigationDestination, actionType: ActionType) {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: destination,
                 windowUUID: self.windowUUID,
@@ -1101,8 +1063,8 @@ final class HomepageViewController: UIViewController,
     }
 
     private func dispatchOpenPocketAction(at index: Int, actionType: ActionType) {
-        let config = OpenPocketTelemetryConfig(isZeroSearch: homepageState.telemetryState.isZeroSearch, position: index)
-        store.dispatch(
+        let config = OpenPocketTelemetryConfig(isZeroSearch: homepageViewModel.isZeroSearch, position: index)
+        browserEventBus.dispatch(
             MerinoAction(
                 telemetryConfig: config,
                 windowUUID: self.windowUUID,
@@ -1111,32 +1073,12 @@ final class HomepageViewController: UIViewController,
         )
     }
 
-    private func dispatchTopSitesAction(at index: Int, config: TopSiteConfiguration, actionType: ActionType) {
-        let config = TopSitesTelemetryConfig(
-            isZeroSearch: homepageState.telemetryState.isZeroSearch,
-            position: index,
-            topSiteConfiguration: config
-        )
-        store.dispatch(
-            TopSitesAction(
-                telemetryConfig: config,
-                windowUUID: self.windowUUID,
-                actionType: actionType
-            )
-        )
-    }
-
     private func dispatchPrivacyNoticeCloseButtonTapped() {
-        store.dispatch(
-            HomepageAction(
-                windowUUID: self.windowUUID,
-                actionType: HomepageActionType.privacyNoticeCloseButtonTapped
-            )
-        )
+        homepageViewModel.privacyNoticeDismissed()
     }
 
     private func dispatchPrivacyNoticeLinkTapped(url: URL) {
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.privacyNoticeLink(url)),
                 windowUUID: windowUUID,
@@ -1168,7 +1110,7 @@ final class HomepageViewController: UIViewController,
     private func refreshHomepageDataSourceSnapshot(animatingDifferences: Bool = true,
                                                    completion: (() -> Void)? = nil) {
         dataSource?.updateSnapshot(
-            state: homepageState,
+            viewModel: homepageViewModel,
             selectedNewsfeedCategoryID: currentHomepageTabState.selectedNewsfeedCategoryID,
             jumpBackInDisplayConfig: getJumpBackInDisplayConfig(),
             showiPadSetup: shouldUseiPadSetup(),
@@ -1287,10 +1229,10 @@ final class HomepageViewController: UIViewController,
                 visitType: .link
             )
             dispatchNavigationBrowserAction(with: destination, actionType: NavigationBrowserActionType.tapOnCell)
-            dispatchTopSitesAction(
+            topSitesTelemetry.sendTileTapped(
+                config,
                 at: indexPath.item,
-                config: config,
-                actionType: TopSitesActionType.tapOnHomepageTopSitesCell
+                isZeroSearch: homepageViewModel.isZeroSearch
             )
         case .searchBar:
             dispatchDidSelectCardItemAction(with: item)
@@ -1300,7 +1242,7 @@ final class HomepageViewController: UIViewController,
             )
         case .jumpBackIn(let config):
             dispatchDidSelectCardItemAction(with: item)
-            store.dispatch(
+            browserEventBus.dispatch(
                 JumpBackInAction(
                     tab: config.tab,
                     windowUUID: self.windowUUID,
@@ -1343,39 +1285,19 @@ final class HomepageViewController: UIViewController,
             title: url.shortDisplayString.capitalized
         )
         profile.pinnedSites.addPinnedTopSite(site)
-        store.dispatch(
-            TopSitesAction(
-                shortcutPinnedSource: .homescreenButton,
-                windowUUID: windowUUID,
-                actionType: TopSitesActionType.shortcutPinned
-            )
-        )
+        topSitesTelemetry.sendShortcutPinned(source: .homescreenButton)
     }
 
     /// Sends telemetry data associated with tapping on a card item. The jump back in synced card item
     /// is handled differently due to how tapping is handled for the cell. See `onOpenSyncedTabAction` in this file.
     private func dispatchDidSelectCardItemAction(with item: HomepageItem) {
         if case .jumpBackInSyncedTab = item { return }
-        sendItemActionWithTelemetryExtras(item: item, actionType: .didSelectItem)
+        recordItemTapped(item)
     }
 
-    /// Sends generic telemetry extras to middleware, sends additional extras `topSitesTelemetryConfig` for sponsored sites
-    private func sendItemActionWithTelemetryExtras(
-        item: HomepageItem,
-        actionType: HomepageActionType,
-        topSitesTelemetryConfig: TopSitesTelemetryConfig? = nil
-    ) {
-        let telemetryExtras = HomepageTelemetryExtras(
-            itemType: item.telemetryItemType,
-            topSitesTelemetryConfig: topSitesTelemetryConfig
-        )
-        store.dispatch(
-            HomepageAction(
-                telemetryExtras: telemetryExtras,
-                windowUUID: windowUUID,
-                actionType: actionType
-            )
-        )
+    private func recordItemTapped(_ item: HomepageItem) {
+        guard let itemType = item.telemetryItemType else { return }
+        homepageViewModel.recordItemTapped(itemType)
     }
 
     /// Used to track impressions. If the user has already seen the item on the homepage, we only record the impression once.
@@ -1414,13 +1336,14 @@ final class HomepageViewController: UIViewController,
         guard !alreadyTrackedTopSites.contains(item) else { return }
         alreadyTrackedTopSites.insert(item)
         guard case .topSite(let config, _) = item else { return }
-        dispatchTopSitesAction(at: index, config: config, actionType: TopSitesActionType.topSitesSeen)
+        topSitesTelemetry.sendSponsoredImpression(for: config, at: index)
     }
 
     private func handleTrackingSectionImpression(for section: HomepageSection, with item: HomepageItem) {
         guard !alreadyTrackedSections.contains(section) else { return }
         alreadyTrackedSections.insert(section)
-        sendItemActionWithTelemetryExtras(item: item, actionType: HomepageActionType.sectionSeen)
+        guard let itemType = item.telemetryItemType else { return }
+        homepageViewModel.recordSectionSeen(itemType)
     }
 
     private func resetTrackedObjects() {
@@ -1478,7 +1401,7 @@ final class HomepageViewController: UIViewController,
     }
 
     private var canContextHintBePresented: Bool {
-        return presentedViewController == nil && homepageState.telemetryState.isZeroSearch
+        return presentedViewController == nil && homepageViewModel.isZeroSearch
     }
 
     @objc

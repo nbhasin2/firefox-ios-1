@@ -84,14 +84,14 @@ final class AddressToolbarContainerModel: Equatable {
                                                      gestureType: .tap,
                                                      windowUUID: self.windowUUID,
                                                      actionType: ToolbarMiddlewareActionType.didTapButton)
-                store.dispatch(action)
+                browserEventBus.dispatch(action)
             },
             onLongPress: {
                 let action = ToolbarMiddlewareAction(buttonType: .locationView,
                                                      gestureType: .longPress,
                                                      windowUUID: self.windowUUID,
                                                      actionType: ToolbarMiddlewareActionType.didTapButton)
-                store.dispatch(action)
+                browserEventBus.dispatch(action)
             })
         return AddressToolbarConfiguration(
             locationViewConfiguration: locationViewConfiguration,
@@ -317,7 +317,7 @@ final class AddressToolbarContainerModel: Equatable {
             let action = ToolbarMiddlewareAction(buttonType: action.actionType,
                                                  windowUUID: windowUUID,
                                                  actionType: ToolbarMiddlewareActionType.customA11yAction)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         } : nil
     }
 
@@ -330,7 +330,7 @@ final class AddressToolbarContainerModel: Equatable {
                                                  gestureType: .tap,
                                                  windowUUID: windowUUID,
                                                  actionType: ToolbarMiddlewareActionType.didTapButton)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         }
     }
 
@@ -344,7 +344,7 @@ final class AddressToolbarContainerModel: Equatable {
                                                  gestureType: .longPress,
                                                  windowUUID: windowUUID,
                                                  actionType: ToolbarMiddlewareActionType.didTapButton)
-            store.dispatch(action)
+            browserEventBus.dispatch(action)
         } : nil
     }
 

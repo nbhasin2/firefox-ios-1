@@ -34,6 +34,9 @@ class HomepageMessageCardCell: UICollectionViewCell, ReusableCell {
     // MARK: - Properties
     private var kvoToken: NSKeyValueObservation?
     private var windowUUID: WindowUUID?
+    /// Set by the data source; the cell used to dispatch these.
+    var onCloseButtonTapped: (() -> Void)?
+    var onActionButtonTapped: (() -> Void)?
     private var logger: Logger = DefaultLogger.shared
 
     // MARK: - UI
@@ -220,12 +223,7 @@ class HomepageMessageCardCell: UICollectionViewCell, ReusableCell {
             )
             return
         }
-        store.dispatch(
-            MessageCardAction(
-                windowUUID: windowUUID,
-                actionType: MessageCardActionType.tappedOnCloseButton
-            )
-        )
+        onCloseButtonTapped?()
     }
 
     /// The surface needs to handle CTAs a certain way when there's a message.
@@ -239,12 +237,7 @@ class HomepageMessageCardCell: UICollectionViewCell, ReusableCell {
             )
             return
         }
-        store.dispatch(
-            MessageCardAction(
-                windowUUID: windowUUID,
-                actionType: MessageCardActionType.tappedOnActionButton
-            )
-        )
+        onActionButtonTapped?()
     }
 }
 

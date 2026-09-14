@@ -40,18 +40,7 @@ final class QuickAnswersSettingsViewController: SettingsTableViewController, Use
             defaultValue: userPreferences.getPreferenceFor(.quickAnswers),
             // TODO: - FXIOS-14720 Add Strings
             titleText: "Quick Answers"
-        ) { [weak self] _ in
-            guard let self else { return }
-            // Instead of passing the updated value here, we are using determining
-            // whether the feature should be shown in the middleware so that we use the userPreferencesProvider
-            // as the source of truth.
-            store.dispatch(
-                QuickAnswersAction(
-                    windowUUID: self.windowUUID,
-                    actionType: QuickAnswersActionType.didSettingsChange
-                )
-            )
-        }
+        )
         // TODO: - FXIOS-14720 Add Strings
         let footer = "Ask out loud and get short answers. We don’t store your voice, questions, or answers."
         return SettingSection(

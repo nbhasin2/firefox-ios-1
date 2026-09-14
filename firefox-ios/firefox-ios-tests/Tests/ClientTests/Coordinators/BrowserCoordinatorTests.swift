@@ -19,7 +19,7 @@ import QuickAnswersKit
 @MainActor
 final class BrowserCoordinatorTests: XCTestCase,
                                      FeatureFlaggable,
-                                     StoreTestUtility {
+                                     BusTestUtility {
     private var mockRouter: MockRouter!
     private var profile: MockProfile!
     private var overlayModeManager: MockOverlayModeManager!
@@ -29,7 +29,7 @@ final class BrowserCoordinatorTests: XCTestCase,
     private var glean: MockGleanWrapper!
     private var scrollDelegate: MockStatusBarScrollDelegate!
     private var browserViewController: MockBrowserViewController!
-    private var mockStore: MockStoreForMiddleware<AppState>!
+    private var mockBus: MockBrowserEventBus!
     private var homepageTabStateStore: HomepageTabStateStore!
     let windowUUID: WindowUUID = .XCTestDefaultUUID
 
@@ -49,7 +49,7 @@ final class BrowserCoordinatorTests: XCTestCase,
         scrollDelegate = MockStatusBarScrollDelegate()
         browserViewController = MockBrowserViewController(profile: profile, tabManager: tabManager)
         homepageTabStateStore = HomepageTabStateStore()
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
@@ -64,7 +64,7 @@ final class BrowserCoordinatorTests: XCTestCase,
         scrollDelegate = nil
         browserViewController = nil
         homepageTabStateStore = nil
-        resetStore()
+        resetBus()
         DependencyHelperMock().reset()
         try await super.tearDown()
     }
@@ -1628,18 +1628,15 @@ final class BrowserCoordinatorTests: XCTestCase,
         XCTAssertEqual(browserViewController.handleQuery, "firefox")
     }
 
-    // MARK: - StoreTestUtility
-    func setupAppState() -> AppState {
-        return AppState()
+    // MARK: - BusTestUtility
+
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
-        StoreTestUtilityHelper.setupStore(with: mockStore)
-    }
-
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 
     // MARK: - Helpers

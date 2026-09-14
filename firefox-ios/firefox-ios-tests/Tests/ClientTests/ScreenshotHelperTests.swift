@@ -7,18 +7,18 @@ import XCTest
 @testable import Client
 
 @MainActor
-final class ScreenshotHelperTests: XCTestCase, StoreTestUtility {
+final class ScreenshotHelperTests: XCTestCase, BusTestUtility {
     var profile: MockProfile!
     let tabManager = MockTabManager()
     var mockVC: MockBrowserViewController!
-    var mockStore: MockStoreForMiddleware<AppState>!
+    var mockBus: MockBrowserEventBus!
 
     override func setUp() async throws {
         try await super.setUp()
         profile = MockProfile()
         DependencyHelperMock().bootstrapDependencies()
         mockVC = MockBrowserViewController(profile: profile, tabManager: tabManager)
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
@@ -26,7 +26,7 @@ final class ScreenshotHelperTests: XCTestCase, StoreTestUtility {
         profile = nil
         DependencyHelperMock().reset()
         mockVC = nil
-        resetStore()
+        resetBus()
         try await super.tearDown()
     }
 
@@ -43,7 +43,7 @@ final class ScreenshotHelperTests: XCTestCase, StoreTestUtility {
 
         subject.takeScreenshot(tab, windowUUID: .XCTestDefaultUUID, screenshotBounds: .zero)
 
-        guard let screenshotAction = mockStore.dispatchedActions.first as? ScreenshotAction else {
+        guard let screenshotAction = mockBus.dispatchedActions.first as? ScreenshotAction else {
             XCTFail("fired action was not of the expected type")
             return
         }
@@ -66,7 +66,7 @@ final class ScreenshotHelperTests: XCTestCase, StoreTestUtility {
 
         subject.takeScreenshot(tab, windowUUID: .XCTestDefaultUUID, screenshotBounds: .zero)
 
-        guard let screenshotAction = mockStore.dispatchedActions.first as? ScreenshotAction else {
+        guard let screenshotAction = mockBus.dispatchedActions.first as? ScreenshotAction else {
             XCTFail("fired action was not of the expected type")
             return
         }
@@ -88,7 +88,7 @@ final class ScreenshotHelperTests: XCTestCase, StoreTestUtility {
 
         subject.takeScreenshot(tab, windowUUID: .XCTestDefaultUUID, screenshotBounds: .zero)
 
-        guard let screenshotAction = mockStore.dispatchedActions.first as? ScreenshotAction else {
+        guard let screenshotAction = mockBus.dispatchedActions.first as? ScreenshotAction else {
             XCTFail("fired action was not of the expected type")
             return
         }
@@ -105,16 +105,12 @@ final class ScreenshotHelperTests: XCTestCase, StoreTestUtility {
         return subject
     }
 
-    func setupAppState() -> AppState {
-        return AppState()
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
-    func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
-        StoreTestUtilityHelper.setupStore(with: mockStore)
-    }
-
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

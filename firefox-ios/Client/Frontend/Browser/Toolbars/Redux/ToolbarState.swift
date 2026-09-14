@@ -8,7 +8,7 @@ import Redux
 import ToolbarKit
 
 @Copyable
-struct ToolbarState: ScreenState, Sendable {
+struct ToolbarState: Equatable, Sendable {
     var windowUUID: WindowUUID
     var toolbarPosition: AddressToolbarPosition
     var toolbarLayout: ToolbarLayoutStyle
@@ -30,39 +30,6 @@ struct ToolbarState: ScreenState, Sendable {
     var nextTabScreenshot: UIImage?
     // Whether the address bar renders as its full toolbar or its minimized "pill" shape
     var isAddressBarMinimized: Bool
-
-    init(appState: AppState, uuid: WindowUUID) {
-        guard let toolbarState = appState.componentState(
-            ToolbarState.self,
-            for: .toolbar,
-            window: uuid)
-        else {
-            self.init(windowUUID: uuid)
-            return
-        }
-
-        self.init(windowUUID: toolbarState.windowUUID,
-                  toolbarPosition: toolbarState.toolbarPosition,
-                  toolbarLayout: toolbarState.toolbarLayout,
-                  tabTrayButtonStyle: toolbarState.tabTrayButtonStyle,
-                  isPrivateMode: toolbarState.isPrivateMode,
-                  addressToolbar: toolbarState.addressToolbar,
-                  navigationToolbar: toolbarState.navigationToolbar,
-                  isShowingNavigationToolbar: toolbarState.isShowingNavigationToolbar,
-                  isShowingTopTabs: toolbarState.isShowingTopTabs,
-                  canGoBack: toolbarState.canGoBack,
-                  canGoForward: toolbarState.canGoForward,
-                  numberOfTabs: toolbarState.numberOfTabs,
-                  showMenuWarningBadge: toolbarState.showMenuWarningBadge,
-                  canShowNavigationHint: toolbarState.canShowNavigationHint,
-                  shouldAnimate: toolbarState.shouldAnimate,
-                  isTranslucent: toolbarState.isTranslucent,
-                  isTranslationsEnabled: toolbarState.isTranslationsEnabled,
-                  previousTabScreenshot: toolbarState.previousTabScreenshot,
-                  nextTabScreenshot: toolbarState.nextTabScreenshot,
-                  isAddressBarMinimized: toolbarState.isAddressBarMinimized
-        )
-    }
 
     init(windowUUID: WindowUUID) {
         self.init(
@@ -133,9 +100,21 @@ struct ToolbarState: ScreenState, Sendable {
         self.isAddressBarMinimized = isAddressBarMinimized
     }
 
-    static let reducer: Reducer<Self> = (legacyReducer, modernReducer)
+    /// Kept verbatim from the reducer; `ToolbarViewModel` calls it from its bus observer.
+    @MainActor
+    static func reduce(_ state: ToolbarState, with action: Action) -> ToolbarState {
+        return handleReducer(state: state, action: action)
+    }
 
-    static let modernReducer: ReducerMethod<Self> = { state, action, actionWindowUUID in
+    /// The modern-action half, kept for the same reason as `reduce`.
+    @MainActor
+    static func reduceModern(_ state: ToolbarState, with action: ToolbarModernAction) -> ToolbarState {
+        return modernReducer(state, action, state.windowUUID)
+    }
+
+    @MainActor
+
+    private static func modernReducer(_ state: Self, _ action: ModernAction, _ actionWindowUUID: WindowUUID) -> Self {
         guard let action = action as? ToolbarModernAction else { return defaultState(from: state) }
 
         switch action {
@@ -148,7 +127,9 @@ struct ToolbarState: ScreenState, Sendable {
         }
     }
 
-    static let legacyReducer: LegacyReducerMethod<Self> = { state, action in
+    @MainActor
+
+    private static func legacyReducer(_ state: Self, _ action: Action) -> Self {
         return handleReducer(state: state, action: action)
     }
 
@@ -234,8 +215,8 @@ struct ToolbarState: ScreenState, Sendable {
             .copy(toolbarPosition: position)
             .copy(toolbarLayout: toolbarLayout)
             .copy(tabTrayButtonStyle: tabTrayButtonStyle)
-            .copy(addressToolbar: AddressBarState.reducer.legacyReducer(state.addressToolbar, toolbarAction))
-            .copy(navigationToolbar: NavigationBarState.reducer.legacyReducer(state.navigationToolbar, toolbarAction))
+            .copy(addressToolbar: AddressBarState.reduce(state.addressToolbar, with: toolbarAction))
+            .copy(navigationToolbar: NavigationBarState.reduce(state.navigationToolbar, with: toolbarAction))
             .copy(isTranslucent: isTranslucent)
             .copy(isTranslationsEnabled: toolbarAction.isTranslationsEnabled ?? state.isTranslationsEnabled)
     }
@@ -251,8 +232,8 @@ struct ToolbarState: ScreenState, Sendable {
 
         return state
             .copy(isPrivateMode: toolbarAction?.isPrivate ?? state.isPrivateMode)
-            .copy(addressToolbar: AddressBarState.reducer.legacyReducer(state.addressToolbar, action))
-            .copy(navigationToolbar: NavigationBarState.reducer.legacyReducer(state.navigationToolbar, action))
+            .copy(addressToolbar: AddressBarState.reduce(state.addressToolbar, with: action))
+            .copy(navigationToolbar: NavigationBarState.reduce(state.navigationToolbar, with: action))
             .copy(isShowingNavigationToolbar: toolbarAction?.isShowingNavigationToolbar ?? state.isShowingNavigationToolbar)
             .copy(isShowingTopTabs: toolbarAction?.isShowingTopTabs ?? state.isShowingTopTabs)
             .copy(canGoBack: toolbarAction?.canGoBack ?? state.canGoBack)
@@ -277,8 +258,8 @@ struct ToolbarState: ScreenState, Sendable {
     private static func handleShowMenuWarningBadge(state: Self, action: Action) -> ToolbarState {
         guard let toolbarAction = action as? ToolbarAction else { return defaultState(from: state) }
         return state
-            .copy(addressToolbar: AddressBarState.reducer.legacyReducer(state.addressToolbar, toolbarAction))
-            .copy(navigationToolbar: NavigationBarState.reducer.legacyReducer(state.navigationToolbar, toolbarAction))
+            .copy(addressToolbar: AddressBarState.reduce(state.addressToolbar, with: toolbarAction))
+            .copy(navigationToolbar: NavigationBarState.reduce(state.navigationToolbar, with: toolbarAction))
             .copy(showMenuWarningBadge: toolbarAction.showMenuWarningBadge ?? state.showMenuWarningBadge)
     }
 
@@ -286,8 +267,8 @@ struct ToolbarState: ScreenState, Sendable {
     private static func handleNumberOfTabsChanged(state: Self, action: Action) -> ToolbarState {
         guard let toolbarAction = action as? ToolbarAction else { return defaultState(from: state) }
         return state
-            .copy(addressToolbar: AddressBarState.reducer.legacyReducer(state.addressToolbar, toolbarAction))
-            .copy(navigationToolbar: NavigationBarState.reducer.legacyReducer(state.navigationToolbar, toolbarAction))
+            .copy(addressToolbar: AddressBarState.reduce(state.addressToolbar, with: toolbarAction))
+            .copy(navigationToolbar: NavigationBarState.reduce(state.navigationToolbar, with: toolbarAction))
             .copy(numberOfTabs: toolbarAction.numberOfTabs ?? state.numberOfTabs)
     }
 
@@ -295,8 +276,8 @@ struct ToolbarState: ScreenState, Sendable {
     private static func handleDidSetTabScreenshot(state: Self, action: Action) -> ToolbarState {
         guard let toolbarAction = action as? ToolbarAction else { return defaultState(from: state) }
         return state
-            .copy(addressToolbar: AddressBarState.reducer.legacyReducer(state.addressToolbar, toolbarAction))
-            .copy(navigationToolbar: NavigationBarState.reducer.legacyReducer(state.navigationToolbar, toolbarAction))
+            .copy(addressToolbar: AddressBarState.reduce(state.addressToolbar, with: toolbarAction))
+            .copy(navigationToolbar: NavigationBarState.reduce(state.navigationToolbar, with: toolbarAction))
             .copy(previousTabScreenshot: toolbarAction.previousTabScreenshot)
             .copy(nextTabScreenshot: toolbarAction.nextTabScreenshot)
     }
@@ -311,16 +292,16 @@ struct ToolbarState: ScreenState, Sendable {
         let position = addressToolbarPositionFromSearchBarPosition(toolbarPosition)
         return state
             .copy(toolbarPosition: position)
-            .copy(addressToolbar: AddressBarState.reducer.legacyReducer(state.addressToolbar, action))
-            .copy(navigationToolbar: NavigationBarState.reducer.legacyReducer(state.navigationToolbar, action))
+            .copy(addressToolbar: AddressBarState.reduce(state.addressToolbar, with: action))
+            .copy(navigationToolbar: NavigationBarState.reduce(state.navigationToolbar, with: action))
     }
 
     @MainActor
     private static func handleBackForwardButtonStateChanged(state: Self, action: Action) -> ToolbarState {
         guard let toolbarAction = action as? ToolbarAction else { return defaultState(from: state) }
         return state
-            .copy(addressToolbar: AddressBarState.reducer.legacyReducer(state.addressToolbar, toolbarAction))
-            .copy(navigationToolbar: NavigationBarState.reducer.legacyReducer(state.navigationToolbar, toolbarAction))
+            .copy(addressToolbar: AddressBarState.reduce(state.addressToolbar, with: toolbarAction))
+            .copy(navigationToolbar: NavigationBarState.reduce(state.navigationToolbar, with: toolbarAction))
             .copy(canGoBack: toolbarAction.canGoBack ?? state.canGoBack)
             .copy(canGoForward: toolbarAction.canGoForward ?? state.canGoForward)
     }
@@ -329,8 +310,8 @@ struct ToolbarState: ScreenState, Sendable {
     private static func handleTraitCollectionDidChange(state: Self, action: Action) -> ToolbarState {
         guard let toolbarAction = action as? ToolbarAction else { return defaultState(from: state) }
         return state
-            .copy(addressToolbar: AddressBarState.reducer.legacyReducer(state.addressToolbar, toolbarAction))
-            .copy(navigationToolbar: NavigationBarState.reducer.legacyReducer(state.navigationToolbar, toolbarAction))
+            .copy(addressToolbar: AddressBarState.reduce(state.addressToolbar, with: toolbarAction))
+            .copy(navigationToolbar: NavigationBarState.reduce(state.navigationToolbar, with: toolbarAction))
             .copy(isShowingNavigationToolbar: toolbarAction.isShowingNavigationToolbar ?? state.isShowingNavigationToolbar)
             .copy(isShowingTopTabs: toolbarAction.isShowingTopTabs ?? state.isShowingTopTabs)
     }
@@ -339,8 +320,8 @@ struct ToolbarState: ScreenState, Sendable {
     private static func handleNavigationButtonDoubleTapped(state: Self, action: Action) -> ToolbarState {
         guard let toolbarAction = action as? ToolbarAction else { return defaultState(from: state) }
         return state
-            .copy(addressToolbar: AddressBarState.reducer.legacyReducer(state.addressToolbar, toolbarAction))
-            .copy(navigationToolbar: NavigationBarState.reducer.legacyReducer(state.navigationToolbar, toolbarAction))
+            .copy(addressToolbar: AddressBarState.reduce(state.addressToolbar, with: toolbarAction))
+            .copy(navigationToolbar: NavigationBarState.reduce(state.navigationToolbar, with: toolbarAction))
             .copy(canShowNavigationHint: true)
     }
 
@@ -348,8 +329,8 @@ struct ToolbarState: ScreenState, Sendable {
     private static func handleNavigationHintFinishedPresenting(state: Self, action: Action) -> ToolbarState {
         guard let toolbarAction = action as? ToolbarAction else { return defaultState(from: state) }
         return state
-            .copy(addressToolbar: AddressBarState.reducer.legacyReducer(state.addressToolbar, toolbarAction))
-            .copy(navigationToolbar: NavigationBarState.reducer.legacyReducer(state.navigationToolbar, toolbarAction))
+            .copy(addressToolbar: AddressBarState.reduce(state.addressToolbar, with: toolbarAction))
+            .copy(navigationToolbar: NavigationBarState.reduce(state.navigationToolbar, with: toolbarAction))
             .copy(canShowNavigationHint: false)
     }
 
@@ -360,9 +341,9 @@ struct ToolbarState: ScreenState, Sendable {
         }
 
         return state
-            .copy(addressToolbar: AddressBarState.reducer.legacyReducer(state.addressToolbar, searchEngineSelectionAction))
-            .copy(navigationToolbar: NavigationBarState.reducer
-                .legacyReducer(state.navigationToolbar, searchEngineSelectionAction))
+            .copy(addressToolbar: AddressBarState.reduce(state.addressToolbar, with: searchEngineSelectionAction))
+            .copy(navigationToolbar: NavigationBarState.reduce(state.navigationToolbar,
+                                                               with: searchEngineSelectionAction))
     }
 
     private static func addressToolbarPositionFromSearchBarPosition(_ position: SearchBarPosition)

@@ -9,25 +9,20 @@ import Redux
 struct SearchEngineSelectionAction: Action {
     let windowUUID: WindowUUID
     let actionType: ActionType
-    let searchEngines: [SearchEngineModel]?
     let selectedSearchEngine: SearchEngineModel?
 
     init(
         windowUUID: WindowUUID,
         actionType: ActionType,
-        searchEngines: [SearchEngineModel]? = nil,
         selectedSearchEngine: SearchEngineModel? = nil
     ) {
         self.windowUUID = windowUUID
         self.actionType = actionType
-        self.searchEngines = searchEngines
         self.selectedSearchEngine = selectedSearchEngine
     }
 }
 
 enum SearchEngineSelectionActionType: ActionType {
-    case viewDidLoad
-    case didLoadSearchEngines
     case didTapSearchEngine
 }
 

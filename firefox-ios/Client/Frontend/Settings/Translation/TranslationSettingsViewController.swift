@@ -9,8 +9,11 @@ import Shared
 /// feature flag is OFF (Phase 1 / pre-language-picker behavior).
 final class TranslationSettingsViewController: SettingsTableViewController {
     let prefs: Prefs
-    init(prefs: Prefs, windowUUID: WindowUUID) {
+    private let service: TranslationSettingsServicing
+
+    init(prefs: Prefs, windowUUID: WindowUUID, service: TranslationSettingsServicing? = nil) {
         self.prefs = prefs
+        self.service = service ?? TranslationSettingsService(windowUUID: windowUUID)
         super.init(style: .grouped, windowUUID: windowUUID)
         self.title = .Settings.Translation.Title
     }
@@ -36,18 +39,9 @@ final class TranslationSettingsViewController: SettingsTableViewController {
             titleText: .Settings.Translation.ToggleTitle
         ) { [weak self] _ in
             guard let self else { return }
+            // `BoolSetting` has already written the pref; re-broadcast the new value.
             let isEnabled = self.prefs.boolForKey(PrefsKeys.Settings.translationsFeature) ?? true
-            store.dispatch(
-                TranslationsAction(
-                    isTranslationsEnabled: isEnabled,
-                    translationConfiguration: TranslationConfiguration(
-                        prefs: self.prefs,
-                        isUserSettingEnabled: isEnabled
-                    ),
-                    windowUUID: self.windowUUID,
-                    actionType: TranslationsActionType.didTranslationSettingsChange
-                )
-            )
+            self.service.setTranslationsEnabled(isEnabled, toggledViaAIControls: false)
         }
         return SettingSection(
             title: NSAttributedString(

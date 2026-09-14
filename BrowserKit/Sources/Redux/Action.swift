@@ -5,7 +5,7 @@
 import Foundation
 import Common
 
-/// Used to describe an action that can be dispatched by the redux store
+/// Used to describe an action that can be dispatched onto the browser event bus
 public protocol Action: Sendable, CustomDebugStringConvertible {
     var windowUUID: WindowUUID { get }
     var actionType: ActionType { get }
@@ -25,7 +25,7 @@ extension Action {
 
 public protocol ActionType: Sendable {}
 
-/// Used to describe an action that can be dispatched by the redux store.
+/// Used to describe an action that can be dispatched onto the browser event bus.
 /// `ModernAction` is the replacement for the old `Action` and `ActionType` protocols, which will be deprecated
 /// in the future.
 public protocol ModernAction: Sendable {

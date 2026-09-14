@@ -23,13 +23,6 @@ final class TermsOfUseLinkTypeTests: XCTestCase {
         XCTAssertNotNil(TermsOfUseLinkType.here.url)
     }
 
-    func testActionTypes_AreCorrect() {
-        XCTAssertEqual(TermsOfUseLinkType.termsOfUse.actionType, .termsLinkTapped)
-        XCTAssertEqual(TermsOfUseLinkType.privacyNotice.actionType, .privacyLinkTapped)
-        XCTAssertEqual(TermsOfUseLinkType.learnMore.actionType, .learnMoreLinkTapped)
-        XCTAssertEqual(TermsOfUseLinkType.here.actionType, .learnMoreLinkTapped)
-    }
-
     func testLinkType_ForURL_ReturnsCorrectType() {
         guard let termsURL = TermsOfUseLinkType.termsOfUse.url else {
             XCTFail("Terms of Use URL should not be nil")

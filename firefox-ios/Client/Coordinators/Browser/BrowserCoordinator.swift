@@ -159,31 +159,24 @@ final class BrowserCoordinator: BaseCoordinator,
             statusBarScrollDelegate: statusBarScrollDelegate,
             toastContainer: toastContainer
         )
-        browserViewController.dispatchAvailableContentHeightChangedAction()
         homepageController.termsOfUseDelegate = self
         homepageController.view.accessibilityElementsHidden = false
-        dispatchActionForEmbeddingHomepage(with: isZeroSearch)
+        homepageController.setZeroSearch(isZeroSearch)
         let didEmbed = browserViewController.embedContent(homepageController)
         if !didEmbed {
             logger.log("Unable to embed new homepage", level: .debug, category: .coordinator)
         }
         self.homepageViewController = homepageController
+        // After embedding: the height is measured against the embedded homepage, so running this
+        // first left it unset until the second call, which then resized the spacer and scrolled
+        // the collection view back to the top.
+        browserViewController.updateHomepageAvailableContentHeight()
         homepageController.restoreVerticalScrollOffset(force: didEmbed)
 
         if didEmbed {
             // [FXIOS-13651] Fix for WKWebView memory leak. (See comments on related PR.)
             webviewController?.update(webView: nil)
         }
-    }
-
-    private func dispatchActionForEmbeddingHomepage(with isZeroSearch: Bool) {
-        store.dispatch(
-            HomepageAction(
-                isZeroSearch: isZeroSearch,
-                windowUUID: windowUUID,
-                actionType: HomepageActionType.embeddedHomepage
-            )
-        )
     }
 
     func showPrivateHomepage(overlayManager: OverlayModeManager) {
@@ -746,9 +739,7 @@ final class BrowserCoordinator: BaseCoordinator,
 
     func showSearchEngineSelection(forSourceView sourceView: UIView) {
         guard !childCoordinators.contains(where: { $0 is SearchEngineSelectionCoordinator }) else { return }
-        let isEditing = store.state.componentState(ToolbarState.self,
-                                                   for: .toolbar,
-                                                   window: windowUUID)?.addressToolbar.isEditing == true
+        let isEditing = ToolbarViewModel.instance(for: windowUUID).state.addressToolbar.isEditing == true
 
         let navigationController = DismissableNavigationViewController()
         if navigationController.shouldUseiPadSetup() {
@@ -761,7 +752,7 @@ final class BrowserCoordinator: BaseCoordinator,
             navigationController.sheetPresentationController?.detents = [.medium(), .large()]
             navigationController.sheetPresentationController?.prefersGrabberVisible = true
             if isEditing {
-                store.dispatch(
+                browserEventBus.dispatch(
                     ToolbarAction(
                         shouldShowKeyboard: false,
                         windowUUID: windowUUID,
@@ -1042,7 +1033,7 @@ final class BrowserCoordinator: BaseCoordinator,
         navigationController.onViewDismissed = { [weak self] in
             guard let self else { return }
             self.didDismissTabTray(from: tabTrayCoordinator)
-            store.dispatch(
+            browserEventBus.dispatch(
                 TabTrayAction(
                     windowUUID: self.windowUUID,
                     actionType: TabTrayActionType.modalSwipedToClose
@@ -1176,9 +1167,9 @@ final class BrowserCoordinator: BaseCoordinator,
         }
         add(child: coordinator)
         coordinator.start()
-        store.dispatch(GeneralBrowserAction(showOverlay: false,
-                                            windowUUID: self.windowUUID,
-                                            actionType: GeneralBrowserActionType.leaveOverlay))
+        browserEventBus.dispatch(GeneralBrowserAction(showOverlay: false,
+                                                      windowUUID: self.windowUUID,
+                                                      actionType: GeneralBrowserActionType.leaveOverlay))
     }
 
     func showGoogleLensCamera() {
@@ -1193,9 +1184,9 @@ final class BrowserCoordinator: BaseCoordinator,
         }
         add(child: coordinator)
         coordinator.start()
-        store.dispatch(GeneralBrowserAction(showOverlay: false,
-                                            windowUUID: self.windowUUID,
-                                            actionType: GeneralBrowserActionType.leaveOverlay))
+        browserEventBus.dispatch(GeneralBrowserAction(showOverlay: false,
+                                                      windowUUID: self.windowUUID,
+                                                      actionType: GeneralBrowserActionType.leaveOverlay))
     }
 
     func searchGoogleLens(with image: UIImage, source: GoogleLensTelemetry.Source, searchTimerId: GleanTimerId? = nil) {
@@ -1323,9 +1314,9 @@ final class BrowserCoordinator: BaseCoordinator,
     }
 
     func showNativeErrorPage(overlayManager: OverlayModeManager) {
-        if nativeErrorPageViewController != nil {
-            // Already showing a native error page, the existing instance will
-            // pick up the new error state via its Redux subscription.
+        if let nativeErrorPageViewController {
+            // Already showing a native error page; hand it the new error explicitly.
+            nativeErrorPageViewController.reloadErrorModel()
             return
         }
 
@@ -1394,13 +1385,6 @@ final class BrowserCoordinator: BaseCoordinator,
         let passwordGenVC = PasswordGeneratorViewController(windowUUID: windowUUID,
                                                             currentTab: tab,
                                                             frameContext: frameContext)
-
-        let action = PasswordGeneratorAction(
-            windowUUID: windowUUID,
-            actionType: PasswordGeneratorActionType.showPasswordGenerator,
-            frameContext: frameContext
-        )
-        store.dispatch(action)
 
         let bottomSheetVM = BottomSheetViewModel(
             shouldDismissForTapOutside: true,

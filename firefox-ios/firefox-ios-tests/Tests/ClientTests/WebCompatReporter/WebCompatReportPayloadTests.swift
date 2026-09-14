@@ -186,7 +186,7 @@ final class WebCompatReportPayloadTests: XCTestCase {
         selectedSubOptionID: String? = nil,
         additionalDetails: String = ""
     ) -> WebCompatReporterState {
-        return WebCompatReporterState(windowUUID: .XCTestDefaultUUID)
+        return WebCompatReporterState()
             .copy(url: url)
             .copy(selectedCategory: selectedCategory)
             .copy(selectedSubOptionID: selectedSubOptionID)

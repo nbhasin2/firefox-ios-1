@@ -37,12 +37,10 @@ class TopSitesRowCountSettingsController: SettingsTableViewController, FeatureFl
                 self.prefs.setInt(Int32(num), forKey: PrefsKeys.NumberOfTopSiteRows)
                 self.tableView.reloadData()
 
-                store.dispatch(
-                    TopSitesAction(
-                        numberOfRows: Int(num),
-                        windowUUID: self.windowUUID,
-                        actionType: TopSitesActionType.updatedNumberOfRows
-                    )
+                HomepageSectionSettingsNotification.post(
+                    section: .topSites,
+                    numberOfRows: Int(num),
+                    windowUUID: self.windowUUID
                 )
             })
         }

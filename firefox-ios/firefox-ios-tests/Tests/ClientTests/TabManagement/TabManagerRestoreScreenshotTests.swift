@@ -10,18 +10,18 @@ import XCTest
 
 @testable import Client
 
-final class TabManagerRestoreScreenshotTests: TabManagerTestsBase, StoreTestUtility {
-    var mockStore: MockStoreForMiddleware<AppState>!
+final class TabManagerRestoreScreenshotTests: TabManagerTestsBase, BusTestUtility {
+    var mockBus: MockBrowserEventBus!
 
     override func setUp() async throws {
         try await super.setUp()
         setIsDeeplinkOptimizationRefactorEnabled(true)
-        setupStore()
+        setupBus()
     }
 
     override func tearDown() async throws {
-        resetStore()
-        mockStore = nil
+        resetBus()
+        mockBus = nil
         try await super.tearDown()
     }
 
@@ -35,7 +35,7 @@ final class TabManagerRestoreScreenshotTests: TabManagerTestsBase, StoreTestUtil
         subject.restoreScreenshot(for: tab)
 
         XCTAssertTrue(
-            mockStore.dispatchedActions.isEmpty,
+            mockBus.dispatchedActions.isEmpty,
             "restoreScreenshot must not dispatch any action when the tab's screenshot is already in memory."
         )
         XCTAssertTrue(
@@ -52,11 +52,11 @@ final class TabManagerRestoreScreenshotTests: TabManagerTestsBase, StoreTestUtil
         let subject = createSubject(tabs: tabs)
 
         let expectation = XCTestExpectation(description: "screenshotRestored is dispatched after the disk load.")
-        mockStore.dispatchCalled = { [weak mockStore] in
+        mockBus.dispatchCalled = { [weak mockBus] in
             let isScreenshotRestored: (Action) -> Bool = {
                 ($0 as? ScreenshotAction)?.actionType as? ScreenshotActionType == .screenshotRestored
             }
-            guard mockStore?.dispatchedActions.contains(where: isScreenshotRestored) == true else { return }
+            guard mockBus?.dispatchedActions.contains(where: isScreenshotRestored) == true else { return }
             expectation.fulfill()
         }
 
@@ -65,21 +65,16 @@ final class TabManagerRestoreScreenshotTests: TabManagerTestsBase, StoreTestUtil
         wait(for: [expectation], timeout: 1.0)
     }
 
-    // MARK: - StoreTestUtility
+    // MARK: - BusTestUtility
 
     @MainActor
-    func setupAppState() -> AppState {
-        return AppState()
+    func setupBus() {
+        mockBus = MockBrowserEventBus()
+        BusTestUtilityHelper.setupBus(with: mockBus)
     }
 
     @MainActor
-    func setupStore() {
-        mockStore = MockStoreForMiddleware(state: setupAppState())
-        StoreTestUtilityHelper.setupStore(with: mockStore)
-    }
-
-    @MainActor
-    func resetStore() {
-        StoreTestUtilityHelper.resetStore()
+    func resetBus() {
+        BusTestUtilityHelper.resetBus()
     }
 }

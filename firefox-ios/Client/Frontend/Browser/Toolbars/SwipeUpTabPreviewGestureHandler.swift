@@ -7,7 +7,7 @@ import Common
 import Redux
 
 @MainActor
-final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelegate, StoreSubscriber {
+final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelegate {
     private struct UX {
         static let closeTabAnimationsDuration: CGFloat = 0.3
         static let dismissPreviewDelay: CGFloat = 0.4
@@ -21,7 +21,7 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
     private weak var tabManager: TabManager?
     private let themeManager: ThemeManager
     private let windowUUID: WindowUUID
-    private var toolbarState: ToolbarState?
+    private var toolbarState: ToolbarState
     private weak var panGesture: UIPanGestureRecognizer?
     private weak var swipeUpGesture: UISwipeGestureRecognizer?
     private weak var swipeDownGesture: UISwipeGestureRecognizer?
@@ -59,8 +59,9 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
         self.windowUUID = windowUUID
         self.swipeGestureFeatureFlagProvider = swipeGestureFeatureFlagProvider
         self.toolbarTelemetry = toolbarTelemetry
+        self.toolbarState = ToolbarViewModel.instance(for: windowUUID).state
         super.init()
-        subscribeToRedux()
+        observeToolbarState()
     }
 
     deinit {
@@ -74,25 +75,24 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
         }
 
         MainActor.assumeIsolated {
-            unsubscribeFromRedux()
+            stopObservingToolbarState()
         }
     }
 
-    // MARK: - Redux
-    func subscribeToRedux() {
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            $0.select({ appState in
-                return ToolbarState(appState: appState, uuid: uuid)
-            })
-        })
+    // MARK: - Toolbar state
+    func observeToolbarState() {
+        let viewModel = ToolbarViewModel.instance(for: windowUUID)
+        viewModel.addObserver(self) { [weak self] state in
+            self?.applyToolbarState(state)
+        }
+        applyToolbarState(viewModel.state)
     }
 
-    private func unsubscribeFromRedux() {
-        store.unsubscribe(self)
+    private func stopObservingToolbarState() {
+        ToolbarViewModel.instance(for: windowUUID).removeObserver(self)
     }
 
-    func newState(state: ToolbarState) {
+    private func applyToolbarState(_ state: ToolbarState) {
         toolbarState = state
         setGestureHandlers(toolbarState: state)
     }
@@ -229,7 +229,7 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
             UIView.animate(withDuration: UX.closeTabAnimationsDuration) { [self] in
                 tabPreview.tossPreview()
             } completion: { [weak self, windowUUID] _ in
-                store.dispatch(
+                browserEventBus.dispatch(
                     TabPanelViewAction(
                         panelType: .tabs,
                         tabUUID: self?.tabManager?.selectedTab?.tabUUID,
@@ -252,7 +252,7 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
                 self.tabPreview.dismissForTabTray()
             }
             toolbarTelemetry.addressBarDragged(outcome: ToolbarTelemetry.PanGestureOutcomes.tabTrayOpened)
-            store.dispatch(
+            browserEventBus.dispatch(
                 GeneralBrowserAction(
                     windowUUID: windowUUID,
                     actionType: GeneralBrowserActionType.showTabTray
@@ -274,15 +274,15 @@ final class SwipeUpTabPreviewGestureHandler: NSObject, UIGestureRecognizerDelega
     private func handleSwipeGesture(_ gesture: UISwipeGestureRecognizer) {
         let direction = gesture.direction
 
-        if direction == .up && toolbarState?.toolbarPosition == .top {
+        if direction == .up && toolbarState.toolbarPosition == .top {
             return
-        } else if direction == .down && toolbarState?.toolbarPosition == .bottom {
+        } else if direction == .down && toolbarState.toolbarPosition == .bottom {
             return
         }
 
         addHaptics()
-        store.dispatch(ToolbarMiddlewareAction(windowUUID: windowUUID,
-                                               actionType: ToolbarMiddlewareActionType.didSwipeToOpenTabTray))
+        browserEventBus.dispatch(ToolbarMiddlewareAction(windowUUID: windowUUID,
+                                                         actionType: ToolbarMiddlewareActionType.didSwipeToOpenTabTray))
     }
 
     private func addHaptics() {

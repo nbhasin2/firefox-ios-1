@@ -46,7 +46,7 @@ extension AppInfo {
         return false
     }()
 
-    // The App Store page identifier for the Firefox iOS application
+    // The App BrowserEventBus page identifier for the Firefox iOS application
     public static let appStoreId = "id989804926"
 
     /// Return the shared container identifier (also known as the app group) to be used with for example background

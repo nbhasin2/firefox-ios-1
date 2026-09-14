@@ -105,6 +105,6 @@ struct AddressBarSettingsView: View, UserFeaturePreferenceProvider {
         let action = ToolbarAction(middleButton: selectedOption,
                                    windowUUID: windowUUID,
                                    actionType: ToolbarActionType.navigationMiddleButtonDidChange)
-        store.dispatch(action)
+        browserEventBus.dispatch(action)
     }
 }

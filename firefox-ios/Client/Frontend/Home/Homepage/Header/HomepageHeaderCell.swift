@@ -215,7 +215,7 @@ class HomepageHeaderCell: UICollectionViewCell, ReusableCell, ThemeApplicable, F
             // convert the button frame to the parent window frame to have correct transition.
             .crossDissolve(sourceRect: quickAnswersButton.convert(quickAnswersButton.bounds, to: nil))
         }
-        store.dispatch(
+        browserEventBus.dispatch(
             NavigationBrowserAction(
                 navigationDestination: NavigationDestination(.quickAnswers(transitionType: transitionType)),
                 windowUUID: headerState.windowUUID,

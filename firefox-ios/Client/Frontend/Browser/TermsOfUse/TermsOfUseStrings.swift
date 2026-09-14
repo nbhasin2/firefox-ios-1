@@ -57,17 +57,6 @@ enum TermsOfUseLinkType: CaseIterable {
         }
     }
 
-    var actionType: TermsOfUseActionType {
-        switch self {
-        case .termsOfUse:
-            return .termsLinkTapped
-        case .privacyNotice:
-            return .privacyLinkTapped
-        case .learnMore, .here:
-            return .learnMoreLinkTapped
-        }
-    }
-
     static func linkType(for url: URL) -> TermsOfUseLinkType? {
         return TermsOfUseLinkType.allCases.first { $0.url == url }
     }

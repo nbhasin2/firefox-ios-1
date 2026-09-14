@@ -127,7 +127,7 @@ final class AutoTranslatePromptView: UIView, AlphaDimmable, ThemeApplicable, Not
 
     @objc
     private func didTapEnable() {
-        store.dispatch(TranslationsAction(
+        browserEventBus.dispatch(TranslationsAction(
             windowUUID: windowUUID,
             actionType: TranslationsActionType.didTapEnableAutoTranslate
         ))
@@ -135,7 +135,7 @@ final class AutoTranslatePromptView: UIView, AlphaDimmable, ThemeApplicable, Not
 
     @objc
     private func didTapDismiss() {
-        store.dispatch(TranslationsAction(
+        browserEventBus.dispatch(TranslationsAction(
             windowUUID: windowUUID,
             actionType: TranslationsActionType.didDismissAutoTranslatePrompt
         ))

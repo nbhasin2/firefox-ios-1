@@ -16,7 +16,7 @@ class MainMenuViewController: UIViewController,
                               Themeable,
                               Notifiable,
                               FeatureFlaggable,
-                              StoreSubscriber {
+                              MainMenuViewModelDelegate {
     private struct UX {
         static let hintViewCornerRadius: CGFloat = 20
         static let hintViewHeight: CGFloat = 140
@@ -24,7 +24,6 @@ class MainMenuViewController: UIViewController,
         static let menuHeightTolerance: CGFloat = 20
         static let topMarginCFR: CGFloat = 100
     }
-    typealias SubscriberStateType = MainMenuState
 
     // MARK: - UI/UX elements
     private lazy var menuContent: MenuMainView = .build()
@@ -42,6 +41,7 @@ class MainMenuViewController: UIViewController,
     private let windowUUID: WindowUUID
     private let profile: Profile
     private var menuState: MainMenuState
+    private let viewModel: MainMenuViewModel
     private let logger: Logger
     private let mainMenuHelper: MainMenuInterface
 
@@ -84,15 +84,17 @@ class MainMenuViewController: UIViewController,
         notificationCenter: NotificationProtocol = NotificationCenter.default,
         themeManager: ThemeManager = AppContainer.shared.resolve(),
         logger: Logger = DefaultLogger.shared,
-        mainMenuHelper: MainMenuInterface = MainMenuHelper()
+        mainMenuHelper: MainMenuInterface = MainMenuHelper(),
+        viewModel: MainMenuViewModel? = nil
     ) {
+        self.viewModel = viewModel ?? MainMenuViewModel(windowUUID: windowUUID)
         self.windowUUID = windowUUID
         self.profile = profile
         self.notificationCenter = notificationCenter
         self.themeManager = themeManager
         self.logger = logger
         self.mainMenuHelper = mainMenuHelper
-        self.menuState = MainMenuState(windowUUID: windowUUID)
+        self.menuState = MainMenuState()
         self.lastOrientation = UIDevice.current.orientation
         super.init(nibName: nil, bundle: nil)
 
@@ -116,8 +118,6 @@ class MainMenuViewController: UIViewController,
         presentationController?.delegate = self
         sheetPresentationController?.delegate = self
 
-        subscribeToRedux()
-
         setupView()
         setupMenuOrientation()
 
@@ -126,12 +126,8 @@ class MainMenuViewController: UIViewController,
         listenForThemeChanges(withNotificationCenter: notificationCenter)
         applyTheme()
 
-        store.dispatch(
-            MainMenuAction(
-                windowUUID: windowUUID,
-                actionType: MainMenuActionType.viewDidLoad
-            )
-        )
+        bindViewModel()
+        viewModel.viewDidLoad()
 
         menuContent.siteProtectionHeader.closeButtonCallback = { [weak self] in
             self?.dispatchCloseMenuAction()
@@ -208,23 +204,6 @@ class MainMenuViewController: UIViewController,
         hintView.removeFromSuperview()
     }
 
-    deinit {
-        // TODO: FXIOS-13097 This is a work around until we can leverage isolated deinits
-        guard Thread.isMainThread else {
-            logger.log(
-                "MainMenuViewController was not deallocated on the main thread. Redux was not cleaned up.",
-                level: .fatal,
-                category: .lifecycle
-            )
-            assertionFailure("The view controller was not deallocated on the main thread. Redux was not cleaned up.")
-            return
-        }
-
-        MainActor.assumeIsolated {
-            unsubscribeFromRedux()
-        }
-    }
-
     private func updateBlur() {
         let shouldShowBlur = !mainMenuHelper.isReduceTransparencyEnabled
 
@@ -258,12 +237,7 @@ class MainMenuViewController: UIViewController,
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         adjustLayout()
-        store.dispatch(
-            MainMenuAction(
-                windowUUID: self.windowUUID,
-                actionType: MainMenuActionType.updateMenuAppearance
-            )
-        )
+        viewModel.updateMenuAppearance()
         setupMenuOrientation()
     }
 
@@ -278,12 +252,7 @@ class MainMenuViewController: UIViewController,
                 self?.adjustLayout()
             }
         }, completion: nil)
-        store.dispatch(
-            MainMenuAction(
-                windowUUID: windowUUID,
-                actionType: MainMenuActionType.viewWillTransition
-            )
-        )
+        viewModel.viewWillTransition()
     }
 
     // MARK: - UI setup
@@ -366,34 +335,24 @@ class MainMenuViewController: UIViewController,
         adjustLayout()
     }
 
-    // MARK: - Redux
-    func subscribeToRedux() {
-        store.dispatch(
-            ComponentAction(
-                windowUUID: windowUUID,
-                actionType: ComponentActionType.addComponent,
-                component: .mainMenu
-            )
-        )
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            return $0.select({ appState in
-                return MainMenuState(appState: appState, uuid: uuid)
-            })
-        })
+    // MARK: - View model
+
+    private func bindViewModel() {
+        viewModel.delegate = self
+        viewModel.onStateChange = { [weak self] state in
+            self?.render(state)
+        }
     }
 
-    func unsubscribeFromRedux() {
-        store.dispatch(
-            ComponentAction(
-                windowUUID: windowUUID,
-                actionType: ComponentActionType.removeComponent,
-                component: .mainMenu
-            )
-        )
+    func mainMenuViewModelDidRequestNavigation(to destination: MenuNavigationDestination) {
+        coordinator?.navigateTo(destination, animated: true)
     }
 
-    func newState(state: MainMenuState) {
+    func mainMenuViewModelDidRequestDismiss() {
+        coordinator?.dismissMenuModal(animated: true)
+    }
+
+    private func render(_ state: MainMenuState) {
         menuState = state
 
         isBrowserDefault = menuState.isBrowserDefault
@@ -402,16 +361,6 @@ class MainMenuViewController: UIViewController,
 
         if let siteProtectionsData = menuState.siteProtectionsData {
             updateSiteProtectionsHeaderWith(siteProtectionsData: siteProtectionsData)
-        }
-
-        if let navigationDestination = menuState.navigationDestination {
-            coordinator?.navigateTo(navigationDestination, animated: true)
-            return
-        }
-
-        if menuState.shouldDismiss {
-            coordinator?.dismissMenuModal(animated: true)
-            return
         }
 
         changeDetentIfNecessary()
@@ -425,46 +374,19 @@ class MainMenuViewController: UIViewController,
     }
 
     private func dispatchCloseMenuAction() {
-        store.dispatch(
-            MainMenuAction(
-                windowUUID: self.windowUUID,
-                actionType: MainMenuActionType.tapCloseMenu,
-                currentTabInfo: menuState.currentTabInfo
-            )
-        )
+        viewModel.tapCloseMenu()
     }
 
     private func dispatchSiteProtectionAction() {
-        store.dispatch(
-            MainMenuAction(
-                windowUUID: self.windowUUID,
-                actionType: MainMenuActionType.tapNavigateToDestination,
-                navigationDestination: MenuNavigationDestination(.siteProtections),
-                currentTabInfo: menuState.currentTabInfo
-            )
-        )
+        viewModel.tapNavigateToDestination(MenuNavigationDestination(.siteProtections))
     }
 
     private func dispatchAdBlockerAction() {
-        store.dispatch(
-            MainMenuAction(
-                windowUUID: self.windowUUID,
-                actionType: MainMenuActionType.tapNavigateToDestination,
-                navigationDestination: MenuNavigationDestination(.adBlocker),
-                currentTabInfo: menuState.currentTabInfo
-            )
-        )
+        viewModel.tapNavigateToDestination(MenuNavigationDestination(.adBlocker))
     }
 
     private func dispatchDefaultBrowserAction() {
-        store.dispatch(
-            MainMenuAction(
-                windowUUID: self.windowUUID,
-                actionType: MainMenuActionType.tapNavigateToDestination,
-                navigationDestination: MenuNavigationDestination(.defaultBrowser),
-                currentTabInfo: menuState.currentTabInfo
-            )
-        )
+        viewModel.tapNavigateToDestination(MenuNavigationDestination(.defaultBrowser))
     }
 
     // MARK: - UX related
@@ -626,13 +548,7 @@ class MainMenuViewController: UIViewController,
 
     // MARK: - UIAdaptivePresentationControllerDelegate
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
-        store.dispatch(
-            MainMenuAction(
-                windowUUID: self.windowUUID,
-                actionType: MainMenuActionType.menuDismissed,
-                currentTabInfo: menuState.currentTabInfo
-            )
-        )
+        viewModel.menuDismissed()
         coordinator?.removeCoordinatorFromParent()
     }
 

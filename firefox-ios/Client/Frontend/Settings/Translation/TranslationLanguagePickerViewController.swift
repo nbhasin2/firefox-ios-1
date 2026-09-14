@@ -3,7 +3,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
 import Common
-import Redux
 import UIKit
 
 final class TranslationLanguagePickerViewController: UIViewController,
@@ -22,6 +21,7 @@ final class TranslationLanguagePickerViewController: UIViewController,
 
     let windowUUID: WindowUUID
     private let localeProvider: LocaleProvider
+    private let onSelectLanguage: (@MainActor (String) -> Void)?
     private let allLanguages: [String]
     private var filteredLanguages: [String]
 
@@ -50,7 +50,9 @@ final class TranslationLanguagePickerViewController: UIViewController,
          languages: [String],
          themeManager: ThemeManager = AppContainer.shared.resolve(),
          notificationCenter: NotificationCenter = NotificationCenter.default,
-         localeProvider: LocaleProvider = SystemLocaleProvider()) {
+         localeProvider: LocaleProvider = SystemLocaleProvider(),
+         onSelectLanguage: (@MainActor (String) -> Void)? = nil) {
+        self.onSelectLanguage = onSelectLanguage
         self.windowUUID = windowUUID
         self.themeManager = themeManager
         self.notificationCenter = notificationCenter
@@ -119,11 +121,7 @@ final class TranslationLanguagePickerViewController: UIViewController,
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let languageCode = filteredLanguages[indexPath.row]
-        store.dispatch(TranslationSettingsViewAction(
-            languageCode: languageCode,
-            windowUUID: windowUUID,
-            actionType: TranslationSettingsViewActionType.addLanguage
-        ))
+        onSelectLanguage?(languageCode)
         searchController.isActive = false
         dismiss(animated: true)
     }

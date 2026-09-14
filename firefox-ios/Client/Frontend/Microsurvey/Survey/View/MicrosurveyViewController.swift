@@ -5,28 +5,26 @@
 import Foundation
 import Common
 import ComponentLibrary
-import Redux
 import Shared
 
 final class MicrosurveyViewController: UIViewController,
                                        UITableViewDataSource,
                                        UITableViewDelegate,
                                        Themeable,
-                                       StoreSubscriber,
                                        Notifiable {
-    typealias SubscriberStateType = MicrosurveyState
-
     // MARK: Themeable Variables
     var themeManager: Common.ThemeManager
     var themeListenerCancellable: Any?
     var notificationCenter: Common.NotificationProtocol
     var currentWindowUUID: UUID? { windowUUID }
 
-    weak var coordinator: MicrosurveyCoordinatorDelegate?
+    weak var coordinator: MicrosurveyCoordinatorDelegate? {
+        didSet { viewModel.coordinator = coordinator }
+    }
 
     private let windowUUID: WindowUUID
     private let model: MicrosurveyModel
-    private var microsurveyState: MicrosurveyState
+    private let viewModel: MicrosurveyViewModel
     private var selectedOption: String?
 
     // MARK: UI Elements
@@ -129,13 +127,14 @@ final class MicrosurveyViewController: UIViewController,
         model: MicrosurveyModel,
         windowUUID: WindowUUID,
         themeManager: ThemeManager = AppContainer.shared.resolve(),
-        notificationCenter: NotificationProtocol = NotificationCenter.default
+        notificationCenter: NotificationProtocol = NotificationCenter.default,
+        viewModel: MicrosurveyViewModel? = nil
     ) {
         self.windowUUID = windowUUID
         self.themeManager = themeManager
         self.notificationCenter = notificationCenter
-        microsurveyState = MicrosurveyState(windowUUID: windowUUID)
         self.model = model
+        self.viewModel = viewModel ?? MicrosurveyViewModel(model: model, windowUUID: windowUUID)
         super.init(nibName: nil, bundle: nil)
         startObservingNotifications(
             withNotificationCenter: notificationCenter,
@@ -143,39 +142,8 @@ final class MicrosurveyViewController: UIViewController,
             observing: [UIContentSizeCategory.didChangeNotification]
         )
 
-        subscribeToRedux()
         configureUI()
         setupLayout()
-    }
-
-    // MARK: Redux
-    func newState(state: MicrosurveyState) {
-        microsurveyState = state
-        if microsurveyState.shouldDismiss {
-            coordinator?.dismissFlow()
-        } else if microsurveyState.showPrivacy {
-            coordinator?.showPrivacy(with: model.utmContent)
-        }
-    }
-
-    func subscribeToRedux() {
-        let action = ComponentAction(windowUUID: windowUUID,
-                                     actionType: ComponentActionType.addComponent,
-                                     component: .microsurvey)
-        store.dispatch(action)
-        let uuid = windowUUID
-        store.subscribe(self, transform: {
-            return $0.select({ appState in
-                return MicrosurveyState(appState: appState, uuid: uuid)
-            })
-        })
-    }
-
-    func unsubscribeFromRedux() {
-        let action = ComponentAction(windowUUID: windowUUID,
-                                     actionType: ComponentActionType.removeComponent,
-                                     component: .microsurvey)
-        store.dispatch(action)
     }
 
     override func viewDidLoad() {
@@ -192,21 +160,7 @@ final class MicrosurveyViewController: UIViewController,
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        store.dispatch(
-            MicrosurveyAction(surveyId: model.id, windowUUID: windowUUID, actionType: MicrosurveyActionType.surveyDidAppear)
-        )
-    }
-
-    deinit {
-        // TODO: FXIOS-13097 This is a work around until we can leverage isolated deinits
-        guard Thread.isMainThread else {
-            assertionFailure("tabSwipeGestureHandler was not deallocated on the main thread. Observer was not removed")
-            return
-        }
-
-        MainActor.assumeIsolated {
-            unsubscribeFromRedux()
-        }
+        viewModel.surveyDidAppear()
     }
 
     private func configureUI() {
@@ -332,14 +286,7 @@ final class MicrosurveyViewController: UIViewController,
     }
 
     private func sendTelemetry() {
-        store.dispatch(
-            MicrosurveyAction(
-                surveyId: model.id,
-                userSelection: selectedOption,
-                windowUUID: windowUUID,
-                actionType: MicrosurveyActionType.submitSurvey
-            )
-        )
+        viewModel.submitSurvey(userSelection: selectedOption)
     }
 
     private func showConfirmationPage() {
@@ -358,35 +305,17 @@ final class MicrosurveyViewController: UIViewController,
         )
         confirmationView.applyTheme(theme: themeManager.getCurrentTheme(for: windowUUID))
         UIAccessibility.post(notification: .screenChanged, argument: nil)
-        store.dispatch(
-            MicrosurveyAction(
-                surveyId: model.id,
-                windowUUID: windowUUID,
-                actionType: MicrosurveyActionType.confirmationViewed
-            )
-        )
+        viewModel.confirmationViewed()
     }
 
     @objc
     private func didTapClose() {
-        store.dispatch(
-            MicrosurveyAction(
-                surveyId: model.id,
-                windowUUID: windowUUID,
-                actionType: MicrosurveyActionType.closeSurvey
-            )
-        )
+        viewModel.closeSurvey()
     }
 
     @objc
     private func didTapPrivacyPolicy() {
-        store.dispatch(
-            MicrosurveyAction(
-                surveyId: model.id,
-                windowUUID: windowUUID,
-                actionType: MicrosurveyActionType.tapPrivacyNotice
-            )
-        )
+        viewModel.tapPrivacyNotice()
     }
 
     // MARK: UITableViewDataSource

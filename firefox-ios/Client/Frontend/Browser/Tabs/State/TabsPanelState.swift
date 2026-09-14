@@ -2,13 +2,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
-import Foundation
-import Redux
 import Common
+import Foundation
 import ModifiedCopy
 
 @Copyable
-struct TabsPanelState: ScreenState, Equatable {
+struct TabsPanelState: Equatable {
     struct ScrollState: Equatable {
         let toIndex: Int
         let withAnimation: Bool
@@ -24,24 +23,6 @@ struct TabsPanelState: ScreenState, Equatable {
     var isPrivateTabsEmpty: Bool {
         guard isPrivateMode else { return true }
         return tabs.isEmpty
-    }
-
-    init(appState: AppState, uuid: WindowUUID) {
-        guard let panelState = appState.componentState(
-            TabsPanelState.self,
-            for: .tabsPanel,
-            window: uuid
-        ) else {
-            self.init(windowUUID: uuid)
-            return
-        }
-
-        self.init(windowUUID: panelState.windowUUID,
-                  isPrivateMode: panelState.isPrivateMode,
-                  tabs: panelState.tabs,
-                  scrollState: panelState.scrollState,
-                  didTapAddTab: panelState.didTapAddTab,
-                  urlRequest: panelState.urlRequest)
     }
 
     init(windowUUID: WindowUUID, isPrivateMode: Bool = false) {
@@ -68,74 +49,6 @@ struct TabsPanelState: ScreenState, Equatable {
         self.scrollState = scrollState
         self.didTapAddTab = didTapAddTab
         self.urlRequest = urlRequest
-    }
-
-    static let reducer: Reducer<Self> = (legacyReducer, modernReducer)
-
-    static let modernReducer: ReducerMethod<Self> = { state, action, actionWindowUUID in
-        // Does not handle any modern actions
-        return defaultState(from: state)
-    }
-
-    static let legacyReducer: LegacyReducerMethod<Self> = { state, action in
-        // Only process actions for the current window
-        guard action.windowUUID == .unavailable || action.windowUUID == state.windowUUID else {
-            return defaultState(from: state)
-        }
-
-        if let action = action as? TabPanelMiddlewareAction {
-            return TabsPanelState.reduceTabPanelMiddlewareAction(action: action, state: state)
-        }
-
-        return defaultState(from: state)
-    }
-
-    static func reduceTabPanelMiddlewareAction(action: TabPanelMiddlewareAction,
-                                               state: TabsPanelState) -> TabsPanelState {
-        switch action.actionType {
-        case TabPanelMiddlewareActionType.didLoadTabPanel,
-            TabPanelMiddlewareActionType.didChangeTabPanel:
-            guard let tabsModel = action.tabDisplayModel else { return defaultState(from: state) }
-            return state
-                .resetTransientState()
-                .copy(isPrivateMode: tabsModel.isPrivateMode)
-                .copy(tabs: tabsModel.tabs)
-
-        case TabPanelMiddlewareActionType.willAppearTabPanel:
-            let scrollModel = createTabScrollBehavior(
-                forState: state,
-                withScrollBehavior: .scrollToSelectedTab(shouldAnimate: false)
-            )
-            return state
-                .resetTransientState()
-                .copy(scrollState: scrollModel)
-
-        case TabPanelMiddlewareActionType.refreshTabs:
-            guard let tabModel = action.tabDisplayModel else { return defaultState(from: state) }
-            return state
-                .resetTransientState()
-                .copy(tabs: tabModel.tabs)
-
-        case TabPanelMiddlewareActionType.scrollToTab:
-            guard let scrollBehavior = action.scrollBehavior else { return defaultState(from: state) }
-            let scrollModel = createTabScrollBehavior(forState: state, withScrollBehavior: scrollBehavior)
-            return state
-                .resetTransientState()
-                .copy(scrollState: scrollModel)
-
-        default:
-            return defaultState(from: state)
-        }
-    }
-
-    static func defaultState(from state: TabsPanelState) -> TabsPanelState {
-        return TabsPanelState(windowUUID: state.windowUUID,
-                              isPrivateMode: state.isPrivateMode,
-                              tabs: state.tabs,
-                              toastType: nil,
-                              scrollState: nil,
-                              didTapAddTab: false,
-                              urlRequest: nil)
     }
 
     static func createTabScrollBehavior(

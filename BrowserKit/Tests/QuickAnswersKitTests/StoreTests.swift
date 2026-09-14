@@ -30,8 +30,8 @@ struct StoreTests {
     }
 
     // MARK: - Helper
-    private func createSubject() -> Store {
-        let subject = Store(prefs: prefs)
+    private func createSubject() -> BrowserEventBus {
+        let subject = BrowserEventBus(prefs: prefs)
         return subject
     }
 }

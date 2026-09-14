@@ -1,0 +1,589 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/
+
+import Common
+import Redux
+import ToolbarKit
+import SummarizeKit
+import Shared
+
+@MainActor
+final class ToolbarActionHandler {
+    private let manager: ToolbarManager
+    private let toolbarHelper: ToolbarHelperInterface
+    private let windowManager: WindowManager
+    private let logger: Logger
+    private let toolbarTelemetry: ToolbarTelemetry
+    private let prefs: Prefs
+    private let recentSearchProvider: RecentSearchProvider
+    private let summarizerNimbusUtils: SummarizerNimbusUtils
+    private let summarizerConfigFactory: SummarizerConfigFactory
+    private let featureFlagsProvider: FeatureFlagProviding
+    private let userPreferences: UserFeaturePreferring
+    private let searchEnginesManager: SearchEnginesManagerProvider
+    private var isSummarizerOn: Bool {
+        return summarizerNimbusUtils.isSummarizeFeatureToggledOn
+    }
+    private var isAppleSummarizerEnabled: Bool {
+        return summarizerNimbusUtils.isAppleSummarizerEnabled()
+    }
+    private var isHostedSummaryEnabled: Bool {
+        return summarizerNimbusUtils.isHostedSummarizerEnabled()
+    }
+
+    init(manager: ToolbarManager = DefaultToolbarManager(),
+         toolbarHelper: ToolbarHelperInterface = ToolbarHelper(),
+         toolbarTelemetry: ToolbarTelemetry = ToolbarTelemetry(),
+         profile: Profile = AppContainer.shared.resolve(),
+         summarizerNimbusUtils: SummarizerNimbusUtils = DefaultSummarizerNimbusUtils(),
+         summarizerConfigFactory: SummarizerConfigFactory = SummarizerActionHandler(),
+         recentSearchProvider: RecentSearchProvider? = nil,
+         featureFlagsProvider: FeatureFlagProviding = AppContainer.shared.resolve(),
+         userPreferences: UserFeaturePreferring = AppContainer.shared.resolve(),
+         searchEnginesManager: SearchEnginesManagerProvider = AppContainer.shared.resolve(SearchEnginesManager.self),
+         windowManager: WindowManager = AppContainer.shared.resolve(),
+         logger: Logger = DefaultLogger.shared) {
+        self.summarizerNimbusUtils = summarizerNimbusUtils
+        self.summarizerConfigFactory = summarizerConfigFactory
+        self.featureFlagsProvider = featureFlagsProvider
+        self.userPreferences = userPreferences
+        self.searchEnginesManager = searchEnginesManager
+        self.manager = manager
+        self.toolbarHelper = toolbarHelper
+        self.toolbarTelemetry = toolbarTelemetry
+        self.prefs = profile.prefs
+        self.recentSearchProvider = recentSearchProvider ?? DefaultRecentSearchProvider(historyStorage: profile.places)
+        self.windowManager = windowManager
+        self.logger = logger
+    }
+
+    /// Registered on the browser event bus in place of the middleware this used to be.
+    func handle(_ action: Action) {
+        if let action = action as? GeneralBrowserMiddlewareAction {
+            self.resolveGeneralBrowserMiddlewareActions(action: action)
+        } else if let action = action as? MicrosurveyPromptMiddlewareAction {
+            self.resolveMicrosurveyActions(windowUUID: action.windowUUID, actionType: action.actionType)
+        } else if let action = action as? MicrosurveyPromptAction {
+            self.resolveMicrosurveyActions(windowUUID: action.windowUUID, actionType: action.actionType)
+        } else if let action = action as? ToolbarMiddlewareAction {
+            self.resolveToolbarMiddlewareActions(action: action)
+        } else if let action = action as? ToolbarAction {
+            self.resolveToolbarActions(action: action)
+        }
+    }
+
+    @MainActor
+    private func resolveGeneralBrowserMiddlewareActions(action: GeneralBrowserMiddlewareAction) {
+        let uuid = action.windowUUID
+
+        switch action.actionType {
+        case GeneralBrowserMiddlewareActionType.browserDidLoad:
+            guard let toolbarPosition = action.toolbarPosition
+            else { return }
+
+            let toolbarConfig = FxNimbus.shared.features.toolbarRefactorFeature.value()
+            let toolbarLayout = ToolbarLayoutStyle.style(from: toolbarConfig.layout)
+            let tabTrayButtonStyle = TabTrayButtonStyle.style(from: toolbarConfig.tabTrayButtonType)
+            let position = addressToolbarPositionFromSearchBarPosition(toolbarPosition)
+            let borderPosition = getAddressBorderPosition(toolbarPosition: position)
+            let displayBorder = shouldDisplayNavigationToolbarBorder(toolbarPosition: position)
+
+            let middleButton = if let rawValue = prefs.stringForKey(PrefsKeys.Settings.navigationToolbarMiddleButton),
+                                  let selectedButton = NavigationBarMiddleButtonType(rawValue: rawValue) {
+                selectedButton
+            } else {
+                NavigationBarMiddleButtonType.newTab
+            }
+
+            toolbarTelemetry.middleButtonType(middleButton)
+
+            let action = ToolbarAction(
+                toolbarPosition: toolbarPosition,
+                toolbarLayout: toolbarLayout,
+                tabTrayButtonStyle: tabTrayButtonStyle,
+                isTranslucent: toolbarHelper.shouldBlur(),
+                addressBorderPosition: borderPosition,
+                displayNavBorder: displayBorder,
+                middleButton: middleButton,
+                isTranslationsEnabled: prefs.boolForKey(PrefsKeys.Settings.translationsFeature) ?? true,
+                isNovaDesignEnabled: featureFlagsProvider.isEnabled(.novaDesign),
+                windowUUID: uuid,
+                actionType: ToolbarActionType.didLoadToolbars)
+            browserEventBus.dispatch(action)
+            dispatchGoogleLensAvailability(for: uuid)
+
+        case GeneralBrowserMiddlewareActionType.websiteDidScroll:
+            guard let scrollOffset = action.scrollOffset else { return }
+            updateTopAddressBorderPosition(scrollOffset: scrollOffset, windowUUID: action.windowUUID)
+
+        case GeneralBrowserMiddlewareActionType.toolbarPositionChanged:
+            updateToolbarPosition(action: action)
+
+        default:
+            break
+        }
+    }
+
+    private func resolveMicrosurveyActions(windowUUID: WindowUUID, actionType: ActionType) {
+        switch actionType {
+        case MicrosurveyPromptMiddlewareActionType.initialize:
+            updateToolbarBorders(windowUUID: windowUUID, isMicrosurveyShown: true)
+        case MicrosurveyPromptActionType.closePrompt:
+            updateToolbarBorders(windowUUID: windowUUID, isMicrosurveyShown: false)
+        default:
+            break
+        }
+    }
+
+    @MainActor
+    private func resolveToolbarMiddlewareActions(action: ToolbarMiddlewareAction) {
+        switch action.actionType {
+        case ToolbarMiddlewareActionType.customA11yAction:
+            resolveToolbarActionHandlerCustomA11yActions(action: action)
+
+        case ToolbarMiddlewareActionType.didTapButton:
+            resolveToolbarActionHandlerButtonTapActions(action: action)
+
+        case ToolbarMiddlewareActionType.urlDidChange:
+            guard let scrollOffset = action.scrollOffset else { return }
+            updateTopAddressBorderPosition(scrollOffset: scrollOffset, windowUUID: action.windowUUID)
+
+        case ToolbarMiddlewareActionType.didClearSearch:
+            let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
+            let action = ToolbarAction(windowUUID: action.windowUUID, actionType: ToolbarActionType.clearSearch)
+            browserEventBus.dispatch(action)
+            toolbarTelemetry.clearSearchButtonTapped(isPrivate: toolbarState.isPrivateMode)
+
+        case ToolbarMiddlewareActionType.didStartDragInteraction:
+            toolbarTelemetry.dragInteractionStarted()
+
+        case ToolbarMiddlewareActionType.didSwipeToOpenTabTray:
+            toolbarTelemetry.addressBarSwiped()
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.showTabTray)
+            browserEventBus.dispatch(action)
+
+        case ToolbarMiddlewareActionType.loadSummaryState:
+            checkPageCanSummarize(action: action)
+
+        default:
+            break
+        }
+    }
+
+    private func resolveToolbarActions(action: ToolbarAction) {
+        switch action.actionType {
+        case ToolbarActionType.cancelEdit:
+            // When editing ends, we need to also clear the address bar's search engine selection (if not default)
+            let action = SearchEngineSelectionAction(
+                windowUUID: action.windowUUID,
+                actionType: SearchEngineSelectionMiddlewareActionType.didClearAlternativeSearchEngine
+            )
+            browserEventBus.dispatch(action)
+
+        case ToolbarActionType.searchEngineDidChange, ToolbarActionType.googleLensSettingDidChange:
+            dispatchGoogleLensAvailability(for: action.windowUUID)
+
+        case ToolbarActionType.urlDidChange:
+            updateGoogleLensAvailabilityIfBrowsingModeChanged(windowUUID: action.windowUUID)
+
+        case ToolbarActionType.didSubmitSearchTerm:
+            // After a user submits a search term, we want to record it in our history storage via recent search provider.
+            // We only want to record when in normal mode since recent searches is not available for private mode.
+            let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
+
+            guard let url = action.url, let searchTerm = action.searchTerm, !toolbarState.isPrivateMode else { return }
+            recentSearchProvider.addRecentSearch(searchTerm, url: url.absoluteString)
+
+        case ToolbarActionType.navigationMiddleButtonDidChange:
+            guard let middleButton = action.middleButton else { return }
+            toolbarTelemetry.middleButtonType(middleButton)
+
+        default:
+            break
+        }
+    }
+
+    @MainActor
+    private func resolveToolbarActionHandlerButtonTapActions(action: ToolbarMiddlewareAction) {
+        guard let gestureType = action.gestureType else { return }
+
+        switch gestureType {
+        case .tap:
+            handleToolbarButtonTapActions(action: action)
+        case .longPress:
+            handleToolbarButtonLongPressActions(action: action)
+        }
+    }
+
+    func resolveToolbarActionHandlerCustomA11yActions(action: ToolbarMiddlewareAction) {
+        switch action.buttonType {
+        case .readerMode:
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.addToReadingListLongPressAction)
+            browserEventBus.dispatch(action)
+        default: break
+        }
+    }
+
+    @MainActor
+    private func handleToolbarButtonTapActions(action: ToolbarMiddlewareAction) {
+        let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
+
+        switch action.buttonType {
+        case .home:
+            toolbarTelemetry.homeButtonTapped(isPrivate: toolbarState.isPrivateMode)
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.goToHomepage)
+            browserEventBus.dispatch(action)
+
+        case .newTab:
+            toolbarTelemetry.oneTapNewTabButtonTapped(isPrivate: toolbarState.isPrivateMode)
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.addNewTab)
+            browserEventBus.dispatch(action)
+
+        case .back:
+            toolbarTelemetry.backButtonTapped(isPrivate: toolbarState.isPrivateMode)
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.navigateBack)
+            browserEventBus.dispatch(action)
+
+        case .forward:
+            toolbarTelemetry.forwardButtonTapped(isPrivate: toolbarState.isPrivateMode)
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.navigateForward)
+            browserEventBus.dispatch(action)
+
+        case .tabs:
+            cancelEditMode(windowUUID: action.windowUUID)
+
+            toolbarTelemetry.tabTrayButtonTapped(isPrivate: toolbarState.isPrivateMode)
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.showTabTray)
+            browserEventBus.dispatch(action)
+
+        case .trackingProtection:
+            toolbarTelemetry.siteInfoButtonTapped(isPrivate: toolbarState.isPrivateMode)
+            let action = GeneralBrowserAction(buttonTapped: action.buttonTapped,
+                                              windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.showTrackingProtectionDetails)
+            browserEventBus.dispatch(action)
+
+        case .menu:
+            cancelEditMode(windowUUID: action.windowUUID)
+
+            toolbarTelemetry.menuButtonTapped(isPrivate: toolbarState.isPrivateMode)
+            let action = GeneralBrowserAction(buttonTapped: action.buttonTapped,
+                                              windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.showMenu)
+            browserEventBus.dispatch(action)
+
+        case .cancelEdit:
+            cancelEditMode(windowUUID: action.windowUUID)
+
+        case .readerMode, .readerModeWithSummarizer:
+            recordReaderModeTelemetry(windowUUID: action.windowUUID)
+            let action = NavigationBrowserAction(navigationDestination: NavigationDestination(.readerMode),
+                                                 windowUUID: action.windowUUID,
+                                                 actionType: NavigationBrowserActionType.tapOnReaderMode)
+            browserEventBus.dispatch(action)
+
+        case .reload:
+            toolbarTelemetry.refreshButtonTapped(isPrivate: toolbarState.isPrivateMode)
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.reloadWebsite)
+            browserEventBus.dispatch(action)
+
+        case .stopLoading:
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.stopLoadingWebsite)
+            browserEventBus.dispatch(action)
+
+        case .share:
+            toolbarTelemetry.shareButtonTapped(isPrivate: toolbarState.isPrivateMode)
+            let action = GeneralBrowserAction(buttonTapped: action.buttonTapped,
+                                              windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.showShare)
+            browserEventBus.dispatch(action)
+
+        case .googleLens:
+            toolbarTelemetry.googleLensButtonTapped()
+
+        case .googleLensPhotoLibrary:
+            toolbarTelemetry.googleLensContextMenuOptionSelected(option: .photoPicker)
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.showGoogleLensPhotoPicker)
+            browserEventBus.dispatch(action)
+
+        case .googleLensTakePhoto:
+            toolbarTelemetry.googleLensContextMenuOptionSelected(option: .camera)
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.showGoogleLensCamera)
+            browserEventBus.dispatch(action)
+
+        case .search:
+            toolbarTelemetry.searchButtonTapped(isPrivate: toolbarState.isPrivateMode)
+            let action = ToolbarAction(windowUUID: action.windowUUID, actionType: ToolbarActionType.didStartEditingUrl)
+            browserEventBus.dispatch(action)
+
+        case .summarizer:
+            Task { @MainActor in
+                guard let webView = windowManager.tabManager(for: action.windowUUID)?.selectedTab?.webView else { return }
+                let summarizerConfig = await summarizerConfigFactory.makeConfiguration(from: webView)
+                let action = GeneralBrowserAction(summarizerConfig: summarizerConfig,
+                                                  summarizerTrigger: .toolbarIcon,
+                                                  windowUUID: action.windowUUID,
+                                                  actionType: GeneralBrowserActionType.showSummarizer)
+                browserEventBus.dispatch(action)
+            }
+        case .translate:
+            // The effects of tapping on the translate button is also handled in
+            // the `TranslationsActionHandler`. This is because we want to
+            // separate the translations logic from the toolbar middleware.
+            // And anything that needs to interact with our translations scripts
+            // can listen and respond to events in that specific middleware.
+            break
+        default:
+            break
+        }
+    }
+
+    private func handleToolbarButtonLongPressActions(action: ToolbarMiddlewareAction) {
+        let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
+
+        switch action.buttonType {
+        case .back:
+            toolbarTelemetry.backButtonLongPressed(isPrivate: toolbarState.isPrivateMode)
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.showBackForwardList)
+            browserEventBus.dispatch(action)
+        case .forward:
+            toolbarTelemetry.forwardButtonLongPressed(isPrivate: toolbarState.isPrivateMode)
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.showBackForwardList)
+            browserEventBus.dispatch(action)
+        case .tabs:
+            toolbarTelemetry.tabTrayButtonLongPressed(isPrivate: toolbarState.isPrivateMode)
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.showTabsLongPressActions)
+            browserEventBus.dispatch(action)
+        case .locationView:
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.showLocationViewLongPressActionSheet)
+            browserEventBus.dispatch(action)
+        case .reload:
+            let action = GeneralBrowserAction(buttonTapped: action.buttonTapped,
+                                              windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.showReloadLongPressAction)
+            browserEventBus.dispatch(action)
+        case .newTab:
+            toolbarTelemetry.oneTapNewTabButtonLongPressed(isPrivate: toolbarState.isPrivateMode)
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.showNewTabLongPressActions)
+            browserEventBus.dispatch(action)
+        case .readerMode:
+            let action = GeneralBrowserAction(windowUUID: action.windowUUID,
+                                              actionType: GeneralBrowserActionType.addToReadingListLongPressAction)
+            browserEventBus.dispatch(action)
+        case .summarizer:
+            let action = NavigationBrowserAction(navigationDestination: NavigationDestination(.readerMode),
+                                                 windowUUID: action.windowUUID,
+                                                 actionType: NavigationBrowserActionType.tapOnReaderMode)
+            browserEventBus.dispatch(action)
+        case .readerModeWithSummarizer:
+            Task {
+                guard let webView = windowManager.tabManager(for: action.windowUUID)?.selectedTab?.webView else { return }
+                let summarizerConfig = await summarizerConfigFactory.makeConfiguration(from: webView)
+                let action = GeneralBrowserAction(summarizerConfig: summarizerConfig,
+                                                  summarizerTrigger: .toolbarIcon,
+                                                  windowUUID: action.windowUUID,
+                                                  actionType: GeneralBrowserActionType.showSummarizer)
+                browserEventBus.dispatch(action)
+            }
+        case .translate:
+            // Long-press on translate is handled in TranslationsActionHandler.
+            break
+        default:
+            break
+        }
+    }
+
+    // MARK: - Border
+    // For the top placement of the address bar, the border is only visible on scroll. This is due to a design choice.
+    private func updateTopAddressBorderPosition(scrollOffset: CGPoint, windowUUID: WindowUUID) {
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
+        guard toolbarState.toolbarPosition == .top else { return }
+
+        let addressBorderPosition = getAddressBorderPosition(
+            toolbarPosition: toolbarState.toolbarPosition,
+            isPrivate: toolbarState.isPrivateMode,
+            scrollY: scrollOffset.y
+        )
+
+        let toolbarAction = ToolbarAction(
+            addressBorderPosition: addressBorderPosition,
+            windowUUID: windowUUID,
+            actionType: ToolbarActionType.borderPositionChanged
+        )
+        browserEventBus.dispatch(toolbarAction)
+    }
+
+    private func isMicrosurveyShown(action: GeneralBrowserMiddlewareAction) -> Bool {
+        return MicrosurveyPromptVisibilityStore.shared.isPromptVisible(for: action.windowUUID)
+    }
+
+    // Update border to hide for bottom toolbars when microsurvey is shown,
+    // so that it appears to belong to the app and harder to spoof
+    //
+    // Border Requirement:
+    //  - When survey is shown and address bar is at top, hide border in between survey and nav toolbar
+    //  - When survey is shown and address bar is at bottom, hide borders for address and nav toolbar
+    //  - When survey is dismissed, show border as expected based on the toolbar requirements
+    private func updateToolbarBorders(windowUUID: WindowUUID, isMicrosurveyShown: Bool) {
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
+
+        if toolbarState.toolbarPosition == .top {
+            let toolbarAction = ToolbarAction(displayNavBorder: !isMicrosurveyShown,
+                                              windowUUID: windowUUID,
+                                              actionType: ToolbarActionType.borderPositionChanged)
+            browserEventBus.dispatch(toolbarAction)
+        } else {
+            let toolbarAction = ToolbarAction(addressBorderPosition: isMicrosurveyShown ? .none : .top,
+                                              displayNavBorder: false,
+                                              windowUUID: windowUUID,
+                                              actionType: ToolbarActionType.borderPositionChanged)
+            browserEventBus.dispatch(toolbarAction)
+        }
+    }
+
+    private func updateToolbarPosition(action: GeneralBrowserMiddlewareAction) {
+        guard let searchBarPosition = action.toolbarPosition,
+              let scrollOffset = action.scrollOffset
+        else { return }
+        let toolbarState = ToolbarViewModel.instance(for: action.windowUUID).state
+
+        let addressToolbarPosition = addressToolbarPositionFromSearchBarPosition(searchBarPosition)
+        var addressBorderPosition = getAddressBorderPosition(toolbarPosition: addressToolbarPosition,
+                                                             isPrivate: toolbarState.isPrivateMode,
+                                                             scrollY: scrollOffset.y)
+        var displayNavToolbarBorder = shouldDisplayNavigationToolbarBorder(toolbarPosition: addressToolbarPosition)
+
+        // If a microsurvey is shown, then we only want to show the top border for the microsurvey
+        // and the toolbars should have no borders if they are stacked underneath the microsurvey.
+        // This is to avoid spoofing. In the case where the address bar is on top, then the microsurvey
+        // should not affect its address border position.
+        if isMicrosurveyShown(action: action) {
+            displayNavToolbarBorder = false
+            let isAddressToolbarOnBottom = addressToolbarPosition == .bottom
+            addressBorderPosition = isAddressToolbarOnBottom ? .none : addressBorderPosition
+        }
+
+        let toolbarAction = ToolbarAction(toolbarPosition: searchBarPosition,
+                                          addressBorderPosition: addressBorderPosition,
+                                          displayNavBorder: displayNavToolbarBorder,
+                                          windowUUID: action.windowUUID,
+                                          actionType: ToolbarActionType.toolbarPositionChanged)
+        browserEventBus.dispatch(toolbarAction)
+    }
+
+    @MainActor
+    private func checkPageCanSummarize(action: ToolbarMiddlewareAction) {
+        guard let webView = windowManager.tabManager(for: action.windowUUID)?.selectedTab?.webView,
+              isSummarizerOn
+        else { return }
+
+        Task { @MainActor in
+            let canSummarize = await summarizerConfigFactory.makeConfiguration(from: webView) != nil
+            browserEventBus.dispatch(
+                ToolbarAction(
+                    canSummarize: canSummarize,
+                    readerModeState: action.readerModeState,
+                    windowUUID: action.windowUUID,
+                    actionType: ToolbarActionType.readerModeStateChanged
+                )
+            )
+        }
+    }
+
+    // MARK: - Helper
+    @MainActor
+    private func cancelEditMode(windowUUID: WindowUUID) {
+        var url = tabManager(for: windowUUID)?.selectedTab?.url
+        if let currentURL = url {
+            url = (currentURL.isWebPage() && !currentURL.isReaderModeURL) ? url : nil
+        }
+        let action = ToolbarAction(url: url, windowUUID: windowUUID, actionType: ToolbarActionType.cancelEdit)
+        browserEventBus.dispatch(action)
+
+        let browserAction = GeneralBrowserAction(showOverlay: false,
+                                                 windowUUID: windowUUID,
+                                                 actionType: GeneralBrowserActionType.leaveOverlay)
+        browserEventBus.dispatch(browserAction)
+    }
+
+    private func addressToolbarPositionFromSearchBarPosition(_ position: SearchBarPosition) -> AddressToolbarPosition {
+        switch position {
+        case .top: return .top
+        case .bottom: return .bottom
+        }
+    }
+
+    private func getAddressBorderPosition(toolbarPosition: AddressToolbarPosition,
+                                          isPrivate: Bool = false,
+                                          scrollY: CGFloat = 0) -> AddressToolbarBorderPosition {
+        return manager.getAddressBorderPosition(for: toolbarPosition, isPrivate: isPrivate, scrollY: scrollY)
+    }
+
+    private func shouldDisplayNavigationToolbarBorder(toolbarPosition: AddressToolbarPosition) -> Bool {
+        return manager.shouldDisplayNavigationBorder(toolbarPosition: toolbarPosition)
+    }
+
+    private func recordReaderModeTelemetry(windowUUID: WindowUUID) {
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
+
+        let isReaderModeEnabled = switch toolbarState.addressToolbar.readerModeState {
+        case .available: true // will be enabled after action gets executed
+        default: false
+        }
+
+        toolbarTelemetry.readerModeButtonTapped(isPrivate: toolbarState.isPrivateMode, isEnabled: isReaderModeEnabled)
+    }
+
+    private func tabManager(for uuid: WindowUUID) -> TabManager? {
+        return windowManager.tabManager(for: uuid)
+    }
+
+    // Only re-dispatch when Google Lens availability would actually change (i.e. the browsing mode flipped it),
+    // to avoid churning on every URL.
+    private func updateGoogleLensAvailabilityIfBrowsingModeChanged(windowUUID: WindowUUID) {
+        let toolbarState = ToolbarViewModel.instance(for: windowUUID).state
+
+        let shouldShow = isGoogleLensAvailable(for: windowUUID)
+        let isShowing = toolbarState.addressToolbar.editingAccessoryAction?.actionType == .googleLens
+        guard shouldShow != isShowing else { return }
+
+        dispatchGoogleLensAvailability(for: windowUUID)
+    }
+
+    private func isGoogleLensAvailable(for windowUUID: WindowUUID) -> Bool {
+        guard featureFlagsProvider.isEnabled(.googleLens),
+              userPreferences.getPreferenceFor(.googleLens),
+              tabManager(for: windowUUID)?.selectedTab?.isPrivate != true,
+              let defaultEngine = searchEnginesManager.defaultEngine,
+              !defaultEngine.isCustomEngine
+        else { return false }
+
+        return defaultEngine.isGoogleEngine
+    }
+
+    private func dispatchGoogleLensAvailability(for windowUUID: WindowUUID) {
+        let action = ToolbarMiddlewareAction(
+            isGoogleLensEnabled: isGoogleLensAvailable(for: windowUUID),
+            windowUUID: windowUUID,
+            actionType: ToolbarMiddlewareActionType.googleLensAvailabilityDidChange
+        )
+        browserEventBus.dispatch(action)
+    }
+}

@@ -38,6 +38,7 @@ class MockTabManager: TabManager {
     var removeTabsByURLCalled = 0
 
     var addTabWasCalled = false
+    var removeTabCalledCount = 0
     var notifyCurrentTabDidFinishLoadingCalled = 0
     var commitChangesCalled = 0
     var selectTabExpectation: XCTestExpectation?
@@ -86,7 +87,9 @@ class MockTabManager: TabManager {
 
     func removeTabs(_ tabs: [Tab]) {}
 
-    func removeTab(_ tabUUID: TabUUID) {}
+    func removeTab(_ tabUUID: TabUUID) {
+        removeTabCalledCount += 1
+    }
 
     func removeAllTabs(isPrivateMode: Bool) {}
 

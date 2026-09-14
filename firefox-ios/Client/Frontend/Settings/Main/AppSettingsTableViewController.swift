@@ -440,7 +440,7 @@ class AppSettingsTableViewController: SettingsTableViewController,
                     guard let self else { return }
                     let action = TabTrayAction(windowUUID: self.windowUUID,
                                                actionType: TabTrayActionType.closePrivateTabsSettingToggled)
-                    store.dispatch(action)
+                    browserEventBus.dispatch(action)
                 }
             )
         }

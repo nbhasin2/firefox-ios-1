@@ -500,10 +500,11 @@ final class SettingsCoordinator: BaseCoordinator,
         }
     }
 
-    func showLanguagePicker(availableLanguages: [String]) {
+    func showLanguagePicker(availableLanguages: [String], onSelect: @escaping @MainActor (String) -> Void) {
         let picker = TranslationLanguagePickerViewController(
             windowUUID: windowUUID,
-            languages: availableLanguages
+            languages: availableLanguages,
+            onSelectLanguage: onSelect
         )
         let navigationController = UINavigationController(rootViewController: picker)
         router.present(navigationController)
