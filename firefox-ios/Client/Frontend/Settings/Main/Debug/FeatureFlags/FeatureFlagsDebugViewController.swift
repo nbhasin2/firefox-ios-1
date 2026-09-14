@@ -185,6 +185,13 @@ final class FeatureFlagsDebugViewController: SettingsTableViewController, Featur
                 self?.reloadView()
             },
             FeatureFlagsBoolSetting(
+                with: .liquidGlassAddressBar,
+                titleText: format(string: "Liquid Glass Address Bar"),
+                statusText: format(string: "Toggle to enable the Liquid Glass address bar")
+            ) { [weak self] _ in
+                self?.reloadView()
+            },
+            FeatureFlagsBoolSetting(
                 with: .microsurvey,
                 titleText: format(string: "Microsurvey"),
                 statusText: format(string: "Toggle to reset microsurvey expiration")

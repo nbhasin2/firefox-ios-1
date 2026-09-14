@@ -116,6 +116,9 @@ final class NimbusFeatureFlagLayer: NimbusFeatureFlagLayerProviding, Sendable {
         case .improvedAppStoreReviewTriggerFeature:
             return checkImprovedAppStoreReviewTriggerFeature()
 
+        case .liquidGlassAddressBar:
+            return checkLiquidGlassAddressBarFeature()
+
         case .microsurvey:
             return checkMicrosurveyFeature()
 
@@ -483,5 +486,9 @@ final class NimbusFeatureFlagLayer: NimbusFeatureFlagLayerProviding, Sendable {
 
     private func checkPrivacyDashboardFeature() -> Bool {
         return nimbus.features.privacyDashboardFeature.value().enabled
+    }
+
+    private func checkLiquidGlassAddressBarFeature() -> Bool {
+        return nimbus.features.liquidGlassAddressBarFeature.value().enabled
     }
 }
