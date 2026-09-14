@@ -122,6 +122,17 @@ final class FeatureFlagsProviderTests: XCTestCase {
         XCTAssertEqual(prefs.boolForKey(debugKey), true)
     }
 
+    func testSetDebugOverride_liquidGlassAddressBar_writesToPrefs() {
+        guard let debugKey = FeatureFlagID.liquidGlassAddressBar.debugKey else {
+            XCTFail("liquidGlassAddressBar should have a debugKey")
+            return
+        }
+
+        subject.setDebugOverride(.liquidGlassAddressBar, to: true)
+
+        XCTAssertEqual(prefs.boolForKey(debugKey), true)
+    }
+
     func testSetDebugOverride_flagWithoutDebugKey_doesNotWriteToPrefs() {
         XCTAssertNil(FeatureFlagID.addressAutofillEdit.debugKey)
 
