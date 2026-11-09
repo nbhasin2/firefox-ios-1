@@ -58,6 +58,17 @@ public final class BrowserDB: Sendable {
         return db.transaction(callback)
     }
 
+    func withConnection<T: Sendable>(
+        flags: SwiftData.Flags = .readWriteCreate,
+        _ callback: @escaping (_ connection: SQLiteDBConnection) throws -> T
+    ) async throws -> T {
+        return try await db.withConnection(flags, callback)
+    }
+
+    func transaction<T: Sendable>(_ callback: @escaping (_ connection: SQLiteDBConnection) throws -> T) async throws -> T {
+        return try await db.transaction(callback)
+    }
+
     public class func varlist(_ count: Int) -> String {
         return "(" + Array(repeating: "?", count: count).joined(separator: ", ") + ")"
     }
@@ -91,6 +102,22 @@ public final class BrowserDB: Sendable {
         }
     }
 
+    public func run(_ sql: String, withArgs args: Args? = nil) async throws {
+        try await run([(sql, args)])
+    }
+
+    func run(_ commands: [(sql: String, args: Args?)]) async throws {
+        if commands.isEmpty {
+            return
+        }
+
+        try await transaction { connection in
+            for (sql, args) in commands {
+                try connection.executeChange(sql, withArgs: args)
+            }
+        }
+    }
+
     public func runQuery<T>(_ sql: String, args: Args?, factory: @escaping (SDRow) -> T) -> Deferred<Maybe<Cursor<T>>> {
         return withConnection { connection -> Cursor<T> in
             connection.executeQuery(sql, factory: factory, withArgs: args)
@@ -105,6 +132,27 @@ public final class BrowserDB: Sendable {
         return withConnection(flags: .readOnly) { connection -> Cursor<T> in
             connection.executeQuery(sql, factory: factory, withArgs: args)
         }
+    }
+
+    public func runQuery<T>(_ sql: String, args: Args?, factory: @escaping (SDRow) -> T) async throws -> Cursor<T> {
+        return try await withConnection { connection -> Cursor<T> in
+            connection.executeQuery(sql, factory: factory, withArgs: args)
+        }
+    }
+
+    public func runQueryConcurrently<T>(
+        _ sql: String,
+        args: Args?,
+        factory: @escaping (SDRow) -> T
+    ) async throws -> Cursor<T> {
+        return try await withConnection(flags: .readOnly) { connection -> Cursor<T> in
+            connection.executeQuery(sql, factory: factory, withArgs: args)
+        }
+    }
+
+    func queryReturnsResults(_ sql: String, args: Args? = nil) async throws -> Bool {
+        let cursor = try await runQuery(sql, args: args, factory: { _ in true })
+        return cursor[0] ?? false
     }
 
     func queryReturnsResults(_ sql: String, args: Args? = nil) -> Deferred<Maybe<Bool>> {
