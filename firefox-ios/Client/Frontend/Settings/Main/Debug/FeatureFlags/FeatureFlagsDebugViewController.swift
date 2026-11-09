@@ -150,6 +150,13 @@ final class FeatureFlagsDebugViewController: SettingsTableViewController, Featur
                 self?.reloadView()
             },
             FeatureFlagsBoolSetting(
+                with: .deferredRemoval,
+                titleText: format(string: "Deferred Removal"),
+                statusText: format(string: "Toggle to use async/await instead of Deferred")
+            ) { [weak self] _ in
+                self?.reloadView()
+            },
+            FeatureFlagsBoolSetting(
                 with: .downloadLiveActivities,
                 titleText: format(string: "Download Live Activities"),
                 statusText: format(string: "Toggle to enable download live activities")

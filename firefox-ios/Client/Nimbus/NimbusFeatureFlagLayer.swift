@@ -84,6 +84,9 @@ final class NimbusFeatureFlagLayer: NimbusFeatureFlagLayerProviding, Sendable {
         case .deeplinkOptimizationRefactor:
             return checkDeeplinkOptimizationRefactorFeature()
 
+        case .deferredRemoval:
+            return checkDeferredRemovalFeature()
+
         case .downloadLiveActivities:
             return checkDownloadLiveActivitiesFeature()
 
@@ -391,6 +394,10 @@ final class NimbusFeatureFlagLayer: NimbusFeatureFlagLayerProviding, Sendable {
     private func checkDeeplinkOptimizationRefactorFeature() -> Bool {
         let config = nimbus.features.deeplinkOptimizationRefactorFeature.value()
         return config.enabled
+    }
+
+    private func checkDeferredRemovalFeature() -> Bool {
+        return nimbus.features.deferredRemovalFeature.value().enabled
     }
 
     private func checkDownloadLiveActivitiesFeature() -> Bool {
