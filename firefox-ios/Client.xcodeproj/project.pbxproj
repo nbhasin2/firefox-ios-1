@@ -694,6 +694,7 @@
 		45D5EDCC292D839800311934 /* PinnedSites.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45D5EDCB292D839700311934 /* PinnedSites.swift */; };
 		45D5EDCE292D83DB00311934 /* SQLitePinnedSites.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45D5EDCD292D83DA00311934 /* SQLitePinnedSites.swift */; };
 		45D5EDD1292D857000311934 /* TestSQLitePinnedSites.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45D5EDCF292D854000311934 /* TestSQLitePinnedSites.swift */; };
+		A5A000010000000000A50001 /* TestSQLiteQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A000020000000000A50002 /* TestSQLiteQueue.swift */; };
 		4A59B58AD11B5EE1F80BBDEB /* TestHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A59BF410BBD9B3BE71F4C7C /* TestHistory.swift */; };
 		4D5041490000000000000002 /* FxAPairingURLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D5041490000000000000001 /* FxAPairingURLParser.swift */; };
 		4D5041490000000000000004 /* FxAPairingURLParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D5041490000000000000003 /* FxAPairingURLParserTests.swift */; };
@@ -9583,6 +9584,7 @@
 		45D5EDCB292D839700311934 /* PinnedSites.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinnedSites.swift; sourceTree = "<group>"; };
 		45D5EDCD292D83DA00311934 /* SQLitePinnedSites.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLitePinnedSites.swift; sourceTree = "<group>"; };
 		45D5EDCF292D854000311934 /* TestSQLitePinnedSites.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestSQLitePinnedSites.swift; sourceTree = "<group>"; };
+		A5A000020000000000A50002 /* TestSQLiteQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestSQLiteQueue.swift; sourceTree = "<group>"; };
 		45EE4AB495317A73B242DD2C /* sl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sl; path = sl.lproj/Today.strings; sourceTree = "<group>"; };
 		45F244A7A34CE1404A014575 /* ur */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ur; path = ur.lproj/Intro.strings; sourceTree = "<group>"; };
 		46004CC8980B6CD80D910882 /* km */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = km; path = km.lproj/ClearPrivateDataConfirm.strings; sourceTree = "<group>"; };
@@ -14001,6 +14003,7 @@
 				D37DE2C81CA356F900A5EC69 /* testcert1.pem */,
 				D37DE2C91CA356F900A5EC69 /* testcert2.pem */,
 				45D5EDCF292D854000311934 /* TestSQLitePinnedSites.swift */,
+				A5A000020000000000A50002 /* TestSQLiteQueue.swift */,
 				D0B693D4206C5BB9008A8B11 /* TestSQLiteReadingList.swift */,
 				D32CACEC1AE04DA1000658EB /* TestSwiftData.swift */,
 				BD57D9A629D4C42B00039394 /* ZoomLevelStoreTests.swift */,
@@ -20213,6 +20216,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				45D5EDD1292D857000311934 /* TestSQLitePinnedSites.swift in Sources */,
+				A5A000010000000000A50001 /* TestSQLiteQueue.swift in Sources */,
 				C8611C8E1F71904C00C3DE7D /* DiskImageStoreTests.swift in Sources */,
 				D0B693D5206C5BB9008A8B11 /* TestSQLiteReadingList.swift in Sources */,
 				F8AAC1B7296637CE000BCDEC /* RustAutofillTests.swift in Sources */,

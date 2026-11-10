@@ -15,11 +15,13 @@ final class DefaultBackgroundTabLoaderTests: XCTestCase {
         try await super.setUp()
         self.applicationHelper = MockApplicationHelper()
         self.tabQueue = MockTabQueue()
+        DependencyHelperMock().bootstrapDependencies()
     }
 
     override func tearDown() async throws {
         self.applicationHelper = nil
         self.tabQueue = nil
+        DependencyHelperMock().reset()
         try await super.tearDown()
     }
 
@@ -58,6 +60,24 @@ final class DefaultBackgroundTabLoaderTests: XCTestCase {
         XCTAssertEqual(tabQueue.getQueuedTabsCalled, 1)
         XCTAssertEqual(applicationHelper.openURLCalled, 3)
         XCTAssertEqual(tabQueue.clearQueuedTabsCalled, 1)
+    }
+
+    func testLoadBackgroundTabs_withDeferredRemovalEnabled_opensTabsThenClearsQueue() {
+        let mockNimbusLayer = MockNimbusFeatureFlagLayer()
+        mockNimbusLayer.enabledFlags.insert(.deferredRemoval)
+        DependencyHelperMock().bootstrapDependencies(
+            injectedFeatureFlagProvider: FeatureFlagsProvider(prefs: makeProfile().prefs, backendLayer: mockNimbusLayer)
+        )
+        tabQueue.queuedTabs = [ShareItem(url: "https://www.mozilla.com", title: "Title 1"),
+                               ShareItem(url: "https://www.example.com", title: "Title 2")]
+        let subject = createSubject()
+
+        subject.loadBackgroundTabs()
+
+        let predicate = NSPredicate { _, _ in self.tabQueue.clearQueuedTabsCalled == 1 }
+        wait(for: [XCTNSPredicateExpectation(predicate: predicate, object: .none)], timeout: 3.0)
+        XCTAssertEqual(applicationHelper.openURLCalled, 2)
+        XCTAssertEqual(tabQueue.getQueuedTabsCalled, 1)
     }
 
     // MARK: Helper functions

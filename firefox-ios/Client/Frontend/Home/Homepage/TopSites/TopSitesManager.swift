@@ -44,7 +44,7 @@ protocol TopSitesManagerInterface: Sendable {
 }
 
 /// Manager to fetch the top sites data, the data gets updated from notifications on specific user actions
-final class TopSitesManager: TopSitesManagerInterface, UserFeaturePreferenceProvider {
+final class TopSitesManager: TopSitesManagerInterface, UserFeaturePreferenceProvider, FeatureFlaggable {
     private let logger: Logger
     private let profile: Profile
     private let googleTopSiteManager: GoogleTopSiteManagerProvider
@@ -298,6 +298,12 @@ final class TopSitesManager: TopSitesManagerInterface, UserFeaturePreferenceProv
     }
 
     func pinTopSite(_ site: Site) {
+        if featureFlagsProvider.isEnabled(.deferredRemoval) {
+            let pinnedSites = profile.pinnedSites
+            Task { try? await pinnedSites.addPinnedTopSite(site) }
+            return
+        }
+
         profile.pinnedSites.addPinnedTopSite(site)
     }
 

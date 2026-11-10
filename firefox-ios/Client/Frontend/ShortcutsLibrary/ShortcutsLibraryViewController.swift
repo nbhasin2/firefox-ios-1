@@ -11,7 +11,8 @@ class ShortcutsLibraryViewController: UIViewController,
                                       UICollectionViewDelegate,
                                       StoreSubscriber,
                                       Themeable,
-                                      DismissalNotifiable {
+                                      DismissalNotifiable,
+                                      FeatureFlaggable {
     enum UX {
         static let shortcutsSectionTopInset: CGFloat = 24
     }
@@ -407,7 +408,12 @@ class ShortcutsLibraryViewController: UIViewController,
             url: url.absoluteString,
             title: url.shortDisplayString.capitalized
         )
-        profile.pinnedSites.addPinnedTopSite(site)
+        if featureFlagsProvider.isEnabled(.deferredRemoval) {
+            let pinnedSites = profile.pinnedSites
+            Task { try? await pinnedSites.addPinnedTopSite(site) }
+        } else {
+            profile.pinnedSites.addPinnedTopSite(site)
+        }
         store.dispatch(
             TopSitesAction(
                 shortcutPinnedSource: .homescreenButton,

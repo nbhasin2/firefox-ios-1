@@ -101,6 +101,19 @@ final class MockTabQueue: TabQueue, @unchecked Sendable {
         clearQueuedTabsCalled += 1
         return succeed()
     }
+
+    func addToQueue(_ tab: ShareItem) async throws {
+        addToQueueCalled += 1
+    }
+
+    func getQueuedTabs() async throws -> [ShareItem] {
+        getQueuedTabsCalled += 1
+        return queuedTabs
+    }
+
+    func clearQueuedTabs() async throws {
+        clearQueuedTabsCalled += 1
+    }
 }
 
 /// Runs `body` with a fresh profile, then shuts it down and removes its directory, so

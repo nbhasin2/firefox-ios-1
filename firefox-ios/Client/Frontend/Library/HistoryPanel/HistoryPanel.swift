@@ -15,7 +15,8 @@ class HistoryPanel: UIViewController,
                     LibraryPanel,
                     LibraryPanelContextMenu,
                     Themeable,
-                    Notifiable {
+                    Notifiable,
+                    FeatureFlaggable {
     enum UX {
         static let WelcomeScreenItemWidth = 170
         static let IconSize = 23
@@ -866,6 +867,15 @@ extension HistoryPanel {
 
     /// When long pressed, a menu appears giving the choice of pinning as a Top Site.
     func pinToTopSites(_ site: Site) {
+        if featureFlagsProvider.isEnabled(.deferredRemoval) {
+            let pinnedSites = profile.pinnedSites
+            Task { @MainActor [weak self] in
+                guard (try? await pinnedSites.addPinnedTopSite(site)) != nil else { return }
+                self?.libraryPanelDelegate?.showToast(message: .LegacyAppMenu.AddPinToShortcutsConfirmMessage)
+            }
+            return
+        }
+
         profile.pinnedSites.addPinnedTopSite(site)
             .uponQueue(.main) { result in
                 // FXIOS-13228 It should be safe to assumeIsolated here because of `.main` queue above
