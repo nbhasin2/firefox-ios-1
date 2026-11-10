@@ -12,8 +12,25 @@ public final class SQLiteQueue: TabQueue {
         self.db = db
     }
 
+    private static let insertSQL = "INSERT OR IGNORE INTO queue (url) VALUES (?)"
+    private static let selectSQL = "SELECT url FROM queue"
+    private static let deleteSQL = "DELETE FROM queue"
+
     public func addToQueue(_ tab: ShareItem) -> Success {
-        return db.run("INSERT OR IGNORE INTO queue (url) VALUES (?)", withArgs: [tab.url])
+        return db.run(Self.insertSQL, withArgs: [tab.url])
+    }
+
+    public func addToQueue(_ tab: ShareItem) async throws {
+        try await db.run(Self.insertSQL, withArgs: [tab.url])
+    }
+
+    public func getQueuedTabs() async throws -> [ShareItem] {
+        let cursor = try await db.runQuery(Self.selectSQL, args: nil, factory: self.factory)
+        return cursor.asArray()
+    }
+
+    public func clearQueuedTabs() async throws {
+        try await db.run(Self.deleteSQL)
     }
 
     fileprivate func factory(_ row: SDRow) -> ShareItem {
@@ -22,8 +39,7 @@ public final class SQLiteQueue: TabQueue {
     }
 
     public func getQueuedTabs(completion: @MainActor @escaping ([ShareItem]) -> Void) {
-        let sql = "SELECT url FROM queue"
-        db.runQuery(sql, args: nil, factory: self.factory)
+        db.runQuery(Self.selectSQL, args: nil, factory: self.factory)
             .uponQueue(.main) { result in
                 guard let cursor = result.successValue else { return }
                 // FXIOS-13228 It should be safe to assumeIsolated here because of `.main` queue above
@@ -34,6 +50,6 @@ public final class SQLiteQueue: TabQueue {
     }
 
     public func clearQueuedTabs() -> Success {
-        return db.run("DELETE FROM queue")
+        return db.run(Self.deleteSQL)
     }
 }

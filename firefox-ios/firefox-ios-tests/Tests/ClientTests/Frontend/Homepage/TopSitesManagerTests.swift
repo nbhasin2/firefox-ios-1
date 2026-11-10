@@ -388,6 +388,23 @@ final class TopSitesManagerTests: XCTestCase {
         XCTAssertEqual(mockPinnedSites.addPinnedTopSiteCalledCount, 1)
     }
 
+    func test_pinTopSite_withDeferredRemovalEnabled_callsAsyncAddPinnedTopSite() throws {
+        let mockNimbusLayer = MockNimbusFeatureFlagLayer()
+        mockNimbusLayer.enabledFlags.insert(.deferredRemoval)
+        let mockPinnedSites = MockablePinnedSites()
+        let profile = makeProfile(injectedPinnedSites: mockPinnedSites)
+        DependencyHelperMock().bootstrapDependencies(
+            injectedProfile: profile,
+            injectedFeatureFlagProvider: FeatureFlagsProvider(prefs: profile.prefs, backendLayer: mockNimbusLayer)
+        )
+        let subject = try createSubject(injectedProfile: profile)
+
+        subject.pinTopSite(Site.createBasicSite(url: "www.example.com", title: "Example Pinned Site"))
+
+        expectation(for: NSPredicate { _, _ in mockPinnedSites.addPinnedTopSiteCalledCount == 1 }, evaluatedWith: nil)
+        waitForExpectations(timeout: 5)
+    }
+
     func test_sponsoredShortcutsFlagEnabled_withoutUserPref_returnsSponsoredSites() throws {
         let subject = try createSubject()
 

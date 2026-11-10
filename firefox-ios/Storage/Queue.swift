@@ -10,4 +10,8 @@ public protocol TabQueue: Sendable {
     func getQueuedTabs(completion: @MainActor @escaping ([ShareItem]) -> Void)
     @discardableResult
     func clearQueuedTabs() -> Success
+
+    func addToQueue(_ tab: ShareItem) async throws
+    func getQueuedTabs() async throws -> [ShareItem]
+    func clearQueuedTabs() async throws
 }
