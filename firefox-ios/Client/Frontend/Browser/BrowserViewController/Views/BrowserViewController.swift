@@ -3151,6 +3151,28 @@ class BrowserViewController: UIViewController,
             return false
         }
 
+        if featureFlagsProvider.isEnabled(.deferredRemoval) {
+            let readingList = profile.readingList
+            let title = tab.title ?? ""
+            let deviceName = UIDevice.current.name
+            Task { @MainActor [weak self] in
+                do {
+                    _ = try await readingList.createRecordWithURL(url.absoluteString, title: title, addedBy: deviceName)
+                    UIAccessibility.post(
+                        notification: UIAccessibility.Notification.announcement,
+                        argument: String.ReaderModeAddPageSuccessAcessibilityLabel
+                    )
+                    self?.showPlainToast(message: .ShareAddToReadingListDone)
+                } catch {
+                    UIAccessibility.post(
+                        notification: UIAccessibility.Notification.announcement,
+                        argument: String.ReaderModeAddPageMaybeExistsErrorAccessibilityLabel
+                    )
+                }
+            }
+            return true
+        }
+
         let result = profile.readingList.createRecordWithURL(
             url.absoluteString,
             title: tab.title ?? "",
