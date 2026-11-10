@@ -280,18 +280,32 @@ class ReadingListPanel: UITableViewController,
         let prevNumberOfRecords = records?.count
         tableView.tableHeaderView = nil
 
-        if let newRecords = profile.readingList.getAvailableRecords().value.successValue {
-            records = newRecords
-
-            if let records = records, records.isEmpty {
-                updateEmptyReadingListMessage(visible: true)
-            } else {
-                if prevNumberOfRecords == 0 {
-                    updateEmptyReadingListMessage(visible: false)
-                }
+        if featureFlagsProvider.isEnabled(.deferredRemoval) {
+            Task { @MainActor [weak self] in
+                await self?.loadReadingList(previousRecordCount: prevNumberOfRecords)
             }
-            self.tableView.reloadData()
+        } else if let newRecords = profile.readingList.getAvailableRecords().value.successValue {
+            applyRecords(newRecords, previousRecordCount: prevNumberOfRecords)
         }
+    }
+
+    @MainActor
+    func loadReadingList(previousRecordCount: Int? = nil) async {
+        guard let newRecords = try? await profile.readingList.getAvailableRecords() else { return }
+        applyRecords(newRecords, previousRecordCount: previousRecordCount)
+    }
+
+    private func applyRecords(_ newRecords: [ReadingListItem], previousRecordCount: Int?) {
+        records = newRecords
+
+        if let records = records, records.isEmpty {
+            updateEmptyReadingListMessage(visible: true)
+        } else {
+            if previousRecordCount == 0 {
+                updateEmptyReadingListMessage(visible: false)
+            }
+        }
+        self.tableView.reloadData()
     }
 
     private func updateEmptyReadingListMessage(visible: Bool) {
@@ -470,7 +484,16 @@ class ReadingListPanel: UITableViewController,
                 value: !record.unread ? .markAsUnread : .markAsRead,
                 extras: [ "from": "reading-list-panel" ]
             )
-            if let updatedRecord = profile.readingList.updateRecord(
+            if featureFlagsProvider.isEnabled(.deferredRemoval) {
+                let readingList = profile.readingList
+                Task { @MainActor [weak self] in
+                    guard let updatedRecord = try? await readingList.updateRecord(record, unread: !record.unread),
+                          let self,
+                          let row = self.records?.firstIndex(where: { $0.id == updatedRecord.id }) else { return }
+                    self.records?[row] = updatedRecord
+                    self.tableView.reloadRows(at: [IndexPath(row: row, section: indexPath.section)], with: .automatic)
+                }
+            } else if let updatedRecord = profile.readingList.updateRecord(
                 record,
                 unread: !record.unread
             ).value.successValue {

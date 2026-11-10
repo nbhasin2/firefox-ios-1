@@ -68,8 +68,20 @@ extension BrowserViewController {
         guard let readerModeBar = readerModeBar else { return }
         readerModeBar.applyTheme(theme: themeManager.getCurrentTheme(for: windowUUID))
 
-        if let url = self.tabManager.selectedTab?.url?.displayURL?.absoluteString,
-           let record = profile.readingList.getRecordWithURL(url).value.successValue {
+        if featureFlagsProvider.isEnabled(.deferredRemoval) {
+            let url = self.tabManager.selectedTab?.url?.displayURL?.absoluteString
+            let readingList = profile.readingList
+            Task { @MainActor in
+                guard let url, let record = try? await readingList.getRecordWithURL(url) else {
+                    readerModeBar.unread = true
+                    readerModeBar.added = false
+                    return
+                }
+                readerModeBar.unread = record.unread
+                readerModeBar.added = true
+            }
+        } else if let url = self.tabManager.selectedTab?.url?.displayURL?.absoluteString,
+                  let record = profile.readingList.getRecordWithURL(url).value.successValue {
             readerModeBar.unread = record.unread
             readerModeBar.added = true
         } else {
@@ -191,6 +203,29 @@ extension BrowserViewController {
     }
 }
 
+extension BrowserViewController {
+    fileprivate func updateReadingListRecord(unread: Bool, readerModeBar: ReaderModeBarView) {
+        guard let url = tabManager.selectedTab?.url?.displayURL?.absoluteString else { return }
+        let readingList = profile.readingList
+        Task { @MainActor in
+            guard let record = try? await readingList.getRecordWithURL(url) else { return }
+            _ = try? await readingList.updateRecord(record, unread: unread)
+            readerModeBar.unread = unread
+        }
+    }
+
+    fileprivate func removeReadingListRecord(readerModeBar: ReaderModeBarView) {
+        guard let url = tabManager.selectedTab?.url?.displayURL?.absoluteString else { return }
+        let readingList = profile.readingList
+        Task { @MainActor in
+            guard let record = try? await readingList.getRecordWithURL(url) else { return }
+            readingList.deleteRecord(record, completion: nil)
+            readerModeBar.added = false
+            readerModeBar.unread = false
+        }
+    }
+}
+
 extension BrowserViewController: ReaderModeBarViewDelegate {
     func readerModeBar(_ readerModeBar: ReaderModeBarView, didSelectButton buttonType: ReaderModeBarButtonType) {
         switch buttonType {
@@ -241,6 +276,10 @@ extension BrowserViewController: ReaderModeBarViewDelegate {
             present(readerModeStyleViewController, animated: true, completion: nil)
 
         case .markAsRead:
+            if featureFlagsProvider.isEnabled(.deferredRemoval) {
+                updateReadingListRecord(unread: false, readerModeBar: readerModeBar)
+                break
+            }
             guard let url = self.tabManager.selectedTab?.url?.displayURL?.absoluteString,
                   let record = profile.readingList.getRecordWithURL(url).value.successValue
             else { break }
@@ -249,6 +288,10 @@ extension BrowserViewController: ReaderModeBarViewDelegate {
             readerModeBar.unread = false
 
         case .markAsUnread:
+            if featureFlagsProvider.isEnabled(.deferredRemoval) {
+                updateReadingListRecord(unread: true, readerModeBar: readerModeBar)
+                break
+            }
             guard let url = self.tabManager.selectedTab?.url?.displayURL?.absoluteString,
                   let record = profile.readingList.getRecordWithURL(url).value.successValue
             else { break }
@@ -278,6 +321,10 @@ extension BrowserViewController: ReaderModeBarViewDelegate {
             readerModeBar.unread = true
 
         case .removeFromReadingList:
+            if featureFlagsProvider.isEnabled(.deferredRemoval) {
+                removeReadingListRecord(readerModeBar: readerModeBar)
+                break
+            }
             guard let url = self.tabManager.selectedTab?.url?.displayURL?.absoluteString,
                   let record = profile.readingList.getRecordWithURL(url).value.successValue
             else { break }

@@ -649,6 +649,30 @@ class BrowserViewControllerTests: XCTestCase, StoreTestUtility {
         XCTAssertEqual(dispatchActionType, GeneralBrowserActionType.didTapReaderModeBarSummarizerButton)
     }
 
+    @MainActor
+    func testUpdateReaderModeBar_withDeferredRemovalEnabled_reflectsReadingListRecord() async throws {
+        let mockNimbusLayer = MockNimbusFeatureFlagLayer()
+        mockNimbusLayer.enabledFlags.insert(.deferredRemoval)
+        DependencyHelperMock().bootstrapDependencies(
+            injectedTabManager: tabManager,
+            injectedFeatureFlagProvider: FeatureFlagsProvider(prefs: profile.prefs, backendLayer: mockNimbusLayer)
+        )
+        let url = "https://example.com/article"
+        let record = try await profile.readingList.createRecordWithURL(url, title: "Article", addedBy: "Test")
+        _ = try await profile.readingList.updateRecord(record, unread: false)
+        setupSelectedTabWithReaderMode(url: URL(string: url), readerModeState: .available)
+        let subject = createSubject()
+        let readerModeBar = ReaderModeBarView(frame: .zero)
+        subject.readerModeBar = readerModeBar
+
+        subject.updateReaderModeBar()
+
+        let updated = expectation(for: NSPredicate { _, _ in
+            readerModeBar.added && !readerModeBar.unread
+        }, evaluatedWith: nil)
+        await fulfillment(of: [updated], timeout: 5)
+    }
+
     func testNewState_whenSelectedTabIsNotReaderModePage_andReaderModeStateIsStillActive_hidesReaderModeBar() {
         let subject = createSubject()
         setupSelectedTabWithReaderMode(url: URL(string: "https://example.com/article"), readerModeState: .active)
