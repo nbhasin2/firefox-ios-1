@@ -182,6 +182,71 @@ class TestSQLiteReadingList: XCTestCase {
         }
     }
 
+    func testCreateRecord_async() async throws {
+        let result = try await readingList.createRecordWithURL(
+            "http://www.anandtech.com/show/9117/analyzing-intel-core-m-performance",
+            title: "Analyzing Intel Core M Performance: How 5Y10 can beat 5Y71 & the OEMs' Dilemma",
+            addedBy: "Stefan's iPhone"
+        )
+        XCTAssertEqual(result.url, "http://www.anandtech.com/show/9117/analyzing-intel-core-m-performance")
+        XCTAssertEqual(
+            result.title,
+            "Analyzing Intel Core M Performance: How 5Y10 can beat 5Y71 & the OEMs' Dilemma"
+        )
+        XCTAssertEqual(result.addedBy, "Stefan's iPhone")
+        XCTAssertTrue(result.unread)
+        XCTAssertFalse(result.archived)
+        XCTAssertFalse(result.favorite)
+    }
+
+    func testGetRecordWithURL_async() async throws {
+        let url = "http://www.anandtech.com/show/9117/analyzing-intel-core-m-performance"
+        let created = try await readingList.createRecordWithURL(url, title: "Title", addedBy: "Stefan's iPhone")
+
+        let fetched = try await readingList.getRecordWithURL(url)
+
+        XCTAssertEqual(created, fetched)
+    }
+
+    func testGetRecordWithURL_async_throwsWhenMissing() async {
+        do {
+            _ = try await readingList.getRecordWithURL("http://localhost/missing")
+            XCTFail("Expected getRecordWithURL to throw")
+        } catch {
+            XCTAssertTrue(error is ReadingListStorageError)
+        }
+    }
+
+    func testGetAllRecords_async() async throws {
+        _ = try await readingList.createRecordWithURL("http://localhost/article1", title: "Test 1", addedBy: "Device")
+        let second = try await readingList.createRecordWithURL(
+            "http://localhost/article2",
+            title: "Test 2",
+            addedBy: "Device"
+        )
+        _ = try await readingList.createRecordWithURL("http://localhost/article3", title: "Test 3", addedBy: "Device")
+        _ = try await readingList.updateRecord(second, unread: false)
+
+        let records = try await readingList.getAvailableRecords()
+
+        XCTAssertEqual(records.count, 3)
+    }
+
+    func testUpdateRecord_async() async throws {
+        let record = try await readingList.createRecordWithURL(
+            "http://localhost/article1",
+            title: "Test 1",
+            addedBy: "Stefan's iPhone"
+        )
+        XCTAssertTrue(record.unread)
+
+        let updated = try await readingList.updateRecord(record, unread: false)
+
+        XCTAssertEqual(updated.url, record.url)
+        XCTAssertEqual(updated.title, record.title)
+        XCTAssertFalse(updated.unread)
+    }
+
     // Helpers that croak if the storage call was not successful
 
     func createRecordWithURL(_ url: String, title: String, addedBy: String) -> Maybe<ReadingListItem> {

@@ -17,7 +17,7 @@ struct MockProfileLifecycleTests {
         func isUsable(in profile: MockProfile) async -> Bool {
             switch self {
             case .readingList:
-                return await profile.readingList.getAvailableRecords().asyncValue.isSuccess
+                return (try? await profile.readingList.getAvailableRecords()) != nil
             case .places:
                 return await profile.places.getRecentBookmarks(limit: 1).asyncValue.isSuccess
             case .tabs:

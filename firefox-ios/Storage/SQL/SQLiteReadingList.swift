@@ -45,9 +45,8 @@ public struct SQLiteReadingList: Sendable {
 
 extension SQLiteReadingList: ReadingList {
     public func getAvailableRecords(completion: @escaping @Sendable ([ReadingListItem]) -> Void) {
-        let sql = "SELECT \(allColumns) FROM items ORDER BY client_last_modified DESC"
         db.runQuery(
-            sql,
+            availableRecordsSQL,
             args: nil,
             factory: SQLiteReadingList.ReadingListItemFactory
         ).upon { result in
@@ -60,9 +59,17 @@ extension SQLiteReadingList: ReadingList {
     }
 
     public func getAvailableRecords() -> Deferred<Maybe<[ReadingListItem]>> {
-        let sql = "SELECT \(allColumns) FROM items ORDER BY client_last_modified DESC"
-        return db.runQuery(sql, args: nil, factory: SQLiteReadingList.ReadingListItemFactory)
+        return db.runQuery(availableRecordsSQL, args: nil, factory: SQLiteReadingList.ReadingListItemFactory)
             .map { $0.map { cursor in cursor.asArray() } }
+    }
+
+    public func getAvailableRecords() async throws -> [ReadingListItem] {
+        let cursor = try await db.runQuery(
+            availableRecordsSQL,
+            args: nil,
+            factory: SQLiteReadingList.ReadingListItemFactory
+        )
+        return cursor.asArray()
     }
 
     public func deleteRecord(_ record: ReadingListItem, completion: (@Sendable (Bool) -> Void)? = nil) {
@@ -78,74 +85,125 @@ extension SQLiteReadingList: ReadingList {
 
     public func createRecordWithURL(_ url: String, title: String, addedBy: String) -> Deferred<Maybe<ReadingListItem>> {
         return db.transaction { connection -> ReadingListItem in
-            // swiftlint:disable line_length
-            let insertSQL = "INSERT OR REPLACE INTO items (client_last_modified, url, title, added_by) VALUES (?, ?, ?, ?)"
-            // swiftlint:enable line_length
-            let insertArgs: Args = [ReadingListNow(), url, title, addedBy]
-            let lastInsertedRowID = connection.lastInsertedRowID
+            return try self.insertRecord(connection, url: url, title: title, addedBy: addedBy)
+        }
+    }
 
-            try connection.executeChange(insertSQL, withArgs: insertArgs)
-
-            if connection.lastInsertedRowID == lastInsertedRowID {
-                throw ReadingListStorageError(message: "Unable to insert ReadingListItem")
-            }
-
-            let querySQL = "SELECT \(self.allColumns) FROM items WHERE client_id = ? LIMIT 1"
-            let queryArgs: Args = [connection.lastInsertedRowID]
-
-            let cursor = connection.executeQuery(
-                querySQL,
-                factory: SQLiteReadingList.ReadingListItemFactory,
-                withArgs: queryArgs
-            )
-
-            let items = cursor.asArray()
-            if let item = items.first {
-                self.notificationCenter.post(name: .ReadingListUpdated, object: self)
-                return item
-            } else {
-                throw ReadingListStorageError(message: "Unable to get inserted ReadingListItem")
-            }
+    public func createRecordWithURL(_ url: String, title: String, addedBy: String) async throws -> ReadingListItem {
+        return try await db.transaction { connection -> ReadingListItem in
+            return try self.insertRecord(connection, url: url, title: title, addedBy: addedBy)
         }
     }
 
     public func getRecordWithURL(_ url: String) -> Deferred<Maybe<ReadingListItem>> {
-        let sql = "SELECT \(allColumns) FROM items WHERE url = ? LIMIT 1"
         let args: Args = [url]
-        return db.runQuery(sql, args: args, factory: SQLiteReadingList.ReadingListItemFactory).map { $0.bind { cursor in
-            let items = cursor.asArray()
-            if let item = items.first {
-                return Maybe(success: item)
-            } else {
-                return Maybe(failure: ReadingListStorageError(message: "Can't create RLCR from row"))
+        return db.runQuery(recordWithURLSQL, args: args, factory: SQLiteReadingList.ReadingListItemFactory).map {
+            $0.bind { cursor in
+                if let item = cursor.asArray().first {
+                    return Maybe(success: item)
+                } else {
+                    return Maybe(failure: ReadingListStorageError(message: SQLiteReadingList.recordNotFoundMessage))
+                }
             }
         }
+    }
+
+    public func getRecordWithURL(_ url: String) async throws -> ReadingListItem {
+        let args: Args = [url]
+        let cursor = try await db.runQuery(
+            recordWithURLSQL,
+            args: args,
+            factory: SQLiteReadingList.ReadingListItemFactory
+        )
+        guard let item = cursor.asArray().first else {
+            throw ReadingListStorageError(message: SQLiteReadingList.recordNotFoundMessage)
         }
+        return item
     }
 
     public func updateRecord(_ record: ReadingListItem, unread: Bool) -> Deferred<Maybe<ReadingListItem>> {
         return db.transaction { connection -> ReadingListItem in
-            let updateSQL = "UPDATE items SET unread = ? WHERE client_id = ?"
-            let updateArgs: Args = [unread, record.id]
+            return try self.updateRecordRow(connection, record: record, unread: unread)
+        }
+    }
 
-            try connection.executeChange(updateSQL, withArgs: updateArgs)
+    public func updateRecord(_ record: ReadingListItem, unread: Bool) async throws -> ReadingListItem {
+        return try await db.transaction { connection -> ReadingListItem in
+            return try self.updateRecordRow(connection, record: record, unread: unread)
+        }
+    }
 
-            let querySQL = "SELECT \(self.allColumns) FROM items WHERE client_id = ? LIMIT 1"
-            let queryArgs: Args = [record.id]
+    private static let recordNotFoundMessage = "Can't create RLCR from row"
 
-            let cursor = connection.executeQuery(
-                querySQL,
-                factory: SQLiteReadingList.ReadingListItemFactory,
-                withArgs: queryArgs
-            )
+    private var availableRecordsSQL: String {
+        return "SELECT \(allColumns) FROM items ORDER BY client_last_modified DESC"
+    }
 
-            let items = cursor.asArray()
-            if let item = items.first {
-                self.notificationCenter.post(name: .ReadingListUpdated, object: self)
-                return item
-            } else {
-                throw ReadingListStorageError(message: "Unable to get updated ReadingListItem")
-            }
+    private var recordWithURLSQL: String {
+        return "SELECT \(allColumns) FROM items WHERE url = ? LIMIT 1"
+    }
+
+    private func insertRecord(
+        _ connection: SQLiteDBConnection,
+        url: String,
+        title: String,
+        addedBy: String
+    ) throws -> ReadingListItem {
+        // swiftlint:disable line_length
+        let insertSQL = "INSERT OR REPLACE INTO items (client_last_modified, url, title, added_by) VALUES (?, ?, ?, ?)"
+        // swiftlint:enable line_length
+        let insertArgs: Args = [ReadingListNow(), url, title, addedBy]
+        let lastInsertedRowID = connection.lastInsertedRowID
+
+        try connection.executeChange(insertSQL, withArgs: insertArgs)
+
+        if connection.lastInsertedRowID == lastInsertedRowID {
+            throw ReadingListStorageError(message: "Unable to insert ReadingListItem")
+        }
+
+        let querySQL = "SELECT \(allColumns) FROM items WHERE client_id = ? LIMIT 1"
+        let queryArgs: Args = [connection.lastInsertedRowID]
+
+        let cursor = connection.executeQuery(
+            querySQL,
+            factory: SQLiteReadingList.ReadingListItemFactory,
+            withArgs: queryArgs
+        )
+
+        let items = cursor.asArray()
+        if let item = items.first {
+            notificationCenter.post(name: .ReadingListUpdated, object: self)
+            return item
+        } else {
+            throw ReadingListStorageError(message: "Unable to get inserted ReadingListItem")
+        }
+    }
+
+    private func updateRecordRow(
+        _ connection: SQLiteDBConnection,
+        record: ReadingListItem,
+        unread: Bool
+    ) throws -> ReadingListItem {
+        let updateSQL = "UPDATE items SET unread = ? WHERE client_id = ?"
+        let updateArgs: Args = [unread, record.id]
+
+        try connection.executeChange(updateSQL, withArgs: updateArgs)
+
+        let querySQL = "SELECT \(allColumns) FROM items WHERE client_id = ? LIMIT 1"
+        let queryArgs: Args = [record.id]
+
+        let cursor = connection.executeQuery(
+            querySQL,
+            factory: SQLiteReadingList.ReadingListItemFactory,
+            withArgs: queryArgs
+        )
+
+        let items = cursor.asArray()
+        if let item = items.first {
+            notificationCenter.post(name: .ReadingListUpdated, object: self)
+            return item
+        } else {
+            throw ReadingListStorageError(message: "Unable to get updated ReadingListItem")
         }
     }
 

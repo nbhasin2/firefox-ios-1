@@ -114,11 +114,22 @@ final class AppLaunchUtil: FeatureFlaggable, Sendable {
         ) { (notification) in
             if let userInfo = notification.userInfo, let url = userInfo["URL"] as? URL {
                 let title = (userInfo["Title"] as? String) ?? ""
-                self.profile.readingList.createRecordWithURL(
-                    url.absoluteString,
-                    title: title,
-                    addedBy: deviceName
-                )
+                if self.featureFlagsProvider.isEnabled(.deferredRemoval) {
+                    let readingList = self.profile.readingList
+                    Task {
+                        _ = try? await readingList.createRecordWithURL(
+                            url.absoluteString,
+                            title: title,
+                            addedBy: deviceName
+                        )
+                    }
+                } else {
+                    self.profile.readingList.createRecordWithURL(
+                        url.absoluteString,
+                        title: title,
+                        addedBy: deviceName
+                    )
+                }
             }
         }
 

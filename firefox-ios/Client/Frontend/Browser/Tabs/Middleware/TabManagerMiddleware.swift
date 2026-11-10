@@ -934,8 +934,16 @@ final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark
         dataQueue: DispatchQueue,
         completion: @escaping @Sendable (Bool) -> Void
     ) {
-        profile.readingList.getRecordWithURL(url).uponQueue(dataQueue) { result in
-            completion(result.successValue != nil)
+        if featureFlagsProvider.isEnabled(.deferredRemoval) {
+            let readingList = profile.readingList
+            Task {
+                let isInReadingList = (try? await readingList.getRecordWithURL(url)) != nil
+                dataQueue.async { completion(isInReadingList) }
+            }
+        } else {
+            profile.readingList.getRecordWithURL(url).uponQueue(dataQueue) { result in
+                completion(result.successValue != nil)
+            }
         }
     }
 

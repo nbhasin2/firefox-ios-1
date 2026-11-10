@@ -168,7 +168,8 @@ class ReadingListPanel: UITableViewController,
                         LibraryPanel,
                         LibraryPanelContextMenu,
                         Themeable,
-                        Notifiable {
+                        Notifiable,
+                        FeatureFlaggable {
     weak var libraryPanelDelegate: LibraryPanelDelegate?
     weak var navigationHandler: ReadingListNavigationHandler?
     let profile: Profile
@@ -419,7 +420,14 @@ class ReadingListPanel: UITableViewController,
             let url = URL(string: record.url),
             let encodedURL = url.encodeReaderModeURL(ReaderModeSchemeHandler.currentBaseURL) {
             // Mark the item as read
-            profile.readingList.updateRecord(record, unread: false)
+            if featureFlagsProvider.isEnabled(.deferredRemoval) {
+                let readingList = profile.readingList
+                Task {
+                    _ = try? await readingList.updateRecord(record, unread: false)
+                }
+            } else {
+                profile.readingList.updateRecord(record, unread: false)
+            }
             // Reading list items are closest in concept to bookmarks.
             let visitType = VisitType.bookmark
             navigationHandler?.openUrl(encodedURL, visitType: visitType)
