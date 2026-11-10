@@ -25,4 +25,13 @@ class MockablePinnedSites: PinnedSites, @unchecked Sendable {
         completion(.success(()))
     }
     func getPinnedTopSites() -> Deferred<Maybe<Cursor<Site>>> { fatalError() }
+
+    func removeFromPinnedTopSites(_ site: Site) async throws {
+        removeFromPinnedTopSitesCalledCount += 1
+    }
+    func isPinnedTopSite(_ url: String) async throws -> Bool { false }
+    func addPinnedTopSite(_ site: Site) async throws {
+        addPinnedTopSiteCalledCount += 1
+    }
+    func getPinnedTopSites() async throws -> Cursor<Site> { fatalError() }
 }

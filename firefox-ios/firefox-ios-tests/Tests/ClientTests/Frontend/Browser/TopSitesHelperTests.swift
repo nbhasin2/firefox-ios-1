@@ -268,4 +268,9 @@ private class PinnedSitesMock: MockablePinnedSites, @unchecked Sendable {
         deferred.fill(pinnedResponse)
         return deferred
     }
+
+    override func getPinnedTopSites() async throws -> Cursor<Site> {
+        guard let cursor = pinnedResponse.successValue else { throw Error() }
+        return cursor
+    }
 }

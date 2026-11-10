@@ -121,6 +121,17 @@ final class TopSitesProviderImplementation: TopSitesProvider, FeatureFlaggable {
 
     private func getPinnedSites(group: DispatchGroup) {
         group.enter()
+        if featureFlagsProvider.isEnabled(.deferredRemoval) {
+            let pinnedSiteFetcher = pinnedSiteFetcher
+            Task { @MainActor [weak self] in
+                if let sites = try? await pinnedSiteFetcher.getPinnedTopSites().asArray() {
+                    self?.pinnedSites = sites
+                }
+                group.leave()
+            }
+            return
+        }
+
         pinnedSiteFetcher
             .getPinnedTopSites()
             .uponQueue(.main) { [weak self] result in

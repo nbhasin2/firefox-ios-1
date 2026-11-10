@@ -181,6 +181,33 @@ final class BookmarksPanelViewModel: BookmarksPanelViewModelProtocol, FeatureFla
         }
     }
 
+    private static func togglePin(
+        of site: Site,
+        isPinned: Bool,
+        profile: Profile,
+        logger: Logger,
+        onSuccess: @escaping @MainActor (String) -> Void
+    ) {
+        let pinnedSites = profile.pinnedSites
+        Task { @MainActor in
+            do {
+                if isPinned {
+                    try await pinnedSites.removeFromPinnedTopSites(site)
+                } else {
+                    try await pinnedSites.addPinnedTopSite(site)
+                }
+                onSuccess(
+                    isPinned
+                    ? .LegacyAppMenu.RemovePinFromShortcutsConfirmMessage
+                    : .LegacyAppMenu.AddPinToShortcutsConfirmMessage
+                )
+            } catch {
+                let logMessage = isPinned ? "Could not remove pinned site" : "Could not add pinne site"
+                logger.log(logMessage, level: .debug, category: .library)
+            }
+        }
+    }
+
     func createPinUnpinAction(
         for site: Site,
         isPinned: Bool,
@@ -191,6 +218,12 @@ final class BookmarksPanelViewModel: BookmarksPanelViewModelProtocol, FeatureFla
             iconString: isPinned ? StandardImageIdentifiers.Large.pinSlash : StandardImageIdentifiers.Large.pin,
             tapHandler: { [weak self] _ in
                 guard let profile = self?.profile, let logger = self?.logger else { return }
+
+                if self?.featureFlagsProvider.isEnabled(.deferredRemoval) == true {
+                    Self.togglePin(of: site, isPinned: isPinned, profile: profile, logger: logger, onSuccess: successHandler)
+                    return
+                }
+
                 let action = isPinned
                 ? profile.pinnedSites.removeFromPinnedTopSites(site)
                 : profile.pinnedSites.addPinnedTopSite(site)
@@ -391,13 +424,20 @@ final class BookmarksPanelViewModel: BookmarksPanelViewModelProtocol, FeatureFla
         _ url: String,
         completion: @escaping @MainActor  (Bool) -> Void
     ) {
-        profile.pinnedSites.isPinnedTopSite(url)
-            .uponQueue(.main) { result in
-                // FXIOS-13228 It should be safe to assumeIsolated here because of `.main` queue above
-                MainActor.assumeIsolated {
-                    completion(result.successValue ?? false)
-                }
+        if featureFlagsProvider.isEnabled(.deferredRemoval) {
+            let pinnedSites = profile.pinnedSites
+            Task { @MainActor in
+                completion((try? await pinnedSites.isPinnedTopSite(url)) ?? false)
             }
+        } else {
+            profile.pinnedSites.isPinnedTopSite(url)
+                .uponQueue(.main) { result in
+                    // FXIOS-13228 It should be safe to assumeIsolated here because of `.main` queue above
+                    MainActor.assumeIsolated {
+                        completion(result.successValue ?? false)
+                    }
+                }
+        }
     }
 
     private func createSite(isPinned: Bool, bookmarkItem: BookmarkItemData) -> Site {

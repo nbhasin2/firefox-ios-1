@@ -713,6 +713,28 @@ final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility, FeatureFlag
         releaseMiddlewareProvidersFromMemory(subject)
     }
 
+    func test_mainMenuShortcutsActions_withDeferredRemovalEnabled_updatePinnedSites() {
+        setFeatureFlag(.deferredRemoval, isEnabled: true)
+        let subject = createSubject()
+        let tab = createTab(profile: mockProfile, urlString: "https://www.mozilla.org")
+        mockTabManager.tabForUUID = tab
+
+        for actionType in [MainMenuActionType.tapAddToShortcuts, .tapRemoveFromShortcuts] {
+            subject.tabsPanelProvider.legacyMiddleware(
+                appState,
+                MainMenuAction(windowUUID: .XCTestDefaultUUID, actionType: actionType, tabID: tab.tabUUID)
+            )
+        }
+
+        let pinnedSites = mockPinnedSites!
+        expectation(for: NSPredicate { _, _ in
+            pinnedSites.addPinnedTopSiteCalledCount == 1 && pinnedSites.removeFromPinnedTopSitesCalledCount == 1
+        }, evaluatedWith: nil)
+        waitForExpectations(timeout: 5)
+
+        releaseMiddlewareProvidersFromMemory(subject)
+    }
+
     func test_mainMenuRemoveFromShortcutsAction_withoutTab_doesNotDispatchShortcutUnpinnedTelemetryAction() {
         let subject = createSubject()
         let action = MainMenuAction(
