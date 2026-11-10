@@ -250,4 +250,76 @@ class TestSQLitePinnedSites: XCTestCase {
 
         wait(for: [expectation], timeout: 3)
     }
+
+    private func makeAsyncSubject(
+        _ filename: String,
+        notificationCenter: NotificationCenter = NotificationCenter()
+    ) -> BrowserDBSQLite {
+        let database = BrowserDB(filename: filename, schema: BrowserSchema(), files: files)
+        return BrowserDBSQLite(database: database, prefs: MockProfilePrefs(), notificationCenter: notificationCenter)
+    }
+
+    func testPinnedTopSites_async() async throws {
+        let subject = makeAsyncSubject("testPinnedTopSitesAsync.db")
+        let site1 = Site.createBasicSite(url: "http://site1.com/foo", title: "A 1")
+        let site2 = Site.createBasicSite(url: "http://site2.com/foo", title: "A 2")
+        try await subject.addPinnedTopSite(site1)
+        try await subject.addPinnedTopSite(site2)
+        let pinned = try await subject.getPinnedTopSites()
+        XCTAssertEqual(Set(pinned.asArray().map { $0.url }), [site1.url, site2.url])
+        let isSite1Pinned = try await subject.isPinnedTopSite(site1.url)
+        XCTAssertTrue(isSite1Pinned)
+        try await subject.removeFromPinnedTopSites(site2)
+        let remaining = try await subject.getPinnedTopSites()
+        XCTAssertEqual(remaining.asArray().map { $0.url }, [site1.url])
+        try await subject.addPinnedTopSite(site1)
+        let afterDuplicate = try await subject.getPinnedTopSites()
+        XCTAssertEqual(afterDuplicate.count, 1)
+    }
+
+    func testPinnedTopSitesDuplicateDomains_async() async throws {
+        let subject = makeAsyncSubject("testPinnedTopSitesDuplicateDomainsAsync.db")
+        let site1 = Site.createBasicSite(url: "http://site.com/foo1", title: "A duplicate domain 1")
+        let site2 = Site.createBasicSite(url: "http://site.com/foo2", title: "A duplicate domain 2")
+        try await subject.addPinnedTopSite(site1)
+        try await subject.addPinnedTopSite(site2)
+        let pinned = try await subject.getPinnedTopSites()
+        XCTAssertEqual(pinned.count, 2)
+        try await subject.removeFromPinnedTopSites(site2)
+        let remaining = try await subject.getPinnedTopSites()
+        XCTAssertEqual(remaining.count, 0, "Duplicate pinned domains are removed with a fuzzy search")
+    }
+
+    func testPinnedTopSites_invalidURL_async_throws() async {
+        let subject = makeAsyncSubject("testPinnedTopSitesInvalidURLAsync.db")
+        let site = Site.createBasicSite(url: "", title: "Invalid")
+        do {
+            try await subject.addPinnedTopSite(site)
+            XCTFail("Expected addPinnedTopSite to throw")
+        } catch {
+            XCTAssertEqual((error as? DatabaseError)?.description, "Invalid site ")
+        }
+        do {
+            try await subject.removeFromPinnedTopSites(site)
+            XCTFail("Expected removeFromPinnedTopSites to throw")
+        } catch {
+            XCTAssertEqual((error as? DatabaseError)?.description, "Invalid url for site ")
+        }
+    }
+
+    func testPinnedTopSites_async_postsTopSitesUpdated() async throws {
+        let center = NotificationCenter()
+        let subject = makeAsyncSubject("testPinnedTopSitesNotificationsAsync.db", notificationCenter: center)
+        let site = Site.createBasicSite(url: "http://site.com/foo", title: "A")
+        let added = XCTNSNotificationExpectation(name: .TopSitesUpdated, object: subject, notificationCenter: center)
+        try await subject.addPinnedTopSite(site)
+        await fulfillment(of: [added], timeout: 1)
+        let removed = XCTNSNotificationExpectation(name: .TopSitesUpdated, object: subject, notificationCenter: center)
+        try await subject.removeFromPinnedTopSites(site)
+        await fulfillment(of: [removed], timeout: 1)
+        try await subject.addPinnedTopSite(site)
+        try await subject.remove(pinnedSite: site)
+        let isPinned = try await subject.isPinnedTopSite(site.url)
+        XCTAssertFalse(isPinned)
+    }
 }

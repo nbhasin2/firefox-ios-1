@@ -224,6 +224,27 @@ final class BookmarksPanelViewModelTests: XCTestCase {
         wait(for: [expectation], timeout: 1)
     }
 
+    func testGetSiteDetails_withDeferredRemovalEnabled_whenIsPinnedTopSite_returnsPinnedSite() async {
+        profile = makeProfile(injectedPinnedSites: MockPinnedSites(stubbedIsPinnedtopSite: true))
+        let mockNimbusLayer = MockNimbusFeatureFlagLayer()
+        mockNimbusLayer.enabledFlags.insert(.deferredRemoval)
+        DependencyHelperMock().bootstrapDependencies(
+            injectedProfile: profile,
+            injectedFeatureFlagProvider: FeatureFlagsProvider(prefs: profile.prefs, backendLayer: mockNimbusLayer)
+        )
+        let subject = createSubject(guid: BookmarkRoots.MobileFolderGUID)
+        let expectation = expectation(description: "get site details")
+        var isPinned = false
+
+        subject.getSiteDetails(for: createBookmarkItemData()) { site in
+            isPinned = site?.isPinnedSite ?? false
+            expectation.fulfill()
+        }
+
+        await fulfillment(of: [expectation], timeout: 1)
+        XCTAssertTrue(isPinned)
+    }
+
     // MARK: - Search bookmarks
 
     func testSearchBookmarks_emptyQuery_returnsEmpty() {
@@ -682,6 +703,10 @@ private final class MockPinnedSites: MockablePinnedSites, @unchecked Sendable {
         let deferred = Deferred<Maybe<Bool>>()
         deferred.fill(Maybe(success: isPinnedTopSite))
         return deferred
+    }
+
+    override func isPinnedTopSite(_ url: String) async throws -> Bool {
+        return isPinnedTopSite
     }
 }
 

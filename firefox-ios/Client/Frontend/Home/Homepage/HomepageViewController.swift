@@ -1441,7 +1441,12 @@ final class HomepageViewController: UIViewController,
             url: url.absoluteString,
             title: url.shortDisplayString.capitalized
         )
-        profile.pinnedSites.addPinnedTopSite(site)
+        if featureFlagsProvider.isEnabled(.deferredRemoval) {
+            let pinnedSites = profile.pinnedSites
+            Task { try? await pinnedSites.addPinnedTopSite(site) }
+        } else {
+            profile.pinnedSites.addPinnedTopSite(site)
+        }
         store.dispatch(
             TopSitesAction(
                 shortcutPinnedSource: .homescreenButton,

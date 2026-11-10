@@ -18,6 +18,11 @@ public protocol PinnedSites: Sendable {
     func getPinnedTopSites() -> Deferred<Maybe<Cursor<Site>>>
     func isPinnedTopSite(_ url: String) -> Deferred<Maybe<Bool>>
 
+    func removeFromPinnedTopSites(_ site: Site) async throws
+    func addPinnedTopSite(_ site: Site) async throws
+    func getPinnedTopSites() async throws -> Cursor<Site>
+    func isPinnedTopSite(_ url: String) async throws -> Bool
+
     // Completion handler 
     func addPinnedTopSite(_ site: Site, completion: @escaping @Sendable (Result<Void, Error>) -> Void)
 }

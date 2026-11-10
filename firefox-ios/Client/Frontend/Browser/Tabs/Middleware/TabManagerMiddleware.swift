@@ -924,8 +924,16 @@ final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark
         dataQueue: DispatchQueue,
         completion: @escaping @Sendable (Bool) -> Void
     ) {
-        profile.pinnedSites.isPinnedTopSite(url).uponQueue(dataQueue) { result in
-            completion(result.successValue ?? false)
+        if featureFlagsProvider.isEnabled(.deferredRemoval) {
+            let pinnedSites = profile.pinnedSites
+            Task {
+                let isPinned = (try? await pinnedSites.isPinnedTopSite(url)) ?? false
+                dataQueue.async { completion(isPinned) }
+            }
+        } else {
+            profile.pinnedSites.isPinnedTopSite(url).uponQueue(dataQueue) { result in
+                completion(result.successValue ?? false)
+            }
         }
     }
 
@@ -1065,7 +1073,12 @@ final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark
 
         let site = Site.createBasicSite(url: url, title: tab.displayTitle)
 
-        profile.pinnedSites.addPinnedTopSite(site)
+        if featureFlagsProvider.isEnabled(.deferredRemoval) {
+            let pinnedSites = profile.pinnedSites
+            Task { try? await pinnedSites.addPinnedTopSite(site) }
+        } else {
+            profile.pinnedSites.addPinnedTopSite(site)
+        }
         store.dispatch(
             TopSitesAction(
                 shortcutPinnedSource: .appMenu,
@@ -1084,7 +1097,12 @@ final class TabManagerMiddleware: FeatureFlaggable, CanRemoveQuickActionBookmark
 
         let site = Site.createBasicSite(url: url, title: tab.displayTitle)
 
-        profile.pinnedSites.removeFromPinnedTopSites(site)
+        if featureFlagsProvider.isEnabled(.deferredRemoval) {
+            let pinnedSites = profile.pinnedSites
+            Task { try? await pinnedSites.removeFromPinnedTopSites(site) }
+        } else {
+            profile.pinnedSites.removeFromPinnedTopSites(site)
+        }
         store.dispatch(
             TopSitesAction(
                 shortcutUnpinnedSource: .appMenu,
