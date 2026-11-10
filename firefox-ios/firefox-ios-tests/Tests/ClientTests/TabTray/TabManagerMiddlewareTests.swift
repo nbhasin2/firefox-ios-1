@@ -586,6 +586,41 @@ final class TabManagerMiddlewareTests: XCTestCase, StoreTestUtility, FeatureFlag
         releaseMiddlewareProvidersFromMemory(subject)
     }
 
+    @MainActor
+    func testRequestTabInfo_withDeferredRemovalEnabled_reportsTabInReadingList() async throws {
+        setFeatureFlag(.deferredRemoval, isEnabled: true)
+        setIsHostedSummaryEnabled(true)
+        let url = "https://example.com/article"
+        _ = try await mockProfile.readingList.createRecordWithURL(url, title: "Article", addedBy: "Test")
+        let subject = createSubject()
+        let expectation = XCTestExpectation(description: "Tab info is dispatched twice.")
+        let tabManager = mockWindowManager.tabManager(for: .XCTestDefaultUUID) as? MockTabManager
+        let tab = MockTab(profile: mockProfile, windowUUID: .XCTestDefaultUUID)
+        tab.url = URL(string: url)
+        tab.webView = MockTabWebView(tab: tab)
+        mockSummarizerConfigFactory.returnedConfig = .defaultConfig
+        tabManager?.selectedTab = tab
+
+        mockStore.dispatchCalled = { [weak self] in
+            guard self?.mockStore.dispatchedActions.count == 2 else { return }
+            expectation.fulfill()
+        }
+
+        subject.tabsPanelProvider.legacyMiddleware(
+            appState,
+            MainMenuAction(
+                windowUUID: .XCTestDefaultUUID,
+                actionType: MainMenuMiddlewareActionType.requestTabInfo
+            )
+        )
+        await fulfillment(of: [expectation], timeout: 5)
+
+        let action = try XCTUnwrap(mockStore.dispatchedActions[1] as? MainMenuAction)
+        XCTAssertEqual(action.currentTabInfo?.isInReadingList, true)
+
+        releaseMiddlewareProvidersFromMemory(subject)
+    }
+
     func test_shortcutsLibraryAction_switchTabToastButtonPressed_selectsTab() throws {
         let subject = createSubject()
         let tab = Tab(profile: mockProfile, windowUUID: .XCTestDefaultUUID)

@@ -262,9 +262,18 @@ extension BrowserViewController: ReaderModeBarViewDelegate {
                   let url = rawURL.decodeReaderModeURL
             else { break }
 
-            profile.readingList.createRecordWithURL(url.absoluteString,
-                                                    title: tab.title ?? "",
-                                                    addedBy: UIDevice.current.name) // TODO Check result, can this fail?
+            if featureFlagsProvider.isEnabled(.deferredRemoval) {
+                let readingList = profile.readingList
+                let title = tab.title ?? ""
+                let deviceName = UIDevice.current.name
+                Task {
+                    _ = try? await readingList.createRecordWithURL(url.absoluteString, title: title, addedBy: deviceName)
+                }
+            } else {
+                profile.readingList.createRecordWithURL(url.absoluteString,
+                                                        title: tab.title ?? "",
+                                                        addedBy: UIDevice.current.name) // TODO Check result, can this fail?
+            }
             readerModeBar.added = true
             readerModeBar.unread = true
 

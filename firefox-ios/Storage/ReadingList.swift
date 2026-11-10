@@ -22,6 +22,13 @@ public protocol ReadingList: Sendable {
     func getRecordWithURL(_ url: String) -> Deferred<Maybe<ReadingListItem>>
     @discardableResult
     func updateRecord(_ record: ReadingListItem, unread: Bool) -> Deferred<Maybe<ReadingListItem>>
+
+    func getAvailableRecords() async throws -> [ReadingListItem]
+    @discardableResult
+    func createRecordWithURL(_ url: String, title: String, addedBy: String) async throws -> ReadingListItem
+    func getRecordWithURL(_ url: String) async throws -> ReadingListItem
+    @discardableResult
+    func updateRecord(_ record: ReadingListItem, unread: Bool) async throws -> ReadingListItem
 }
 
 public struct ReadingListItem: Equatable, Sendable {
