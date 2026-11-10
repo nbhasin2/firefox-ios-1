@@ -25,6 +25,7 @@ enum FeatureFlagID: String, CaseIterable {
     case configurationProfile
     case customReaderModeScheme
     case deeplinkOptimizationRefactor
+    case deferredRemoval
     case downloadLiveActivities
     case firefoxJpGuideDefaultSite
     case firefoxSuggestFeature
@@ -127,6 +128,7 @@ enum FeatureFlagID: String, CaseIterable {
                 .configurationProfile,
                 .customReaderModeScheme,
                 .deeplinkOptimizationRefactor,
+                .deferredRemoval,
                 .downloadLiveActivities,
                 .googleLens,
                 .googleLensSearchInterstitial,
