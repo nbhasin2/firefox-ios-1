@@ -142,24 +142,7 @@ class TestBrowserDB: XCTestCase, @unchecked Sendable {
     func testConcurrentQueriesDealloc() async {
         let expectation = self.expectation(description: "Got all DB results")
 
-        let db = BrowserDB(filename: "foo.db", schema: BrowserSchema(), files: self.files)
-        db.run("CREATE TABLE foo (id INTEGER PRIMARY KEY AUTOINCREMENT, bar TEXT)").succeeded()
-
-        _ = db.withConnection { connection in
-            for i in 0..<1000 {
-                let args: Args = ["bar \(i)"]
-                try connection.executeChange(
-                    "INSERT INTO foo (bar) VALUES (?)",
-                    withArgs: args
-                )
-            }
-        }
-
-        let shortConcurrentQuery = db.runQueryConcurrently(
-            "SELECT * FROM foo LIMIT 1",
-            args: nil,
-            factory: Self.fooBarFactory
-        )
+        let shortConcurrentQuery = makeShortConcurrentQuery()
 
         await self.trackForMemoryLeaks(shortConcurrentQuery)
 
@@ -173,6 +156,109 @@ class TestBrowserDB: XCTestCase, @unchecked Sendable {
         }
 
         await fulfillment(of: [expectation], timeout: 3)
+    }
+
+    // Sync context so the Deferred overloads are chosen over the async ones.
+    private func makeShortConcurrentQuery() -> Deferred<Maybe<Cursor<[String: Any]>>> {
+        let db = BrowserDB(filename: "foo.db", schema: BrowserSchema(), files: self.files)
+        db.run("CREATE TABLE foo (id INTEGER PRIMARY KEY AUTOINCREMENT, bar TEXT)").succeeded()
+
+        _ = db.withConnection { connection in
+            for i in 0..<1000 {
+                let args: Args = ["bar \(i)"]
+                try connection.executeChange(
+                    "INSERT INTO foo (bar) VALUES (?)",
+                    withArgs: args
+                )
+            }
+        }
+
+        return db.runQueryConcurrently(
+            "SELECT * FROM foo LIMIT 1",
+            args: nil,
+            factory: Self.fooBarFactory
+        )
+    }
+
+    func testAsyncRunAndRunQuery() async throws {
+        let db = BrowserDB(filename: "foo.db", schema: BrowserSchema(), files: self.files)
+        try await db.run("CREATE TABLE foo (id INTEGER PRIMARY KEY AUTOINCREMENT, bar TEXT)")
+        try await db.run([
+            (sql: "INSERT INTO foo (bar) VALUES (?)", args: ["one"]),
+            (sql: "INSERT INTO foo (bar) VALUES (?)", args: ["two"])
+        ])
+
+        let cursor = try await db.runQuery("SELECT * FROM foo", args: nil, factory: Self.fooBarFactory)
+        let concurrentCursor = try await db.runQueryConcurrently(
+            "SELECT * FROM foo LIMIT 1",
+            args: nil,
+            factory: Self.fooBarFactory
+        )
+
+        XCTAssertEqual(cursor.asArray().count, 2)
+        XCTAssertEqual(concurrentCursor.asArray().count, 1)
+    }
+
+    func testAsyncRunEmptyCommandsSucceeds() async throws {
+        let db = BrowserDB(filename: "foo.db", schema: BrowserSchema(), files: self.files)
+        try await db.run([])
+    }
+
+    func testAsyncRunThrowsDatabaseErrorOnInvalidSQL() async {
+        let db = BrowserDB(filename: "foo.db", schema: BrowserSchema(), files: self.files)
+        do {
+            try await db.run("INSERT INTO missing_table (bar) VALUES (1)")
+            XCTFail("Expected run to throw")
+        } catch {
+            XCTAssertTrue(error is DatabaseError)
+        }
+    }
+
+    func testAsyncTransactionRollsBackOnThrow() async throws {
+        let db = BrowserDB(filename: "foo.db", schema: BrowserSchema(), files: self.files)
+        try await db.run("CREATE TABLE foo (id INTEGER PRIMARY KEY AUTOINCREMENT, bar TEXT)")
+
+        do {
+            try await db.run([
+                (sql: "INSERT INTO foo (bar) VALUES (?)", args: ["one"]),
+                (sql: "INSERT INTO missing_table (bar) VALUES (1)", args: nil)
+            ])
+            XCTFail("Expected transaction to throw")
+        } catch {
+            XCTAssertTrue(error is DatabaseError)
+        }
+
+        let hasRows = try await db.queryReturnsResults("SELECT * FROM foo")
+        XCTAssertFalse(hasRows)
+    }
+
+    func testAsyncQueryReturnsResults() async throws {
+        let db = BrowserDB(filename: "foo.db", schema: BrowserSchema(), files: self.files)
+        try await db.run("CREATE TABLE foo (id INTEGER PRIMARY KEY AUTOINCREMENT, bar TEXT)")
+
+        let beforeInsert = try await db.queryReturnsResults("SELECT * FROM foo")
+        XCTAssertFalse(beforeInsert)
+
+        try await db.run("INSERT INTO foo (bar) VALUES (?)", withArgs: ["one"])
+
+        let afterInsert = try await db.queryReturnsResults("SELECT * FROM foo WHERE bar = ?", args: ["one"])
+        XCTAssertTrue(afterInsert)
+    }
+
+    func testAsyncWithConnectionReturnsValueAndThrows() async throws {
+        let db = BrowserDB(filename: "foo.db", schema: BrowserSchema(), files: self.files)
+        let value = try await db.withConnection { _ in 42 }
+        XCTAssertEqual(value, 42)
+
+        do {
+            _ = try await db.withConnection { connection -> Int in
+                try connection.executeChange("INSERT INTO missing_table (bar) VALUES (1)")
+                return 0
+            }
+            XCTFail("Expected withConnection to throw")
+        } catch {
+            XCTAssertTrue(error is DatabaseError)
+        }
     }
 
     nonisolated static func fooBarFactory(_ row: SDRow) -> [String: Any] {

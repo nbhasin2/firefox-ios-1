@@ -148,29 +148,12 @@ open class SwiftData: @unchecked Sendable {
                 deferred.connection = nil
             }
 
-            if !self.closed {
-                if self.primaryConnection == nil {
-                    self.primaryConnection = ConcreteSQLiteDBConnection(filename: self.filename, flags: SwiftData.Flags.readWriteCreate, schema: self.schema, files: self.files)
-                }
-            }
-
-            guard let connection = self.primaryConnection else {
-                do {
-                    _ = try callback(FailedSQLiteDBConnection())
-                    deferred.fill(Maybe(failure: NSError(domain: "mozilla", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not create a connection"])))
-                } catch let err as NSError {
-                    deferred.fill(Maybe(failure: DatabaseError(err: err)))
-                }
-                return
-            }
-
-            deferred.connection = connection
-
             do {
-                let result = try callback(connection)
-                deferred.fill(Maybe(success: result))
-            } catch let err as NSError {
-                deferred.fill(Maybe(failure: DatabaseError(err: err)))
+                deferred.fill(Maybe(success: try performWork(didAcquireConnection: { deferred.connection = $0 }, callback)))
+            } catch let error as MaybeErrorType {
+                deferred.fill(Maybe(failure: error))
+            } catch {
+                deferred.fill(Maybe(failure: DatabaseError(err: error as NSError)))
             }
         }
 
@@ -181,12 +164,60 @@ open class SwiftData: @unchecked Sendable {
         return deferred
     }
 
+    /// Async variant of `withConnection`. Runs on the same serial queue and surfaces the same errors by throwing.
+    func withConnection<T: Sendable>(
+        _ flags: SwiftData.Flags,
+        _ callback: @escaping (_ connection: SQLiteDBConnection) throws -> T
+    ) async throws -> T {
+        return try await withCheckedThrowingContinuation { continuation in
+            let work = DispatchWorkItem {
+                continuation.resume(with: Result { try self.performWork(callback) })
+            }
+            primaryConnectionQueue.async(execute: work)
+        }
+    }
+
+    /// Must be called on `primaryConnectionQueue`. Shared by the Deferred and async `withConnection` variants.
+    private func performWork<T>(
+        didAcquireConnection: (ConcreteSQLiteDBConnection) -> Void = { _ in },
+        _ callback: (SQLiteDBConnection) throws -> T
+    ) throws -> T {
+        if !self.closed {
+            if self.primaryConnection == nil {
+                self.primaryConnection = ConcreteSQLiteDBConnection(filename: self.filename, flags: SwiftData.Flags.readWriteCreate, schema: self.schema, files: self.files)
+            }
+        }
+
+        guard let connection = self.primaryConnection else {
+            do {
+                _ = try callback(FailedSQLiteDBConnection())
+            } catch let err as NSError {
+                throw DatabaseError(err: err)
+            }
+            throw NSError(domain: "mozilla", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not create a connection"])
+        }
+
+        didAcquireConnection(connection)
+
+        do {
+            return try callback(connection)
+        } catch let err as NSError {
+            throw DatabaseError(err: err)
+        }
+    }
+
     /**
      * Helper for opening a connection, starting a transaction, and then running a block of code inside it.
      * The code block can return true if the transaction should be committed. False if we should roll back.
      */
     func transaction<T>(synchronous: Bool = false, _ transactionClosure: @escaping (_ connection: SQLiteDBConnection) throws -> T) -> Deferred<Maybe<T>> {
         return withConnection(SwiftData.Flags.readWriteCreate, synchronous: synchronous) { connection in
+            try connection.transaction(transactionClosure)
+        }
+    }
+
+    func transaction<T: Sendable>(_ transactionClosure: @escaping (_ connection: SQLiteDBConnection) throws -> T) async throws -> T {
+        return try await withConnection(SwiftData.Flags.readWriteCreate) { connection in
             try connection.transaction(transactionClosure)
         }
     }
